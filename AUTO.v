@@ -286,14 +286,35 @@ Definition auto_disq_as_processes (ops : op_list) (avail : membranes) : list pro
   flatten_config (auto_disq ops avail).
 
 (* ========================================================================= *)
-(* Algorithm 3 — parallelization (identity)                                  *)
+(* Algorithm 3 — parallelization                                  *)
 (* ========================================================================= *)
 
+Definition overlaps (e1 e2 : exp) : bool :=
+  existsb
+    (fun x => existsb (fun y => var_eqb x y) (vars_of_exp e2))
+    (vars_of_exp e1).
+
+
+Definition fits_block (op : exp) (block : list exp) : bool :=
+  existsb (fun e => overlaps op e) block.
+
+Fixpoint insert_first_fit (op : exp) (blocks : list (list exp)) : list (list exp) :=
+  match blocks with
+  | [] => [[op]]
+  | b :: bs =>
+      if fits_block op b
+      then (op :: b) :: bs
+      else b :: insert_first_fit op bs
+  end.
+
+
+Fixpoint compute_scc (_hp : hb_relation) (ops : list exp) : list (list exp) :=
+  match ops with
+  | [] => []
+  | op :: tl => insert_first_fit op (compute_scc _hp tl)
+  end.
+
 Definition opt_hp (hp : hb_relation) (_seq : seq_relation) : hb_relation := hp.
-
-Definition compute_scc (_hp : hb_relation) (ops : list exp) : list (list exp) :=
-  ops :: nil.
-
 
 Definition order_ops_in_scc (ops : list exp) : list exp := ops.
 
