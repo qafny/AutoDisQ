@@ -148,8 +148,8 @@ Definition qubit_mem_assign : Type := var -> membrane_id.
 
 Definition fitness_value    : Type := nat.
 Definition distributed_prog : Type := config.
-Definition candidate : Type :=
-  (seq_relation * (op_mem_assign * qubit_mem_assign))%type.
+
+
 
 (* ------------------------------------------------------------------------- *)
 (* Basic list helpers                                                        *)
@@ -218,7 +218,8 @@ Fixpoint remove_exp (x : exp) (xs : list exp) : list exp :=
 Definition gen_os (R : op_list) : op_list := R.
 
 (* ------------------------------------------------------------------------- *)
-(*                       hp <- gen_hp(R)                                  *)
+(* Paper Algorithm 1 line 3: hp <- gen_hp(R)                                  *)
+(* You used: order-in-R + share_qubit => dependency.                          *)
 (* ------------------------------------------------------------------------- *)
 
 Fixpoint index_of_exp (x : exp) (xs : list exp) : nat :=
@@ -750,14 +751,19 @@ Fixpoint filter_fresh (all : list case) (seen : list case) : list case :=
       if mem_case c seen then filter_fresh tl seen
       else c :: filter_fresh tl seen
   end.
+(* candidate element stores: id + the actual functions (seq, mo) *)
+Definition candidate : Type :=
+  (case * (seq_relation * (op_mem_assign * qubit_mem_assign)))%type.
+
+Definition seen_cases (S : list candidate) : list case :=
+  map fst S.
 
 (* are_still_cases(S) *)
-Definition are_still_cases (S : list case) (ALL : list case) : bool :=
-  match filter_fresh ALL S with
+Definition are_still_cases_cases (seen : list case) (ALL : list case) : bool :=
+  match filter_fresh ALL seen with
   | [] => false
   | _  => true
   end.
-
 
 Definition pick_case (S : list case) (ALL : list case) : option case :=
   match filter_fresh ALL S with
@@ -766,14 +772,14 @@ Definition pick_case (S : list case) (ALL : list case) : option case :=
   end.
 
 (* gen_seq(S,hp) *)
-Definition gen_seq_paper
+Definition gen_seq
   (Kseq : nat)
   (hp   : hb_relation)
   (os   : op_list)
-  (S    : list case)
   (ALL  : list case)
+  (S    : list candidate)
   : option (case * seq_relation) :=
-  match pick_case S ALL with
+  match pick_case (seen_cases S) ALL with
   | None => None
   | Some c =>
       let sched_i := fst c in
@@ -782,51 +788,53 @@ Definition gen_seq_paper
   end.
 
 (* gen_mem(S,L,seq) *)
-Definition gen_mem_paper
-  (cfg  : config)   (* L in the paper: available membranes *)
+Definition gen_mem
+  (cfg  : config)  
   (seq  : seq_relation)
   (os   : op_list)
-  (c    : case)
+  (c    : case)     
   : op_mem_assign * qubit_mem_assign :=
   let seed := snd c in
   gen_mem_seed seed cfg seq os.
+
 
 
 (*  while-loop:
    S ← ∅
    while are_still_cases(S) do ... S ← {(seq,mo)} ∪ S *)
 
-Fixpoint auto_disq_loop_paper
+
+Fixpoint auto_disq_loop
   (Kseq : nat)
   (hp   : hb_relation)
   (os   : op_list)
   (cfg  : config)
-  (ALL  : list case)          
-  (Sseen: list case)          
+  (ALL  : list case)
+  (S    : list candidate)        
   (Qbest: distributed_prog)
   (zmin : fitness_value)
-  (fuel : nat)               
+  (fuel : nat)                
   : distributed_prog :=
   match fuel with
   | 0 => Qbest
   | S fuel' =>
-      match gen_seq_paper Kseq hp os Sseen ALL with
-      | None => Qbest
-      | Some (c, seq) =>
-         
-          if are_still_cases Sseen ALL then
-            let '(moO, moQ) := gen_mem_paper cfg seq os c in
+      
+      if are_still_cases_cases (seen_cases S) ALL then
+        match gen_seq Kseq hp os ALL S with
+        | None => Qbest   
+        | Some (c, seq) =>
+            let '(moO, moQ) := gen_mem cfg seq os c in
             let P := gen_prog seq moO moQ os in
             let z := fit P in
-            let Sseen' := c :: Sseen in
+          
+            let S' : list candidate := (c, (seq, (moO, moQ))) :: S in
             if Nat.ltb z zmin
-            then auto_disq_loop_paper Kseq hp os cfg ALL Sseen' P z fuel'
-            else auto_disq_loop_paper Kseq hp os cfg ALL Sseen' Qbest zmin fuel'
-          else Qbest
-      end
+            then auto_disq_loop Kseq hp os cfg ALL S' P z fuel'
+            else auto_disq_loop Kseq hp os cfg ALL S' Qbest zmin fuel'
+        end
+      else
+        Qbest
   end.
-
-(* Full Algorithm 1 *)
 
 Definition auto_disq_alg1_paper
   (Kseq : nat)
@@ -837,7 +845,8 @@ Definition auto_disq_alg1_paper
   let hp := gen_hp R in
   let os := gen_os R in
   let ALL := mk_cases Kseq Kmem in
-  auto_disq_loop_paper Kseq hp os cfg ALL [] ([] : config) INF_SCORE (length ALL).
+  (* S ← ∅ *)
+  auto_disq_loop Kseq hp os cfg ALL [] ([] : config) INF_SCORE (length ALL).
 
 
 
