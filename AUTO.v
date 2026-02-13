@@ -21,9 +21,6 @@ Definition rank         : Type := nat.
 Definition seq_relation : Type := myOp -> rank.
 Definition op_mem_assign : Type := myOp -> membrane_id.
 
-Print aexp.
-Print cbexp.
-Print locus.
 Fixpoint list_eqb {A : Type} (beq : A -> A -> bool) (xs ys : list A) : bool :=
   match xs, ys with
   | [], [] => true
@@ -221,8 +218,7 @@ Fixpoint remove_exp (x : exp) (xs : list exp) : list exp :=
 Definition gen_os (R : op_list) : op_list := R.
 
 (* ------------------------------------------------------------------------- *)
-(* Paper Algorithm 1 line 3: hp <- gen_hp(R)                                  *)
-(* You used: order-in-R + share_qubit => dependency.                          *)
+(*                       hp <- gen_hp(R)                                  *)
 (* ------------------------------------------------------------------------- *)
 
 Fixpoint index_of_exp (x : exp) (xs : list exp) : nat :=
