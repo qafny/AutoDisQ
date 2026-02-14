@@ -1103,5 +1103,100 @@ Compute diff_mem moQ0 (locus_myOp opAP1) 1.
 Compute diff_mem (mem_up_smap moQ0 (diff_mem moQ0 (locus_myOp opAP1) 1) 1)
                 (locus_myOp opAP2) 1.
 
+(* ============================================================ *)
+(* Tests for Algorithm 1                                         *)
+(* ============================================================ *)
+
+Definition cfgA : config := [Memb 0 []; Memb 1 []].
+
+(* Simple: two ops share qubit 0 *)
+Definition Aop1 : myOp := OpAP (CNew 0 1).
+Definition Aop2 : myOp := OpAP (CMeas 0 ([] : locus)).
+Definition AR1  : op_list := [Aop1; Aop2].
+
+Definition AP1 : distributed_prog :=
+  auto_disq_alg1_paper 2 2 AR1 cfgA.
+
+Compute AP1.
+Compute fit AP1.
+
+Definition Aop3 : myOp := OpAP (CNew 1 1).
+Definition Aop4 : myOp := OpDP (NewCh 7 1).
+Definition AR2  : op_list := [Aop1; Aop3; Aop4; Aop2].
+
+Definition AP2 : distributed_prog :=
+  auto_disq_alg1_paper 3 3 AR2 cfgA.
+
+Compute AP2.
+Compute fit AP2.
+
+(* ============================================================ *)
+(* Tests for Algorithm 2                                         *)
+(* ============================================================ *)
+
+Definition seq0 : seq_relation := fun _ => 0.
+
+Definition moO_all0 : op_mem_assign := fun _ => 0.
+Definition moQ_all0 : qubit_mem_assign := fun _ => 0.
+
+Definition P2A : distributed_prog :=
+  gen_prog_paper seq0 moQ_all0 moO_all0 AR1.
+
+Compute P2A.
+Compute fit P2A.  
+
+Definition moO_all1 : op_mem_assign := fun _ => 1.
+Definition moQ_all0_again : qubit_mem_assign := fun _ => 0.
+
+Definition P2B : distributed_prog :=
+  gen_prog_paper seq0 moQ_all0_again moO_all1 AR1.
+
+Compute P2B.
+Compute fit P2B.  
+
+Fixpoint flat_cfg (cfg : config) : list process :=
+  match cfg with
+  | [] => []
+  | Memb _ ps :: tl => ps ++ flat_cfg tl
+  | LockMemb _ _ ps :: tl => ps ++ flat_cfg tl
+  end.
+
+Compute flat_cfg P2A.
+Compute flat_cfg P2B.
+
+
+
+
+(* ============================================================ *)
+(* Tests for Algorithm 3                                         *)
+(* ============================================================ *)
+
+Definition B1 : myOp := OpAP (CNew 0 1).
+Definition B2 : myOp := OpAP (CMeas 0 ([] : locus)).
+Definition B3 : myOp := OpAP (CNew 1 1).
+
+Definition Bops : list myOp := [B1; B2; B3].
+
+(* A custom hp that creates a cycle B1 <-> B2, and B2 -> B3 *)
+Definition hpB : hb_relation :=
+  fun a b =>
+    orb
+      (orb (andb (myOp_eqb a B1) (myOp_eqb b B2))
+           (andb (myOp_eqb a B2) (myOp_eqb b B1)))
+      (andb (myOp_eqb a B2) (myOp_eqb b B3)).
+
+(* A seq that orders B1 then B2 then B3 *)
+Definition seqB : seq_relation :=
+  fun o =>
+    if myOp_eqb o B1 then 0
+    else if myOp_eqb o B2 then 1
+    else 2.
+
+Definition Rpar : list process :=
+  auto_parallelize_alg3 myOp_eqb Bops hpB seqB.
+
+Compute Rpar.
+
+
 
 
