@@ -986,6 +986,123 @@ Definition gen_prog_alg2
 
 
 
+Fixpoint mem_op (eqb : myOp -> myOp -> bool) (x : myOp) (xs : list myOp) : bool :=
+  match xs with
+  | [] => false
+  | y :: tl => if eqb x y then true else mem_op eqb x tl
+  end.
+
+Fixpoint uniq_ops (eqb : myOp -> myOp -> bool) (xs : list myOp) : list myOp :=
+  match xs with
+  | [] => []
+  | x :: tl => if mem_op eqb x tl then uniq_ops eqb tl else x :: uniq_ops eqb tl
+  end.
+
+Fixpoint remove_ops (eqb : myOp -> myOp -> bool) (xs rem : list myOp) : list myOp :=
+  match xs with
+  | [] => []
+  | x :: tl => if mem_op eqb x rem then remove_ops eqb tl rem else x :: remove_ops eqb tl rem
+  end.
+
+Definition opt_hp (hp_l : hb_relation) (seq_l : seq_relation) : hb_relation :=
+  fun a b => andb (hp_l a b) (Nat.ltb (seq_l a) (seq_l b)).
+
+Definition succs (hp : hb_relation) (nodes : list myOp) (x : myOp) : list myOp :=
+  filter (fun y => hp x y) nodes.
+
+Fixpoint reachable_fuel
+  (eqb : myOp -> myOp -> bool)
+  (hp : hb_relation)
+  (nodes : list myOp)
+  (fuel : nat)
+  (seen : list myOp)
+  (x target : myOp) : bool :=
+  if eqb x target then true else
+  match fuel with
+  | 0 => false
+  | S fuel' =>
+      if mem_op eqb x seen then false
+      else
+        let seen' := x :: seen in
+        existsb (fun y => reachable_fuel eqb hp nodes fuel' seen' y target)
+                (succs hp nodes x)
+  end.
+
+Definition reachable
+  (eqb : myOp -> myOp -> bool)
+  (hp : hb_relation)
+  (nodes : list myOp)
+  (x y : myOp) : bool :=
+  reachable_fuel eqb hp nodes (length nodes) [] x y.
+
+Definition scc_of
+  (eqb : myOp -> myOp -> bool)
+  (hp : hb_relation)
+  (nodes : list myOp)
+  (x : myOp) : list myOp :=
+  filter
+    (fun y =>
+       andb (reachable eqb hp nodes x y)
+            (reachable eqb hp nodes y x))
+    nodes.
+
+Fixpoint scc_partition_fuel
+  (fuel : nat)
+  (eqb  : myOp -> myOp -> bool)
+  (hp   : hb_relation)
+  (nodes : list myOp)
+  : list (list myOp) :=
+  match fuel with
+  | 0 => []  
+  | S fuel' =>
+      match nodes with
+      | [] => []
+      | x :: _ =>
+          let comp := scc_of eqb hp nodes x in
+          let rest := remove_ops eqb nodes comp in
+          comp :: scc_partition_fuel fuel' eqb hp rest
+      end
+  end.
+
+Definition scc_partition
+  (eqb  : myOp -> myOp -> bool)
+  (hp   : hb_relation)
+  (nodes : list myOp)
+  : list (list myOp) :=
+  scc_partition_fuel (length nodes) eqb hp nodes.
+
+Definition gen_ops (seq_l : seq_relation) (sbar : list myOp) : list process :=
+  map myOp_to_process (sort_by_seq seq_l sbar).
+
+Fixpoint alg3_loop
+  (seq_l : seq_relation)
+  (S     : list (list myOp))
+  (Rbar  : list process)
+  : list process :=
+  match S with
+  | [] =>
+      Rbar
+  | sbar :: S' =>
+      let R := gen_ops seq_l sbar in
+      let Rbar' := Rbar ++ R in
+      alg3_loop seq_l S' Rbar'
+  end.
+
+
+Definition auto_parallelize_alg3
+  (eqb  : myOp -> myOp -> bool)   
+  (ops_l : list myOp)            
+  (hp_l  : hb_relation)
+  (seq_l : seq_relation)
+  : list process :=
+  let hp_l' := opt_hp hp_l seq_l in  
+  let S := scc_partition eqb hp_l' (uniq_ops eqb ops_l) in  
+  alg3_loop seq_l S ([] : list process).            
+
+
+
+
+
 
 
 

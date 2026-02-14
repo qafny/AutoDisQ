@@ -18,6 +18,7 @@ Extraction
   auto_disq_alg1_paper
   gen_prog_alg2
   gen_prog_loop_alg2
+  auto_parallelize_alg3
   gen_hp
   gen_mem_seed
   gen_seq_many
@@ -28,7 +29,10 @@ Extraction
   insert_send
   insert_rev
   diff_mem
-  mem_up_smap.
+  mem_up_smap
+  alg3_loop
+scc_partition_fuel
+  scc_partition.
 
 
 
