@@ -642,73 +642,30 @@ Definition gen_prog
 (* fit: relocation-aware cost                                         *)
 (* ------------------------------------------------------------------------- *)
 
-Definition is_reloc (e : exp) : bool :=
-  match e with
-  | SKIP _ (Num _) => true
-  | _ => false
-  end.
-
-Definition reloc_pair (e : exp) : (membrane_id * membrane_id) :=
-  match e with
-  | SKIP a (Num b) => (a, b)
-  | _ => (0, 0)
-  end.
-
-Fixpoint mem_pair (p : membrane_id * membrane_id) (ps : list (membrane_id * membrane_id)) : bool :=
-  match ps with
-  | [] => false
-  | q :: tl =>
-      if andb (var_eqb (fst p) (fst q)) (var_eqb (snd p) (snd q))
-      then true else mem_pair p tl
-  end.
-
-Fixpoint uniq_pairs (ps : list (membrane_id * membrane_id)) : list (membrane_id * membrane_id) :=
-  match ps with
-  | [] => []
-  | p :: tl => if mem_pair p tl then uniq_pairs tl else p :: uniq_pairs tl
-  end.
-
-(* Extract all exp that appear in local actions CAppU inside a process *)
-Fixpoint extract_exps_from_proc (p : process) : list exp :=
+Fixpoint count_comm_proc (p : process) : nat :=
   match p with
-  | PNil => []
-  | AP a p' =>
-      match a with
-      | CAppU _ e => e :: extract_exps_from_proc p'
-      | _ => extract_exps_from_proc p'
+  | PNil => 0
+  | AP _ p' => count_comm_proc p'
+  | DP d p' =>
+      match d with
+      | Send _ _ => S (count_comm_proc p')
+      | Recv _ _ => S (count_comm_proc p')
+      | _ => count_comm_proc p'
       end
-  | DP _ p' => extract_exps_from_proc p'
-  | PIf _ p1 p2 => extract_exps_from_proc p1 ++ extract_exps_from_proc p2
+  | PIf _ p1 p2 => count_comm_proc p1 + count_comm_proc p2
   end.
 
-Fixpoint extract_all_exps (cfg : config) : list exp :=
+Fixpoint count_comm_cfg (cfg : config) : nat :=
   match cfg with
-  | [] => []
-  | Memb _ ps :: tl =>
-      concat (map extract_exps_from_proc ps) ++ extract_all_exps tl
-  | LockMemb _ _ ps :: tl =>
-      concat (map extract_exps_from_proc ps) ++ extract_all_exps tl
-  end.
-
-Fixpoint count_relocs (es : list exp) : nat :=
-  match es with
   | [] => 0
-  | e :: tl => (if is_reloc e then 1 else 0) + count_relocs tl
-  end.
-
-Fixpoint collect_pairs (es : list exp) : list (membrane_id * membrane_id) :=
-  match es with
-  | [] => []
-  | e :: tl =>
-      if is_reloc e then reloc_pair e :: collect_pairs tl else collect_pairs tl
+  | Memb _ ps :: tl =>
+      fold_right (fun p acc => count_comm_proc p + acc) 0 ps + count_comm_cfg tl
+  | LockMemb _ _ ps :: tl =>
+      fold_right (fun p acc => count_comm_proc p + acc) 0 ps + count_comm_cfg tl
   end.
 
 Definition fit (P : distributed_prog) : fitness_value :=
-  let es := extract_all_exps P in
-  let reloc := count_relocs es in
-  let pairs := length (uniq_pairs (collect_pairs es)) in
-  reloc + 5 * pairs.
-
+  count_comm_cfg P.
 
 Definition INF_SCORE : fitness_value := Nat.pow 10 9.
 
@@ -799,57 +756,6 @@ Definition gen_mem
 
 
 
-(*  while-loop:
-   S ← ∅
-   while are_still_cases(S) do ... S ← {(seq,mo)} ∪ S *)
-
-
-Fixpoint auto_disq_loop
-  (Kseq : nat)
-  (hp   : hb_relation)
-  (os   : op_list)
-  (cfg  : config)
-  (ALL  : list case)
-  (S    : list candidate)        
-  (Qbest: distributed_prog)
-  (zmin : fitness_value)
-  (fuel : nat)                
-  : distributed_prog :=
-  match fuel with
-  | 0 => Qbest
-  | S fuel' =>
-      
-      if are_still_cases_cases (seen_cases S) ALL then
-        match gen_seq Kseq hp os ALL S with
-        | None => Qbest   
-        | Some (c, seq) =>
-            let '(moO, moQ) := gen_mem cfg seq os c in
-            let P := gen_prog seq moO moQ os in
-            let z := fit P in
-          
-            let S' : list candidate := (c, (seq, (moO, moQ))) :: S in
-            if Nat.ltb z zmin
-            then auto_disq_loop Kseq hp os cfg ALL S' P z fuel'
-            else auto_disq_loop Kseq hp os cfg ALL S' Qbest zmin fuel'
-        end
-      else
-        Qbest
-  end.
-
-Definition auto_disq_alg1_paper
-  (Kseq : nat)
-  (Kmem : nat)
-  (R    : op_list)
-  (cfg  : config)
-  : distributed_prog :=
-  let hp := gen_hp R in
-  let os := gen_os R in
-  let ALL := mk_cases Kseq Kmem in
-  (* S ← ∅ *)
-  auto_disq_loop Kseq hp os cfg ALL [] ([] : config) INF_SCORE (length ALL).
-
-
-
 Definition Smap : Type := list (var * membrane_id).
 Definition locus_myOp (op : myOp) : list var := vars_of_myOp op.
 
@@ -876,50 +782,23 @@ Fixpoint mem_up_smap
       mem_up_smap mo_cur' tl l
   end.
 
-Fixpoint insert_send
+Fixpoint insert_send_recv
   (P : config)
   (Sp : Smap)
+  (l  : membrane_id)
   (name : nat)
-  : config * nat * (list (var * var)) :=
-  match Sp with
-  | [] =>
-      (P, name, [])
-
-  | (q, src) :: tl =>
-    
-      let c : var := name in
-      
-      let alias : var := S name in
-
-      let P1 :=
-        place_operation
-          P
-          src
-          (OpDP (Send c (BA q))) in
-
-      let '(P2, name2, m') :=
-        insert_send P1 tl (name + 2) in
-
-      (P2, name2, (q, alias) :: m')
-  end.
-
-
-Fixpoint insert_rev
-  (P : config) (Sp : Smap) (l : membrane_id) (name : nat)
   : config * nat :=
   match Sp with
   | [] => (P, name)
-
-  | (_q, src) :: tl =>
-      let c : var := name in
-      let alias : var := S name in
-
-      let P1 := place_operation P l (OpDP (Recv c alias)) in
-
-      let P2 := place_reloc P1 l src l in
-
-      insert_rev P2 tl l (name + 2)
+  | (q, src) :: tl =>
+      let c     : var := name in
+      let alias : var := name + 1 in
+      let P0 := place_operation P src (OpDP (NewCh c 1)) in
+      let P1 := place_operation P0 src (OpDP (Send c (BA q))) in
+      let P2 := place_operation P1 l (OpDP (Recv c alias)) in
+      insert_send_recv P2 tl l (name + 2)
   end.
+
 
 Fixpoint mem_up (mo_cur : qubit_mem_assign) (qs : list var) (l : membrane_id) : qubit_mem_assign :=
   match qs with
@@ -939,41 +818,28 @@ Definition place
 
 Fixpoint gen_prog_loop_alg2
   (seq    : list myOp)
-  (mo_cur : var -> membrane_id)      (* mo_cur in the paper *)
+  (mo_cur : var -> membrane_id)
   (moO    : myOp -> membrane_id)
   (P      : config)
   (name   : nat)
   : config :=
   match seq with
-  | [] =>
-
-      P
-
+  | [] => P
   | op :: seq' =>
-
       let l : membrane_id := moO op in
-
       let S : Smap := diff_mem mo_cur (locus_myOp op) l in
 
-      let '(P1, name1, mo1) :=
+      let '(P1, name1) :=
         match S with
-        | [] =>
-
-            (P, name, ([] : list (var * var)))
-        | _ =>
-  
-            let '(Psend, nameS, renS) := insert_send P S name in
-
-            let '(Prev, nameR) := insert_rev Psend S l nameS in
-            (Prev, nameR, renS)
+        | [] => (P, name)
+        | _  => insert_send_recv P S l name
         end in
 
       let mo_cur' : var -> membrane_id := mem_up_smap mo_cur S l in
-
       let P2 : config := place P1 op l name1 in
-
       gen_prog_loop_alg2 seq' mo_cur' moO P2 name1
   end.
+
 Definition empty_config : config := [].
 
 Definition gen_prog_alg2
@@ -983,6 +849,59 @@ Definition gen_prog_alg2
   : config :=
   gen_prog_loop_alg2 seq moQ moO empty_config 0.
 
+Definition gen_prog_paper
+  (seq : seq_relation)
+  (moQ : qubit_mem_assign)
+  (moO : op_mem_assign)
+  (os  : op_list)
+  : distributed_prog :=
+  let ops_sorted : list myOp := order_by_seq seq os in
+  gen_prog_alg2 ops_sorted moQ moO.
+
+(*  while-loop:
+   S ← ∅
+   while are_still_cases(S) do ... S ← {(seq,mo)} ∪ S *)
+Fixpoint auto_disq_loop
+  (Kseq : nat)
+  (hp   : hb_relation)
+  (os   : op_list)
+  (cfg  : config)
+  (ALL  : list case)
+  (S    : list candidate)
+  (Qbest: distributed_prog)
+  (zmin : fitness_value)
+  (fuel : nat)
+  : distributed_prog :=
+  match fuel with
+  | 0 => Qbest
+  | S fuel' =>
+      if are_still_cases_cases (seen_cases S) ALL then
+        match gen_seq Kseq hp os ALL S with
+        | None => Qbest
+        | Some (c, seq) =>
+            let '(moO, moQ) := gen_mem cfg seq os c in
+            let P := gen_prog_paper seq moQ moO os in
+            let z := fit P in
+            let S' : list candidate := (c, (seq, (moO, moQ))) :: S in
+            if Nat.ltb z zmin
+            then auto_disq_loop Kseq hp os cfg ALL S' P z fuel'
+            else auto_disq_loop Kseq hp os cfg ALL S' Qbest zmin fuel'
+        end
+      else
+        Qbest
+  end.
+
+Definition auto_disq_alg1_paper
+  (Kseq : nat)
+  (Kmem : nat)
+  (R    : op_list)
+  (cfg  : config)
+  : distributed_prog :=
+  let hp := gen_hp R in
+  let os := gen_os R in
+  let ALL := mk_cases Kseq Kmem in
+  (* S ← ∅ *)
+  auto_disq_loop Kseq hp os cfg ALL [] ([] : config) INF_SCORE (length ALL).
 
 
 
@@ -1097,13 +1016,94 @@ Definition auto_parallelize_alg3
   : list process :=
   let hp_l' := opt_hp hp_l seq_l in  
   let S := scc_partition eqb hp_l' (uniq_ops eqb ops_l) in  
-  alg3_loop seq_l S ([] : list process).            
+  alg3_loop seq_l S ([] : list process).
 
 
+(* --- Tiny sanity instance --- *)
+
+Definition cfg1 : config := [Memb 0 []; Memb 1 []].
+
+(* Two trivial operations that share var 0 so hp likely links them *)
+Definition op1 : myOp := OpAP (CNew 0 1).
+Definition op2 : myOp := OpAP (CMeas 0 ([] : locus)).
+Definition R1  : op_list := [op1; op2].
+
+Definition P1 : distributed_prog :=
+  auto_disq_alg1_paper 2 2 R1 cfg1.
+
+Compute P1.
+
+Compute fit P1.
+
+Definition cfg_test : config := [Memb 0 []; Memb 1 []].
+
+Definition S_empty : Smap := [].
+
+Definition T1 :=
+  insert_send_recv cfg_test S_empty 1 0.
+
+Compute T1.
+
+Definition S_one : Smap := [(0, 0)].
+
+Definition T2 :=
+  insert_send_recv cfg_test S_one 1 0.
+
+Compute T2.
 
 
+Definition S_two : Smap := [(0,0); (1,0)].
+Definition T3 := insert_send_recv cfg_test S_two 1 0.
+Compute T3.
+Definition memb_procs (m : memb) : list process :=
+  match m with
+  | Memb _ ps => ps
+  | LockMemb _ _ ps => ps
+  end.
+
+Fixpoint flatten_config (cfg : config) : list process :=
+  match cfg with
+  | [] => []
+  | m :: tl => memb_procs m ++ flatten_config tl
+  end.
+
+Compute flatten_config (fst T2).
+Definition opAP1 : myOp := OpAP (CNew 0 1).
+
+Definition moQ0 : var -> membrane_id := fun _ => 0.
+Definition moO_to_1 : myOp -> membrane_id := fun _ => 1.
+
+Definition TB :=
+  gen_prog_loop_alg2 ([opAP1] : list myOp) moQ0 moO_to_1 empty_config 0.
+
+Compute TB.
+Compute flatten_config TB.
+
+Definition cond0 : cbexp := CEq (BA 0) (Num 0).
+
+Definition p_then : process := AP (CNew 0 1) PNil.
+Definition p_else : process := PNil.
+
+Definition opIF1 : myOp := OpIf cond0 p_then p_else.
+
+Definition TC :=
+  gen_prog_loop_alg2 ((opIF1 :: nil) : list myOp) moQ0 moO_to_1 empty_config 0.
 
 
+Compute TC.
+Compute flatten_config TC.
+
+Definition opAP2 : myOp := OpAP (CMeas 0 ([] : locus)).
+Definition seq2 : list myOp := [opAP1; opAP2].
+
+Definition TD :=
+  gen_prog_alg2 seq2 moQ0 moO_to_1.
+
+Compute TD.
+Compute flatten_config TD.
+Compute diff_mem moQ0 (locus_myOp opAP1) 1.
+Compute diff_mem (mem_up_smap moQ0 (diff_mem moQ0 (locus_myOp opAP1) 1) 1)
+                (locus_myOp opAP2) 1.
 
 
 
