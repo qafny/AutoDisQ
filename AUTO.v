@@ -1019,11 +1019,9 @@ Definition auto_parallelize_alg3
   alg3_loop seq_l S ([] : list process).
 
 
-(* --- Tiny sanity instance --- *)
 
 Definition cfg1 : config := [Memb 0 []; Memb 1 []].
 
-(* Two trivial operations that share var 0 so hp likely links them *)
 Definition op1 : myOp := OpAP (CNew 0 1).
 Definition op2 : myOp := OpAP (CMeas 0 ([] : locus)).
 Definition R1  : op_list := [op1; op2].
