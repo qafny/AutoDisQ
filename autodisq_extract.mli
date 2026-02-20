@@ -47,6 +47,10 @@ type uint1 =
 
 val add : int -> int -> int
 
+val mul : int -> int -> int
+
+val sub : int -> int -> int
+
 val tail_add : int -> int -> int
 
 val tail_addmul : int -> int -> int -> int
@@ -63,22 +67,38 @@ val of_hex_uint : uint0 -> int
 
 val of_num_uint : uint1 -> int
 
+val divmod : int -> int -> int -> int -> int * int
+
+val modulo : int -> int -> int
+
 module Nat :
  sig
+  val add : int -> int -> int
+
+  val mul : int -> int -> int
+
   val sub : int -> int -> int
 
   val ltb : int -> int -> bool
 
   val max : int -> int -> int
 
+  val even : int -> bool
+
+  val pow : int -> int -> int
+
   val divmod : int -> int -> int -> int -> int * int
 
   val div : int -> int -> int
 
   val modulo : int -> int -> int
+
+  val gcd : int -> int -> int
  end
 
 val nth_error : 'a1 list -> int -> 'a1 option
+
+val rev : 'a1 list -> 'a1 list
 
 val concat : 'a1 list list -> 'a1 list
 
@@ -91,8 +111,6 @@ val existsb : ('a1 -> bool) -> 'a1 list -> bool
 val forallb : ('a1 -> bool) -> 'a1 list -> bool
 
 val filter : ('a1 -> bool) -> 'a1 list -> 'a1 list
-
-val firstn : int -> 'a1 list -> 'a1 list
 
 type var = int
 
@@ -213,21 +231,32 @@ val vars_of_cbexp : cbexp -> var list
 
 val vars_of_myOp : myOp -> var list
 
+val qubits_of_range : range -> var list
+
+val qubits_of_locus : locus -> var list
+
+val qubits_of_cexp : cexp -> var list
+
+val qubits_of_myOp : myOp -> var list
+
 val share_qubit_myOp : myOp -> myOp -> bool
 
 val index_of_myOp : myOp -> myOp list -> int
 
 val gen_hp : op_list -> hb_relation
 
-val nth_default : 'a1 -> 'a1 list -> int -> 'a1
+val remove_one : (myOp -> myOp -> bool) -> myOp -> myOp list -> myOp list
 
-val insert_all : myOp -> myOp list -> myOp list list
+val has_incoming_from_nodes : hb_relation -> myOp list -> myOp -> bool
 
-val permutations : myOp list -> myOp list list
+val available_nodes : hb_relation -> myOp list -> myOp list
 
-val respects_hp : hb_relation -> myOp list -> bool
+val nth_default_myOp : myOp -> myOp list -> int -> myOp
 
-val topo_orders_k : hb_relation -> myOp list -> int -> myOp list list
+val topo_kahn_fuel :
+  hb_relation -> int -> myOp list -> int -> myOp list -> myOp list option
+
+val topo_kahn : hb_relation -> int -> myOp list -> myOp list option
 
 val seq_from_order : myOp list -> seq_relation
 
@@ -341,6 +370,8 @@ val auto_disq_loop :
 
 val auto_disq_alg1_paper : int -> int -> op_list -> config -> distributed_prog
 
+val succs : hb_relation -> myOp list -> myOp -> myOp list
+
 val mem_op : (myOp -> myOp -> bool) -> myOp -> myOp list -> bool
 
 val uniq_ops : (myOp -> myOp -> bool) -> myOp list -> myOp list
@@ -348,8 +379,6 @@ val uniq_ops : (myOp -> myOp -> bool) -> myOp list -> myOp list
 val remove_ops : (myOp -> myOp -> bool) -> myOp list -> myOp list -> myOp list
 
 val opt_hp : hb_relation -> seq_relation -> hb_relation
-
-val succs : hb_relation -> myOp list -> myOp -> myOp list
 
 val reachable_fuel :
   (myOp -> myOp -> bool) -> hb_relation -> myOp list -> int -> myOp list ->
@@ -446,3 +475,63 @@ val proc_Xcorr : process
 val proc_Zcorr : process
 
 val p_6 : op_list
+
+val w0 : var
+
+val w1 : var
+
+val iNC_mod4 : exp
+
+val pow_mod : int -> int -> int -> int
+
+val two_pow : int -> int
+
+val find_period_exact_from : int -> int -> int -> int -> int
+
+val find_period_exact : int -> int -> int -> int
+
+val shor_factors_from_r : int -> int -> int -> int * int
+
+val p0 : var
+
+val p1 : var
+
+val p2 : var
+
+val m0 : var
+
+val m1 : var
+
+val m2 : var
+
+val new_p0 : cexp
+
+val new_p1 : cexp
+
+val new_p2 : cexp
+
+val new_w0 : cexp
+
+val new_w1 : cexp
+
+val appH_p0 : cexp
+
+val appH_p1 : cexp
+
+val appH_p2 : cexp
+
+val cU_p0 : cexp
+
+val cU_p1 : cexp
+
+val cU_p2 : cexp
+
+val appRQFT : cexp
+
+val meas_p0 : cexp
+
+val meas_p1 : cexp
+
+val meas_p2 : cexp
+
+val shor_Qprog : op_list

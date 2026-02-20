@@ -17,6 +17,10 @@ Require Import DisQ.AUTO_Test.
 
 Extraction
   "autodisq_extract.ml"
+  qubits_of_range
+  qubits_of_locus
+  qubits_of_cexp
+  qubits_of_myOp
   auto_disq_alg1_paper
   gen_prog_alg2
   gen_prog_loop_alg2
@@ -35,7 +39,12 @@ Extraction
 scc_partition_fuel
   scc_partition
   alg3_loop
- P_1 P_3 P_4 P_5 P_6.
+  find_period_exact
+  shor_factors_from_r
+  pow_mod
+
+ P_1 P_3 P_4 P_5 P_6
+Shor_Qprog.
 
 
 

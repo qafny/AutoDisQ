@@ -28,9 +28,316 @@ let rec app l0 m =
   | [] -> m
   | a :: l1 -> a :: (app l1 m)
 
+type uint =
+| Nil
+| D0 of uint
+| D1 of uint
+| D2 of uint
+| D3 of uint
+| D4 of uint
+| D5 of uint
+| D6 of uint
+| D7 of uint
+| D8 of uint
+| D9 of uint
+
+type uint0 =
+| Nil0
+| D10 of uint0
+| D11 of uint0
+| D12 of uint0
+| D13 of uint0
+| D14 of uint0
+| D15 of uint0
+| D16 of uint0
+| D17 of uint0
+| D18 of uint0
+| D19 of uint0
+| Da of uint0
+| Db of uint0
+| Dc of uint0
+| Dd of uint0
+| De of uint0
+| Df of uint0
+
+type uint1 =
+| UIntDecimal of uint
+| UIntHexadecimal of uint0
+
 (** val add : int -> int -> int **)
 
 let rec add = (+)
+
+(** val mul : int -> int -> int **)
+
+let rec mul = ( * )
+
+(** val sub : int -> int -> int **)
+
+let rec sub = fun n m -> Stdlib.max 0 (n-m)
+
+(** val tail_add : int -> int -> int **)
+
+let rec tail_add n m =
+  (fun fO fS n -> if n=0 then fO () else fS (n-1))
+    (fun _ -> m)
+    (fun n0 -> tail_add n0 (Stdlib.Int.succ m))
+    n
+
+(** val tail_addmul : int -> int -> int -> int **)
+
+let rec tail_addmul r n m =
+  (fun fO fS n -> if n=0 then fO () else fS (n-1))
+    (fun _ -> r)
+    (fun n0 -> tail_addmul (tail_add m r) n0 m)
+    n
+
+(** val tail_mul : int -> int -> int **)
+
+let tail_mul n m =
+  tail_addmul 0 n m
+
+(** val of_uint_acc : uint -> int -> int **)
+
+let rec of_uint_acc d acc =
+  match d with
+  | Nil -> acc
+  | D0 d0 ->
+    of_uint_acc d0
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ 0)))))))))) acc)
+  | D1 d0 ->
+    of_uint_acc d0 (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ 0)))))))))) acc))
+  | D2 d0 ->
+    of_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ 0)))))))))) acc)))
+  | D3 d0 ->
+    of_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ 0)))))))))) acc))))
+  | D4 d0 ->
+    of_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ 0)))))))))) acc)))))
+  | D5 d0 ->
+    of_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ 0)))))))))) acc))))))
+  | D6 d0 ->
+    of_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ 0)))))))))) acc)))))))
+  | D7 d0 ->
+    of_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ 0)))))))))) acc))))))))
+  | D8 d0 ->
+    of_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ 0)))))))))) acc)))))))))
+  | D9 d0 ->
+    of_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ 0)))))))))) acc))))))))))
+
+(** val of_uint : uint -> int **)
+
+let of_uint d =
+  of_uint_acc d 0
+
+(** val of_hex_uint_acc : uint0 -> int -> int **)
+
+let rec of_hex_uint_acc d acc =
+  match d with
+  | Nil0 -> acc
+  | D10 d0 ->
+    of_hex_uint_acc d0
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc)
+  | D11 d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc))
+  | D12 d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc)))
+  | D13 d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc))))
+  | D14 d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc)))))
+  | D15 d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc))))))
+  | D16 d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc)))))))
+  | D17 d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc))))))))
+  | D18 d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc)))))))))
+  | D19 d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc))))))))))
+  | Da d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc)))))))))))
+  | Db d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc))))))))))))
+  | Dc d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc)))))))))))))
+  | Dd d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc))))))))))))))
+  | De d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc)))))))))))))))
+  | Df d0 ->
+    of_hex_uint_acc d0 (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+      (tail_mul (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+        (Stdlib.Int.succ 0)))))))))))))))) acc))))))))))))))))
+
+(** val of_hex_uint : uint0 -> int **)
+
+let of_hex_uint d =
+  of_hex_uint_acc d 0
+
+(** val of_num_uint : uint1 -> int **)
+
+let of_num_uint = function
+| UIntDecimal d0 -> of_uint d0
+| UIntHexadecimal d0 -> of_hex_uint d0
+
+(** val divmod : int -> int -> int -> int -> int * int **)
+
+let rec divmod x y q u =
+  (fun fO fS n -> if n=0 then fO () else fS (n-1))
+    (fun _ -> (q, u))
+    (fun x' ->
+    (fun fO fS n -> if n=0 then fO () else fS (n-1))
+      (fun _ -> divmod x' y (Stdlib.Int.succ q) y)
+      (fun u' -> divmod x' y q u')
+      u)
+    x
+
+(** val modulo : int -> int -> int **)
+
+let modulo x y =
+  (fun fO fS n -> if n=0 then fO () else fS (n-1))
+    (fun _ -> x)
+    (fun y' -> sub y' (snd (divmod x y' 0 y')))
+    y
 
 module Nat =
  struct
@@ -79,12 +386,24 @@ module Nat =
         m)
       n
 
+  (** val even : int -> bool **)
+
+  let rec even n =
+    (fun fO fS n -> if n=0 then fO () else fS (n-1))
+      (fun _ -> true)
+      (fun n0 ->
+      (fun fO fS n -> if n=0 then fO () else fS (n-1))
+        (fun _ -> false)
+        (fun n' -> even n')
+        n0)
+      n
+
   (** val pow : int -> int -> int **)
 
   let rec pow n m =
     (fun fO fS n -> if n=0 then fO () else fS (n-1))
       (fun _ -> Stdlib.Int.succ 0)
-      (fun m0 -> mul n (pow n m0))
+      (fun m3 -> mul n (pow n m3))
       m
 
   (** val divmod : int -> int -> int -> int -> int * int **)
@@ -114,6 +433,14 @@ module Nat =
       (fun _ -> x)
       (fun y' -> sub y' (snd (divmod x y' 0 y')))
       y
+
+  (** val gcd : int -> int -> int **)
+
+  let rec gcd a b =
+    (fun fO fS n -> if n=0 then fO () else fS (n-1))
+      (fun _ -> b)
+      (fun a' -> gcd (modulo b (Stdlib.Int.succ a')) (Stdlib.Int.succ a'))
+      a
  end
 
 (** val nth_error : 'a1 list -> int -> 'a1 option **)
@@ -127,6 +454,12 @@ let rec nth_error l0 n =
                | [] -> None
                | _ :: l1 -> nth_error l1 n0)
     n
+
+(** val rev : 'a1 list -> 'a1 list **)
+
+let rec rev = function
+| [] -> []
+| x :: l' -> app (rev l') (x :: [])
 
 (** val concat : 'a1 list list -> 'a1 list **)
 
@@ -163,16 +496,6 @@ let rec forallb f = function
 let rec filter f = function
 | [] -> []
 | x :: l1 -> if f x then x :: (filter f l1) else filter f l1
-
-(** val firstn : int -> 'a1 list -> 'a1 list **)
-
-let rec firstn n l0 =
-  (fun fO fS n -> if n=0 then fO () else fS (n-1))
-    (fun _ -> [])
-    (fun n0 -> match l0 with
-               | [] -> []
-               | a :: l1 -> a :: (firstn n0 l1))
-    n
 
 type var = int
 
@@ -308,8 +631,8 @@ let bound_eqb b1 b2 =
 let range_eqb r1 r2 =
   let (p, hi1) = r1 in
   let (x1, lo1) = p in
-  let (p0, hi2) = r2 in
-  let (x2, lo2) = p0 in
+  let (p3, hi2) = r2 in
+  let (x2, lo2) = p3 in
   (&&) ((=) x1 x2) ((&&) (bound_eqb lo1 lo2) (bound_eqb hi1 hi2))
 
 (** val locus_eqb : locus -> locus -> bool **)
@@ -408,21 +731,21 @@ let cdexp_eqb d1 d2 =
 
 (** val process_eqb : process -> process -> bool **)
 
-let rec process_eqb p1 p2 =
-  match p1 with
-  | PNil -> (match p2 with
+let rec process_eqb p3 p4 =
+  match p3 with
+  | PNil -> (match p4 with
              | PNil -> true
              | _ -> false)
   | AP (a1, p1') ->
-    (match p2 with
+    (match p4 with
      | AP (a2, p2') -> (&&) (cexp_eqb a1 a2) (process_eqb p1' p2')
      | _ -> false)
   | DP (a1, p1') ->
-    (match p2 with
+    (match p4 with
      | DP (a2, p2') -> (&&) (cdexp_eqb a1 a2) (process_eqb p1' p2')
      | _ -> false)
   | PIf (b1, p1a, p1b) ->
-    (match p2 with
+    (match p4 with
      | PIf (b2, p2a, p2b) ->
        (&&) (cbexp_eqb b1 b2)
          ((&&) (process_eqb p1a p2a) (process_eqb p1b p2b))
@@ -438,10 +761,10 @@ let myOp_eqb x y =
   | OpDP a1 -> (match y with
                 | OpDP a2 -> cdexp_eqb a1 a2
                 | _ -> false)
-  | OpIf (b1, p1, q1) ->
+  | OpIf (b1, p3, q1) ->
     (match y with
-     | OpIf (b2, p2, q2) ->
-       (&&) (cbexp_eqb b1 b2) ((&&) (process_eqb p1 p2) (process_eqb q1 q2))
+     | OpIf (b2, p4, q2) ->
+       (&&) (cbexp_eqb b1 b2) ((&&) (process_eqb p3 p4) (process_eqb q1 q2))
      | _ -> false)
 
 type qubit_mem_assign = var -> membrane_id
@@ -525,13 +848,36 @@ let vars_of_myOp = function
    | Recv (c, x) -> c :: (x :: []))
 | OpIf (b, _, _) -> vars_of_cbexp b
 
+(** val qubits_of_range : range -> var list **)
+
+let qubits_of_range = function
+| (p, _) -> let (q, _) = p in q :: []
+
+(** val qubits_of_locus : locus -> var list **)
+
+let qubits_of_locus l0 =
+  concat (map qubits_of_range l0)
+
+(** val qubits_of_cexp : cexp -> var list **)
+
+let qubits_of_cexp = function
+| CNew (q, _) -> q :: []
+| CAppU (_, e) -> vars_of_exp e
+| CMeas (_, k) -> qubits_of_locus k
+
+(** val qubits_of_myOp : myOp -> var list **)
+
+let qubits_of_myOp = function
+| OpAP a -> qubits_of_cexp a
+| _ -> []
+
 (** val share_qubit_myOp : myOp -> myOp -> bool **)
 
 let share_qubit_myOp o1 o2 =
   negb
     ((=)
-      (length (intersect (uniq (vars_of_myOp o1)) (uniq (vars_of_myOp o2))))
-      0)
+      (length
+        (intersect (uniq (qubits_of_myOp o1)) (uniq (qubits_of_myOp o2)))) 0)
 
 (** val index_of_myOp : myOp -> myOp list -> int **)
 
@@ -545,43 +891,65 @@ let gen_hp r o1 o2 =
   let i = index_of_myOp o1 r in
   let j = index_of_myOp o2 r in (&&) (Nat.ltb i j) (share_qubit_myOp o1 o2)
 
-(** val nth_default : 'a1 -> 'a1 list -> int -> 'a1 **)
+(** val remove_one :
+    (myOp -> myOp -> bool) -> myOp -> myOp list -> myOp list **)
 
-let rec nth_default d xs n =
+let rec remove_one eqb x = function
+| [] -> []
+| y :: tl -> if eqb x y then tl else y :: (remove_one eqb x tl)
+
+(** val has_incoming_from_nodes : hb_relation -> myOp list -> myOp -> bool **)
+
+let has_incoming_from_nodes hp nodes x =
+  existsb (fun y -> hp y x) nodes
+
+(** val available_nodes : hb_relation -> myOp list -> myOp list **)
+
+let available_nodes hp nodes =
+  filter (fun x -> negb (has_incoming_from_nodes hp nodes x)) nodes
+
+(** val nth_default_myOp : myOp -> myOp list -> int -> myOp **)
+
+let rec nth_default_myOp d xs n =
   (fun fO fS n -> if n=0 then fO () else fS (n-1))
     (fun _ -> match xs with
               | [] -> d
               | x :: _ -> x)
     (fun n' -> match xs with
                | [] -> d
-               | _ :: tl -> nth_default d tl n')
+               | _ :: tl -> nth_default_myOp d tl n')
     n
 
-(** val insert_all : myOp -> myOp list -> myOp list list **)
+(** val topo_kahn_fuel :
+    hb_relation -> int -> myOp list -> int -> myOp list -> myOp list option **)
 
-let rec insert_all x = function
-| [] -> (x :: []) :: []
-| y :: tl -> (x :: (y :: tl)) :: (map (fun zs -> y :: zs) (insert_all x tl))
+let rec topo_kahn_fuel hp schedule_index nodes fuel acc =
+  (fun fO fS n -> if n=0 then fO () else fS (n-1))
+    (fun _ -> None)
+    (fun fuel' ->
+    match nodes with
+    | [] -> Some (rev acc)
+    | _ :: _ ->
+      let avs = available_nodes hp nodes in
+      (match match avs with
+             | [] -> None
+             | _ :: _ ->
+               let idx = Nat.modulo schedule_index (length avs) in
+               Some
+               (nth_default_myOp
+                 (match avs with
+                  | [] -> OpAP (CNew (0, 0))
+                  | x :: _ -> x) avs idx) with
+       | Some x ->
+         topo_kahn_fuel hp (Stdlib.Int.succ schedule_index)
+           (remove_one myOp_eqb x nodes) fuel' (x :: acc)
+       | None -> None))
+    fuel
 
-(** val permutations : myOp list -> myOp list list **)
+(** val topo_kahn : hb_relation -> int -> myOp list -> myOp list option **)
 
-let rec permutations = function
-| [] -> [] :: []
-| x :: tl -> concat (map (insert_all x) (permutations tl))
-
-(** val respects_hp : hb_relation -> myOp list -> bool **)
-
-let rec respects_hp hp = function
-| [] -> true
-| x :: tl ->
-  let ok_x = forallb (fun y -> negb (hp y x)) tl in
-  (&&) ok_x (respects_hp hp tl)
-
-(** val topo_orders_k : hb_relation -> myOp list -> int -> myOp list list **)
-
-let topo_orders_k hp nodes k =
-  let perms = permutations nodes in
-  let good = filter (respects_hp hp) perms in firstn k good
+let topo_kahn hp schedule_index nodes =
+  topo_kahn_fuel hp schedule_index nodes (Stdlib.Int.succ (length nodes)) []
 
 (** val seq_from_order : myOp list -> seq_relation **)
 
@@ -591,15 +959,10 @@ let seq_from_order order o =
 (** val gen_seq_many :
     int -> int -> hb_relation -> op_list -> seq_relation **)
 
-let gen_seq_many kseq schedule_index hp os =
-  let schedules = topo_orders_k hp os kseq in
-  let n = length schedules in
-  ((fun fO fS n -> if n=0 then fO () else fS (n-1))
-     (fun _ _ -> 0)
-     (fun _ ->
-     let idx = Nat.modulo schedule_index n in
-     let order = nth_default [] schedules idx in seq_from_order order)
-     n)
+let gen_seq_many _ schedule_index hp os =
+  match topo_kahn hp schedule_index os with
+  | Some order -> seq_from_order order
+  | None -> (fun _ -> 0)
 
 (** val default_mid : membrane_id **)
 
@@ -720,8 +1083,8 @@ let rec build_moO cfg seed ops_sorted prev tbl =
               | [] -> default_mid
               | _ :: _ ->
                 (match nth_error cfg idx with
-                 | Some m0 ->
-                   (match m0 with
+                 | Some m3 ->
+                   (match m3 with
                     | Memb (l0, _) -> l0
                     | LockMemb (l0, _, _) -> l0)
                  | None -> first_mid cfg))
@@ -738,8 +1101,8 @@ let rec build_moO cfg seed ops_sorted prev tbl =
          | [] -> default_mid
          | _ :: _ ->
            (match nth_error cfg idx with
-            | Some m0 ->
-              (match m0 with
+            | Some m3 ->
+              (match m3 with
                | Memb (l0, _) -> l0
                | LockMemb (l0, _, _) -> l0)
             | None -> first_mid cfg))
@@ -834,7 +1197,7 @@ let rec count_comm_proc = function
   (match d with
    | NewCh (_, _) -> count_comm_proc p'
    | _ -> Stdlib.Int.succ (count_comm_proc p'))
-| PIf (_, p1, p2) -> add (count_comm_proc p1) (count_comm_proc p2)
+| PIf (_, p3, p4) -> add (count_comm_proc p3) (count_comm_proc p4)
 
 (** val count_comm_cfg : config -> int **)
 
@@ -857,12 +1220,8 @@ let fit =
 (** val iNF_SCORE : fitness_value **)
 
 let iNF_SCORE =
-  Nat.pow (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
-    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
-    (Stdlib.Int.succ (Stdlib.Int.succ 0)))))))))) (Stdlib.Int.succ
-    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
-    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
-    0)))))))))
+  of_num_uint (UIntDecimal (D1 (D0 (D0 (D0 (D0 (D0 (D0 (D0 (D0 (D0
+    Nil)))))))))))
 
 type case = int * int
 
@@ -961,14 +1320,14 @@ let rec mem_up_smap mo_cur s l0 =
 let rec insert_send_recv p sp l0 name =
   match sp with
   | [] -> (p, name)
-  | p0 :: tl ->
-    let (q, src) = p0 in
+  | p3 :: tl ->
+    let (q, src) = p3 in
     let alias = add name (Stdlib.Int.succ 0) in
-    let p1 = place_operation p src (OpDP (NewCh (name, (Stdlib.Int.succ 0))))
+    let p4 = place_operation p src (OpDP (NewCh (name, (Stdlib.Int.succ 0))))
     in
-    let p2 = place_operation p1 src (OpDP (Send (name, (BA q)))) in
-    let p3 = place_operation p2 l0 (OpDP (Recv (name, alias))) in
-    insert_send_recv p3 tl l0 (add name (Stdlib.Int.succ (Stdlib.Int.succ 0)))
+    let p5 = place_operation p4 src (OpDP (Send (name, (BA q)))) in
+    let p6 = place_operation p5 l0 (OpDP (Recv (name, alias))) in
+    insert_send_recv p6 tl l0 (add name (Stdlib.Int.succ (Stdlib.Int.succ 0)))
 
 (** val gen_prog_loop_alg2 :
     myOp list -> (var -> membrane_id) -> (myOp -> membrane_id) -> config ->
@@ -980,14 +1339,14 @@ let rec gen_prog_loop_alg2 seq mo_cur moO p name =
   | op :: seq' ->
     let l0 = moO op in
     let s = diff_mem mo_cur (locus_myOp op) l0 in
-    let (p1, name1) =
+    let (p3, name1) =
       match s with
       | [] -> (p, name)
       | _ :: _ -> insert_send_recv p s l0 name
     in
     let mo_cur' = mem_up_smap mo_cur s l0 in
-    let p2 = place_operation p1 l0 op in
-    gen_prog_loop_alg2 seq' mo_cur' moO p2 name1
+    let p4 = place_operation p3 l0 op in
+    gen_prog_loop_alg2 seq' mo_cur' moO p4 name1
 
 (** val empty_config : config **)
 
@@ -1020,26 +1379,20 @@ let rec auto_disq_loop kseq hp os cfg aLL s qbest zmin fuel =
                 | Some c ->
                   let sched_i = fst c in
                   let seq =
-                    let schedules = topo_orders_k hp os kseq in
-                    let n = length schedules in
-                    ((fun fO fS n -> if n=0 then fO () else fS (n-1))
-                       (fun _ _ -> 0)
-                       (fun _ ->
-                       let idx = Nat.modulo sched_i n in
-                       let order = nth_default [] schedules idx in
-                       seq_from_order order)
-                       n)
+                    match topo_kahn hp sched_i os with
+                    | Some order -> seq_from_order order
+                    | None -> (fun _ -> 0)
                   in
                   Some (c, seq)
                 | None -> None with
           | Some p ->
             let (c, seq) = p in
             let (moO, moQ) = gen_mem cfg seq os c in
-            let p0 = gen_prog_paper seq moQ moO os in
-            let z = fit p0 in
+            let p3 = gen_prog_paper seq moQ moO os in
+            let z = fit p3 in
             let s' = (c, (seq, (moO, moQ))) :: s in
             if Nat.ltb z zmin
-            then auto_disq_loop kseq hp os cfg aLL s' p0 z fuel'
+            then auto_disq_loop kseq hp os cfg aLL s' p3 z fuel'
             else auto_disq_loop kseq hp os cfg aLL s' qbest zmin fuel'
           | None -> qbest)
     else qbest)
@@ -1053,6 +1406,11 @@ let auto_disq_alg1_paper kseq kmem r cfg =
   let os = gen_os r in
   let aLL = mk_cases kseq kmem in
   auto_disq_loop kseq hp os cfg aLL [] [] iNF_SCORE (length aLL)
+
+(** val succs : hb_relation -> myOp list -> myOp -> myOp list **)
+
+let succs hp nodes x =
+  filter (fun y -> hp x y) nodes
 
 (** val mem_op : (myOp -> myOp -> bool) -> myOp -> myOp list -> bool **)
 
@@ -1082,11 +1440,6 @@ let rec remove_ops eqb xs rem =
 
 let opt_hp hp_l seq_l a b =
   (&&) (hp_l a b) (Nat.ltb (seq_l a) (seq_l b))
-
-(** val succs : hb_relation -> myOp list -> myOp -> myOp list **)
-
-let succs hp nodes x =
-  filter (fun y -> hp x y) nodes
 
 (** val reachable_fuel :
     (myOp -> myOp -> bool) -> hb_relation -> myOp list -> int -> myOp list ->
@@ -1388,3 +1741,266 @@ let p_6 =
     l))) :: ((OpIf ((CEq ((BA p_6_m2), (Num (Stdlib.Int.succ 0)))),
     proc_Xcorr, PNil)) :: ((OpIf ((CEq ((BA p_6_m1), (Num (Stdlib.Int.succ
     0)))), proc_Zcorr, PNil)) :: [])))))))))))
+
+(** val w0 : var **)
+
+let w0 =
+  Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    0)))))))))))))))))))
+
+(** val w1 : var **)
+
+let w1 =
+  Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ 0))))))))))))))))))))
+
+(** val iNC_mod4 : exp **)
+
+let iNC_mod4 =
+  Seq ((X (w0, (Num 0))), (CU (w0, (Num 0), (X (w1, (Num 0))))))
+
+(** val pow_mod : int -> int -> int -> int **)
+
+let rec pow_mod a e n =
+  (fun fO fS n -> if n=0 then fO () else fS (n-1))
+    (fun _ -> modulo (Stdlib.Int.succ 0) n)
+    (fun e' -> Nat.modulo (mul a (pow_mod a e' n)) n)
+    e
+
+(** val two_pow : int -> int **)
+
+let two_pow t =
+  Nat.pow (Stdlib.Int.succ (Stdlib.Int.succ 0)) t
+
+(** val find_period_exact_from : int -> int -> int -> int -> int **)
+
+let rec find_period_exact_from m t r fuel =
+  (fun fO fS n -> if n=0 then fO () else fS (n-1))
+    (fun _ -> 0)
+    (fun fuel' ->
+    if (=) (Nat.modulo (mul m r) (two_pow t)) 0
+    then r
+    else find_period_exact_from m t (Stdlib.Int.succ r) fuel')
+    fuel
+
+(** val find_period_exact : int -> int -> int -> int **)
+
+let find_period_exact m t rmax =
+  find_period_exact_from m t (Stdlib.Int.succ 0) rmax
+
+(** val shor_factors_from_r : int -> int -> int -> int * int **)
+
+let shor_factors_from_r a n r =
+  if Nat.even r
+  then let x =
+         pow_mod a
+           (let y = Stdlib.Int.succ (Stdlib.Int.succ 0) in
+            (fun fO fS n -> if n=0 then fO () else fS (n-1))
+              (fun _ -> y)
+              (fun y' -> fst (Nat.divmod r y' 0 y'))
+              y) n
+       in
+       let f1 = Nat.gcd (Nat.sub x (Stdlib.Int.succ 0)) n in
+       let f2 = Nat.gcd (add x (Stdlib.Int.succ 0)) n in (f1, f2)
+  else ((Stdlib.Int.succ 0), n)
+
+(** val p0 : var **)
+
+let p0 =
+  0
+
+(** val p1 : var **)
+
+let p1 =
+  Stdlib.Int.succ 0
+
+(** val p2 : var **)
+
+let p2 =
+  Stdlib.Int.succ (Stdlib.Int.succ 0)
+
+(** val m0 : var **)
+
+let m0 =
+  Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    0)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+
+(** val m1 : var **)
+
+let m1 =
+  Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ
+    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+
+(** val m2 : var **)
+
+let m2 =
+  Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    (Stdlib.Int.succ (Stdlib.Int.succ
+    0)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+
+(** val new_p0 : cexp **)
+
+let new_p0 =
+  CNew (p0, (Stdlib.Int.succ 0))
+
+(** val new_p1 : cexp **)
+
+let new_p1 =
+  CNew (p1, (Stdlib.Int.succ 0))
+
+(** val new_p2 : cexp **)
+
+let new_p2 =
+  CNew (p2, (Stdlib.Int.succ 0))
+
+(** val new_w0 : cexp **)
+
+let new_w0 =
+  CNew (w0, (Stdlib.Int.succ 0))
+
+(** val new_w1 : cexp **)
+
+let new_w1 =
+  CNew (w1, (Stdlib.Int.succ 0))
+
+(** val appH_p0 : cexp **)
+
+let appH_p0 =
+  CAppU (l, (H (p0, (Num 0))))
+
+(** val appH_p1 : cexp **)
+
+let appH_p1 =
+  CAppU (l, (H (p1, (Num 0))))
+
+(** val appH_p2 : cexp **)
+
+let appH_p2 =
+  CAppU (l, (H (p2, (Num 0))))
+
+(** val cU_p0 : cexp **)
+
+let cU_p0 =
+  CAppU (l, (CU (p0, (Num 0), iNC_mod4)))
+
+(** val cU_p1 : cexp **)
+
+let cU_p1 =
+  CAppU (l, (CU (p1, (Num 0), (Seq (iNC_mod4, iNC_mod4)))))
+
+(** val cU_p2 : cexp **)
+
+let cU_p2 =
+  CAppU (l, (CU (p2, (Num 0), (Seq (iNC_mod4, (Seq (iNC_mod4, (Seq (iNC_mod4,
+    iNC_mod4)))))))))
+
+(** val appRQFT : cexp **)
+
+let appRQFT =
+  CAppU (l, (RQFT (p0, (Stdlib.Int.succ (Stdlib.Int.succ (Stdlib.Int.succ
+    0))))))
+
+(** val meas_p0 : cexp **)
+
+let meas_p0 =
+  CMeas (m0, l)
+
+(** val meas_p1 : cexp **)
+
+let meas_p1 =
+  CMeas (m1, l)
+
+(** val meas_p2 : cexp **)
+
+let meas_p2 =
+  CMeas (m2, l)
+
+(** val shor_Qprog : op_list **)
+
+let shor_Qprog =
+  (OpAP new_p0) :: ((OpAP new_p1) :: ((OpAP new_p2) :: ((OpAP
+    new_w0) :: ((OpAP new_w1) :: ((OpAP appH_p0) :: ((OpAP appH_p1) :: ((OpAP
+    appH_p2) :: ((OpAP cU_p0) :: ((OpAP cU_p1) :: ((OpAP cU_p2) :: ((OpAP
+    appRQFT) :: ((OpAP meas_p0) :: ((OpAP meas_p1) :: ((OpAP
+    meas_p2) :: []))))))))))))))

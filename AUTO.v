@@ -261,6 +261,62 @@ Definition vars_of_myOp (op : myOp) : list var :=
       vars_of_cbexp b
   end.
 
+
+Definition qubits_of_range (r : range) : list var :=
+  match r with
+  | (q, _lo, _hi) => [q]
+  end.
+
+Definition qubits_of_locus (L : locus) : list var :=
+  concat (map qubits_of_range L).
+
+
+Definition qubits_of_cexp (c : cexp) : list var :=
+  match c with
+  | CNew q _     => [q]
+  | CAppU _ e    => vars_of_exp e
+  | CMeas _ k    => qubits_of_locus k   (* NOT vars_of_locus *)
+  end.
+
+(* Extract qubits touched by a locus *)
+Definition vars_of_bound (b : bound) : list var :=
+  match b with
+  | BVar v _ => [v]
+  | BNum _ => []
+  end.
+
+Definition vars_of_range (r : range) : list var :=
+  match r with
+  | (x, lo, hi) => x :: vars_of_bound lo ++ vars_of_bound hi
+  end.
+
+Definition vars_of_locus (L : locus) : list var :=
+  concat (map vars_of_range L).
+
+(*
+(* Qubits touched by a cexp *)
+Definition qubits_of_cexp (c : cexp) : list var :=
+  match c with
+  | CNew q _     => [q]
+  | CAppU _ e    => vars_of_exp e
+  | CMeas _ k    => vars_of_locus k   (* IMPORTANT: not [x] *)
+  end.
+*)
+Definition qubits_of_myOp (o : myOp) : list var :=
+  match o with
+  | OpAP a => qubits_of_cexp a
+  | OpDP _ => []          (* DP are classical comm ops, not “qubit sharing” *)
+  | OpIf _ _ _ => []      (* guard is classical *)
+  end.
+
+Definition share_qubit_myOp (o1 o2 : myOp) : bool :=
+  negb (Nat.eqb
+          (length (intersect (uniq (qubits_of_myOp o1))
+                             (uniq (qubits_of_myOp o2))))
+          0).
+
+(*
+
 Definition share_qubit_myOp (o1 o2 : myOp) : bool :=
   negb (Nat.eqb
           (length
@@ -268,7 +324,7 @@ Definition share_qubit_myOp (o1 o2 : myOp) : bool :=
                 (uniq (vars_of_myOp o1))
                 (uniq (vars_of_myOp o2))))
           0).
-
+*)
 Fixpoint index_of_myOp (x : myOp) (xs : list myOp) : nat :=
   match xs with
   | [] => 0
@@ -312,8 +368,79 @@ Fixpoint nth_default {A} (d : A) (xs : list A) (n : nat) : A :=
       | _ :: tl => nth_default d tl n'
       end
   end.
+(* ------------------------------------------------------------ *)
+(* Safe topological ordering without permutations (Kahn-style)   *)
+(* ------------------------------------------------------------ *)
 
+Fixpoint remove_one (eqb : myOp -> myOp -> bool) (x : myOp) (xs : list myOp) : list myOp :=
+  match xs with
+  | [] => []
+  | y :: tl => if eqb x y then tl else y :: remove_one eqb x tl
+  end.
 
+Definition has_incoming_from_nodes
+  (hp : hb_relation) (nodes : list myOp) (x : myOp) : bool :=
+  existsb (fun y => hp y x) nodes.
+
+Definition available_nodes (hp : hb_relation) (nodes : list myOp) : list myOp :=
+  filter (fun x => negb (has_incoming_from_nodes hp nodes x)) nodes.
+
+Fixpoint nth_default_myOp (d : myOp) (xs : list myOp) (n : nat) : myOp :=
+  match n with
+  | 0 =>
+      match xs with
+      | [] => d
+      | x :: _ => x
+      end
+  | S n' =>
+      match xs with
+      | [] => d
+      | _ :: tl => nth_default_myOp d tl n'
+      end
+  end.
+
+(* choose an available node based on schedule_index (tie-break) *)
+Definition pick_available
+  (schedule_index : nat) (avs : list myOp) : option myOp :=
+  match avs with
+  | [] => None
+  | _ =>
+      let idx := Nat.modulo schedule_index (length avs) in
+      Some (nth_default_myOp (hd (OpAP (CNew 0 0)) avs) avs idx)
+  end.
+
+Fixpoint topo_kahn_fuel
+  (hp : hb_relation)
+  (schedule_index : nat)
+  (nodes : list myOp)
+  (fuel : nat)
+  (acc  : list myOp)
+  : option (list myOp) :=
+  match fuel with
+  | 0 => None
+  | S fuel' =>
+      match nodes with
+      | [] => Some (rev acc)
+      | _  =>
+          let avs := available_nodes hp nodes in
+          match pick_available schedule_index avs with
+          | None => None (* cycle or inconsistent hp *)
+          | Some x =>
+              topo_kahn_fuel hp (S schedule_index)
+                             (remove_one myOp_eqb x nodes)
+                             fuel' (x :: acc)
+          end
+      end
+  end.
+
+Definition topo_kahn
+  (hp : hb_relation)
+  (schedule_index : nat)
+  (nodes : list myOp)
+  : option (list myOp) :=
+  topo_kahn_fuel hp schedule_index nodes (S (length nodes)) [].
+
+(*
 
 (* ---------------- Permutations ---------------- *)
 
@@ -353,13 +480,26 @@ Definition topo_orders_k
   let perms := permutations nodes in
   let good  := filter (respects_hp hp) perms in
   firstn k good.
-
+*)
 Definition seq_from_order (order : list myOp) : seq_relation :=
   fun o => index_of_myOp o order.
 
 
 (*  seq <- gen_seq(S,hp) *)
+Definition gen_seq_many
+  (Kseq : nat)
+  (schedule_index : nat)
+  (hp : hb_relation)
+  (os : op_list)
+  : seq_relation :=
+  (* Instead of enumerating Kseq different schedules, we generate one topo order
+     and vary tie-breaking using schedule_index. *)
+  match topo_kahn hp schedule_index os with
+  | None => fun _ => 0
+  | Some order => seq_from_order order
+  end.
 
+(*
 Definition gen_seq_many
   (Kseq : nat)
   (schedule_index : nat)
@@ -375,7 +515,7 @@ Definition gen_seq_many
       let order := nth_default ([] : list myOp) schedules idx in
       seq_from_order order
   end.
-
+*)
 (* ------------------------------------------------------------------------- *)
 (* Membrane ids from config                                                   *)
 (* ------------------------------------------------------------------------- *)
@@ -627,6 +767,8 @@ Fixpoint gen_prog_core
       gen_prog_core moO moQ tl qloc1 acc2
   end.
 
+
+
 Definition gen_prog
   (seq : seq_relation) (moO : op_mem_assign) (moQ : qubit_mem_assign) (os : op_list)
   : distributed_prog :=
@@ -758,7 +900,7 @@ Definition gen_mem
 
 
 Definition Smap : Type := list (var * membrane_id).
-Definition locus_myOp (op : myOp) : list var := vars_of_myOp op.
+Definition locus_myOp (op : myOp) : list var := qubits_of_myOp op.
 
 Definition diff_mem
   (mo_cur : var -> membrane_id)
@@ -905,6 +1047,77 @@ Definition auto_disq_alg1_paper
   auto_disq_loop Kseq hp os cfg ALL [] ([] : config) INF_SCORE (length ALL).
 
 
+(* ---------- membership for myOp ---------- *)
+Fixpoint mem_myOp (x : myOp) (xs : list myOp) : bool :=
+  match xs with
+  | [] => false
+  | y :: tl => if myOp_eqb x y then true else mem_myOp x tl
+  end.
+
+Fixpoint remove_myOp (x : myOp) (xs : list myOp) : list myOp :=
+  match xs with
+  | [] => []
+  | y :: tl => if myOp_eqb x y then tl else y :: remove_myOp x tl
+  end.
+
+(* outgoing edges *)
+Definition succs (hp : hb_relation) (nodes : list myOp) (x : myOp) : list myOp :=
+  filter (fun y => hp x y) nodes.
+
+(* DFS: returns true iff a cycle is found reachable from x *)
+Fixpoint dfs_cycle_fuel
+  (hp : hb_relation)
+  (nodes : list myOp)
+  (fuel : nat)
+  (visiting visited : list myOp)
+  (x : myOp)
+  : bool :=
+  match fuel with
+  | 0 => false
+  | S fuel' =>
+      if mem_myOp x visiting then true          (* back-edge => cycle *)
+      else if mem_myOp x visited then false     (* already done *)
+      else
+        let visiting' := x :: visiting in
+        let nxt := succs hp nodes x in
+        if existsb (dfs_cycle_fuel hp nodes fuel' visiting' visited) nxt
+        then true
+        else false
+  end.
+
+(* Outer loop: check all nodes (graph may be disconnected) *)
+Fixpoint has_cycle_from_all_fuel
+  (hp : hb_relation)
+  (nodes todo : list myOp)
+  (fuel : nat)
+  (visited : list myOp)
+  : bool :=
+  match fuel with
+  | 0 => false
+  | S fuel' =>
+      match todo with
+      | [] => false
+      | x :: tl =>
+          if mem_myOp x visited then
+            has_cycle_from_all_fuel hp nodes tl fuel' visited
+          else
+            if dfs_cycle_fuel hp nodes (length nodes + 1) [] visited x
+            then true
+            else
+              (* mark x visited to avoid restarting from it again *)
+              has_cycle_from_all_fuel hp nodes tl fuel' (x :: visited)
+      end
+  end.
+
+Definition hp_has_cycle_dfs (hp : hb_relation) (nodes : list myOp) : bool :=
+  has_cycle_from_all_fuel hp nodes nodes (length nodes + 1) [].
+
+Definition hp_acyclic (hp : hb_relation) (nodes : list myOp) : bool :=
+  negb (hp_has_cycle_dfs hp nodes).
+
+
+
+
 
 Fixpoint mem_op (eqb : myOp -> myOp -> bool) (x : myOp) (xs : list myOp) : bool :=
   match xs with
@@ -926,9 +1139,6 @@ Fixpoint remove_ops (eqb : myOp -> myOp -> bool) (xs rem : list myOp) : list myO
 
 Definition opt_hp (hp_l : hb_relation) (seq_l : seq_relation) : hb_relation :=
   fun a b => andb (hp_l a b) (Nat.ltb (seq_l a) (seq_l b)).
-
-Definition succs (hp : hb_relation) (nodes : list myOp) (x : myOp) : list myOp :=
-  filter (fun y => hp x y) nodes.
 
 Fixpoint reachable_fuel
   (eqb : myOp -> myOp -> bool)
