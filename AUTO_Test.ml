@@ -1,6 +1,6 @@
 open Autodisq_extract
 
-(* ---------- Pretty printers (compact but informative) ---------- *)
+(* ---------- printers  ---------- *)
 
 let pp_aexp = function
   | BA x      -> Printf.sprintf "BA(%d)" x
@@ -62,7 +62,7 @@ let pp_memb (m : memb) : unit =
 let pp_cfg (cfg:config) : unit =
   List.iter pp_memb cfg
 
-(* ---------- Shared compiler settings (MUST BE BEFORE Alg3 helpers) ---------- *)
+(* ---------- Shared compiler settings  ---------- *)
 
 let seq0 : seq_relation = fun (_:myOp) -> 0
 let moQ0 : qubit_mem_assign = fun (_:var) -> 0
@@ -87,7 +87,7 @@ let show_alg3_blocks (pname:string) (ops:op_list) : unit =
   let hp : hb_relation = gen_hp ops in
   let seq : seq_relation = seq0 in
 
-  (* opt_hp restricts edges to those consistent with seq (as in your Coq code) *)
+  (* opt_hp restricts edges to those consistent with seq  *)
   let hp' : hb_relation = opt_hp hp seq in
 
   (* uniq_ops + scc_partition gives list(list myOp) = partition blocks *)
