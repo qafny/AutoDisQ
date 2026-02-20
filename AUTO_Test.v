@@ -521,7 +521,6 @@ Compute fit P_6_dist5.
 
 (* ============================================================ *)
 (* FULL TEST: Shor-like period finding + factor extraction test  *)
-(* (Idealized: assumes the QPE measurement is the expected one)  *)
 (* ============================================================ *)
 
 From Coq Require Import List Arith Bool Nat.
@@ -532,8 +531,7 @@ Local Open Scope list_scope.
 Require Import DisQ.BasicUtility.
 Require Import DisQ.DisQSyntax.
 
-(* You already have myOp/op_list/seq/gen_prog_paper etc in your big file.
-   For this test, we only need op_list/myOp constructors used in programs. *)
+
 
 Inductive myOp : Type :=
 | OpAP  (a : cexp)
@@ -543,7 +541,7 @@ Inductive myOp : Type :=
 Definition op_list : Type := list myOp.
 
 (* ------------------------------------------------------------ *)
-(* Test instance: N=15, a=2 (classic demo)                       *)
+(* Test instance: N=15, a=2                        *)
 (* ------------------------------------------------------------ *)
 Definition N : nat := 15.
 Definition a : nat := 2.
@@ -551,7 +549,7 @@ Definition a : nat := 2.
 (* Use t=8 phase bits like your earlier Shor skeleton *)
 Definition t_phase : nat := 8.
 
-(* Work register: we will use only 2 qubits (mod 4 toy-period oracle) *)
+(* Work register: we will use only 2 qubits (mod 4 period oracle) *)
 Definition w0 : var := 20.
 Definition w1 : var := 21.
 Definition work_qubits : list var := [w0; w1].
@@ -591,7 +589,7 @@ Fixpoint meas_all (xs : list var) : op_list :=
   end.
 
 (* ------------------------------------------------------------ *)
-(* A REAL, EXECUTABLE oracle (toy): INC mod 4 on (w1 w0)         *)
+(* A REAL, EXECUTABLE oracle : INC mod 4 on (w1 w0)         *)
 (* Period is exactly 4.                                         *)
 (*   INC: flip LSB (w0), then if w0==0 (i.e. carry) flip MSB.    *)
 (* Using your CU + X, a standard reversible incrementer is:      *)
@@ -639,7 +637,7 @@ Definition Shor_QPE_prog : op_list :=
   meas_all phase_bits.
 
 (* ------------------------------------------------------------ *)
-(* Structural tests (pure syntactic sanity checks)               *)
+(* Structural tests              *)
 (* ------------------------------------------------------------ *)
 
 (* Count how many controlled powers were generated: should be t_phase = 8. *)
@@ -655,7 +653,7 @@ Example test_controlled_count :
 Proof. reflexivity. Qed.
 
 (* ------------------------------------------------------------ *)
-(* Classical postprocessing test (ideal measurement)             *)
+(* Classical postprocessing test             *)
 (* ------------------------------------------------------------ *)
 
 
@@ -693,19 +691,6 @@ Definition find_period_exact (m t Rmax : nat) : nat :=
   find_period_exact_from m t 1 Rmax.
 
 
-(* Exact “period extractor” for ideal QPE when m/2^t = s/r with r | 2^t:
-   find the smallest r<=Rmax such that (m*r) mod 2^t = 0. *)
-(*
-Fixpoint find_period_exact (m t Rmax : nat) : nat :=
-  match Rmax with
-  | 0 => 0
-  | S r' =>
-      let r := S r' in
-      if Nat.eqb (Nat.modulo (m * r) (two_pow t)) 0
-      then r
-      else find_period_exact m t r'
-  end.
-*)
 Definition shor_factors_from_r (a N r : nat) : (nat * nat) :=
   if Nat.even r then
     let x := pow_mod a (Nat.div r 2) N in
@@ -731,7 +716,7 @@ Proof. reflexivity. Qed.
 
 
 (* ============================================================ *)
-(* Shor period-finding (toy N=15, a=2, r=4)                     *)
+(* Shor period-finding ( N=15, a=2, r=4)                     *)
 (* Written exactly in op_list style like Qprog                  *)
 (* ============================================================ *)
 
@@ -812,7 +797,7 @@ Require Import DisQ.AUTO.
 Import AUTO.
 
 (* ============================================================ *)
-(* Now the program as op_list (exactly like your Qprog style)  *)
+(* The program as op_list   *)
 (* ============================================================ *)
 
 Definition Shor_Qprog : op_list :=
@@ -839,7 +824,7 @@ Definition Shor_Qprog : op_list :=
   ].
 
 (* ============================================================ *)
-(* Tests for Shor_Qprog (same style as P_3 tests)              *)
+(* Tests for Shor_Qprog              *)
 (* ============================================================ *)
 
 (* --- All qubits and operations on membrane 0 --- *)
