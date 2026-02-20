@@ -36,7 +36,7 @@ let rec pp_exp = function
 let pp_cexp = function
   | CNew (q,n)     -> Printf.sprintf "CNew(%d,%d)" q n
   | CAppU (_l,e)   -> Printf.sprintf "CAppU(%s)" (pp_exp e)
-  | CMeas (x,l)    -> Printf.sprintf "CMeas(%d,%s)" x (pp_locus l)  (* CHANGED *)
+  | CMeas (x,l)    -> Printf.sprintf "CMeas(%d,%s)" x (pp_locus l)
 
 let pp_cdexp = function
   | NewCh (c,n) -> Printf.sprintf "NewCh(%d,%d)" c n
@@ -53,20 +53,64 @@ let rec pp_process = function
 let pp_memb (m : memb) : unit =
   match m with
   | Memb (id, ps) ->
-      Printf.printf "Memb %d:\n" id;
-      List.iter (fun p -> Printf.printf "  %s\n" (pp_process p)) ps
+      Printf.printf "Memb %d:\n%!" id;
+      List.iter (fun p -> Printf.printf "  %s\n%!" (pp_process p)) ps
   | LockMemb (id, _, ps) ->
-      Printf.printf "LockMemb %d:\n" id;
-      List.iter (fun p -> Printf.printf "  %s\n" (pp_process p)) ps
+      Printf.printf "LockMemb %d:\n%!" id;
+      List.iter (fun p -> Printf.printf "  %s\n%!" (pp_process p)) ps
 
 let pp_cfg (cfg:config) : unit =
   List.iter pp_memb cfg
 
-(* ---------- Shared compiler settings ---------- *)
+(* ---------- Shared compiler settings (MUST BE BEFORE Alg3 helpers) ---------- *)
 
 let seq0 : seq_relation = fun (_:myOp) -> 0
 let moQ0 : qubit_mem_assign = fun (_:var) -> 0
 let moO_const (k:int) : op_mem_assign = fun (_:myOp) -> k
+
+(* ---------- Extra printers to SHOW partitions (Alg3) ---------- *)
+
+let pp_myOp = function
+  | OpAP a -> Printf.sprintf "OpAP(%s)" (pp_cexp a)
+  | OpDP d -> Printf.sprintf "OpDP(%s)" (pp_cdexp d)
+  | OpIf (_b, p, q) ->
+      Printf.sprintf "OpIf(...,%s,%s)" (pp_process p) (pp_process q)
+
+let pp_myOp_list (xs : myOp list) : unit =
+  List.iter (fun o -> Printf.printf "  %s\n%!" (pp_myOp o)) xs
+
+(* Print SCC blocks (this is the REAL “partition” before flattening) *)
+let show_alg3_blocks (pname:string) (ops:op_list) : unit =
+  Printf.printf "\n==============================\n%!";
+  Printf.printf "[Alg3] SCC partitions for %s\n%!" pname;
+
+  let hp : hb_relation = gen_hp ops in
+  let seq : seq_relation = seq0 in
+
+  (* opt_hp restricts edges to those consistent with seq (as in your Coq code) *)
+  let hp' : hb_relation = opt_hp hp seq in
+
+  (* uniq_ops + scc_partition gives list(list myOp) = partition blocks *)
+  let blocks : myOp list list =
+    scc_partition myOp_eqb hp' (uniq_ops myOp_eqb ops)
+  in
+
+  List.iteri
+    (fun i block ->
+       Printf.printf "Block %d:\n%!" i;
+       pp_myOp_list block)
+    blocks
+
+(* Also print the flattened schedule returned by auto_parallelize_alg3 *)
+let show_alg3_flat (pname:string) (ops:op_list) : unit =
+  Printf.printf "\n==============================\n%!";
+  Printf.printf "[Alg3] Flattened grouped schedule for %s\n%!" pname;
+
+  let hp : hb_relation = gen_hp ops in
+  let seq : seq_relation = seq0 in
+  let procs : process list = auto_parallelize_alg3 myOp_eqb ops hp seq in
+
+  List.iter (fun pr -> Printf.printf "  %s\n%!" (pp_process pr)) procs
 
 (* ---------- Test harness ---------- *)
 
@@ -118,59 +162,23 @@ let () =
   test_alg1 "P_6" p_6 3 3;
 
   (* -------- Algorithm 1: Shor auto search -------- *)
-  test_alg1 "Shor_Qprog" shor_Qprog 3 3
+  test_alg1 "Shor_Qprog" shor_Qprog 3 3;
 
+  (* -------- Algorithm 3: SHOW PARTITIONS -------- *)
+  show_alg3_blocks "P_1" p_1;
+  show_alg3_flat   "P_1" p_1;
 
+  show_alg3_blocks "P_3" p_3;
+  show_alg3_flat   "P_3" p_3;
 
+  show_alg3_blocks "P_4" p_4;
+  show_alg3_flat   "P_4" p_4;
 
+  show_alg3_blocks "P_5 (Grover)" p_5;
+  show_alg3_flat   "P_5 (Grover)" p_5;
 
+  show_alg3_blocks "P_6 (Teleport)" p_6;
+  show_alg3_flat   "P_6 (Teleport)" p_6;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
+  show_alg3_blocks "Shor_Qprog" shor_Qprog;
+  show_alg3_flat   "Shor_Qprog" shor_Qprog
