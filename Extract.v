@@ -65,7 +65,12 @@ appRQFT64
 phase_bits64 
 apply_H_all_from
 alloc_qubits_from
-Shor_Qprog.
+Shor_Qprog
+QFT32_dist0 
+GHZ32_best
+GHZ32_prog 
+QFT64_prog
+Shor_Qprog32.
 
 
 
