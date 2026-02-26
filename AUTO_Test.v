@@ -411,7 +411,7 @@ Compute P_4_dist5.
 Compute fit P_4_dist5.
 
 (* ============================================================ *)
-(* P_5 : 2-qubit Grover (one iteration)                          *)
+(* P_5 : 2-qubit Grover                          *)
 (* ============================================================ *)
 
 Definition P_5_q0 : var := 0.
@@ -519,27 +519,6 @@ Definition P_6_dist5 := gen_prog_paper seq0 moQ0 moO5 P_6.
 Compute P_6_dist5.
 Compute fit P_6_dist5.
 
-(* ============================================================ *)
-(* FULL TEST: Shor-like period finding + factor extraction test  *)
-(* ============================================================ *)
-
-From Coq Require Import List Arith Bool Nat.
-Import ListNotations.
-Local Open Scope nat_scope.
-Local Open Scope list_scope.
-
-Require Import DisQ.BasicUtility.
-Require Import DisQ.DisQSyntax.
-
-
-
-Inductive myOp : Type :=
-| OpAP  (a : cexp)
-| OpDP  (a : cdexp)
-| OpIf  (b : cbexp) (p q : process).
-
-Definition op_list : Type := list myOp.
-
 (* ------------------------------------------------------------ *)
 (* Test instance: N=15, a=2                        *)
 (* ------------------------------------------------------------ *)
@@ -589,12 +568,7 @@ Fixpoint meas_all (xs : list var) : op_list :=
   end.
 
 (* ------------------------------------------------------------ *)
-(* A REAL, EXECUTABLE oracle : INC mod 4 on (w1 w0)         *)
-(* Period is exactly 4.                                         *)
-(*   INC: flip LSB (w0), then if w0==0 (i.e. carry) flip MSB.    *)
-(* Using your CU + X, a standard reversible incrementer is:      *)
-(*   X w0 ; CU w0 (Num 0) (X w1 (Num 0))                         *)
-(* This gives a 4-cycle on 2-bit states -> period 4.             *)
+(*  EXECUTABLE oracle : INC mod 4 on (w1 w0)         *)
 (* ------------------------------------------------------------ *)
 
 Definition INC_mod4 : exp :=
@@ -603,16 +577,17 @@ Definition INC_mod4 : exp :=
 
 Fixpoint repeat_exp (n : nat) (e : exp) : exp :=
   match n with
-  | 0 => SKIP 0 (Num 0) (* harmless no-op in your exp grammar *)
+  | 0 => SKIP 0 (Num 0) 
   | S n' => Seq e (repeat_exp n' e)
   end.
 
 Definition pow2 (k : nat) : nat := Nat.pow 2 k.
 
 (* “U^(2^k)” for our toy U = INC_mod4 *)
+
 Definition UModExpPow (a N k : nat) (_ws : list var) : exp :=
   repeat_exp (pow2 k) INC_mod4.
-
+Opaque UModExpPow.
 Definition controlled_pow (control : var) (k : nat) : op_list :=
   [ OpAP (CAppU L (CU control (Num 0) (UModExpPow a N k work_qubits))) ].
 
@@ -700,10 +675,6 @@ Definition shor_factors_from_r (a N r : nat) : (nat * nat) :=
   else (1, N).
 
 
-
-(* Ideal Shor test case for N=15,a=2:
-   The true order is r=4, and QPE ideally can output m = 2^t / 4 = 256/4 = 64 (for s=1).
-*)
 Definition m_ideal : nat := 64.
 
 Example test_period_is_4 :
@@ -725,7 +696,7 @@ Proof. reflexivity. Qed.
 (* Qubit ids                    *)
 (* ---------------------------- *)
 
-(* Phase register (3 qubits for demo) *)
+(* Phase register (3 qubits ) *)
 Definition p0 : var := 0.
 Definition p1 : var := 1.
 Definition p2 : var := 2.
@@ -870,6 +841,294 @@ Definition Shor_dist5 : distributed_prog :=
 
 Compute Shor_dist5.
 Compute fit Shor_dist5.
+
+Opaque controlled_pow.
+Opaque qpe_controlled_pows.
+
+(* Allocate qubits: OpAP (CNew q 1) for each q *)
+Fixpoint alloc_qubits_from (qs : list var) : op_list :=
+  match qs with
+  | [] => []
+  | q :: tl => OpAP (CNew q 1) :: alloc_qubits_from tl
+  end.
+
+(* Apply H to each phase qubit *)
+Fixpoint apply_H_all_from (qs : list var) : op_list :=
+  match qs with
+  | [] => []
+  | q :: tl => OpAP (CAppU L (H q (Num 0))) :: apply_H_all_from tl
+  end.
+
+(* Measure each classical output bit c *)
+Fixpoint meas_all_from (cs : list var) : op_list :=
+  match cs with
+  | [] => []
+  | c :: tl => OpAP (CMeas c L) :: meas_all_from tl
+  end.
+
+
+Definition t_phase64 : nat := 64.
+Definition phase_qubits64 : list var := List.seq 0 t_phase64.
+Definition phase_bits64  : list var := List.seq 1000 t_phase64.
+
+(* define w0 w1, appRQFT64, and qpe_controlled_pows / controlled_pow as before *)
+
+Definition EXP_NOP : exp := SKIP 0 (Num 0).   (* adjust if Num 0 is not your aexp *)
+Fixpoint pow2_exp (k : nat) (U : exp) : exp :=
+  match k with
+  | 0 => U              (* U^(2^0) = U *)
+  | S k' =>
+      let Uk := pow2_exp k' U in
+      Seq Uk Uk          (* square: U^(2^(k'+1)) = (U^(2^k')) ; (U^(2^k')) *)
+  end.
+Locate Addto.
+Definition appRQFT64 : cexp :=
+  CAppU L (RQFT 0 64).
+
+Definition Shor_Qprog_64 : op_list :=
+  alloc_qubits_from phase_qubits64 ++
+  [OpAP new_w0; OpAP new_w1] ++
+  apply_H_all_from phase_qubits64 ++
+  qpe_controlled_pows phase_qubits64 0 ++
+  [OpAP appRQFT64] ++
+  meas_all_from phase_bits64.
+
+Check Shor_Qprog_64 : op_list.
+
+Eval cbn in (length Shor_Qprog_64).
+
+
+
+(* Count controlled applications (CU ...) in an op_list *)
+Fixpoint count_CU (ops : op_list) : nat :=
+  match ops with
+  | [] => 0
+  | OpAP (CAppU _ (CU _ _ _)) :: tl => S (count_CU tl)
+  | _ :: tl => count_CU tl
+  end.
+
+(* Count QFT and RQFT occurrences *)
+Fixpoint count_QFT (ops : op_list) : nat :=
+  match ops with
+  | [] => 0
+  | OpAP (CAppU _ (QFT _ _)) :: tl => S (count_QFT tl)
+  | _ :: tl => count_QFT tl
+  end.
+
+Fixpoint count_RQFT (ops : op_list) : nat :=
+  match ops with
+  | [] => 0
+  | OpAP (CAppU _ (RQFT _ _)) :: tl => S (count_RQFT tl)
+  | _ :: tl => count_RQFT tl
+  end.
+
+(* ---------- 32-qubit Shor  ---------- *)
+
+Definition t_phase32 : nat := 16.
+Definition n_work32  : nat := 16.
+
+(* phase qubits*)
+
+Definition phase_qubits32 : list var := List.seq p0 t_phase32.
+
+
+Definition work_qubits32 : list var := List.seq w0 n_work32.
+
+Definition phase_bits32 : list var := List.seq 1000 t_phase32.
+
+Definition U_pow_placeholder (_k : nat) : exp := INC_mod4.
+
+
+Definition appRQFT32 : cexp := CAppU L (RQFT p0 t_phase32).
+
+Definition Shor_Qprog32 : op_list :=
+  alloc_qubits phase_qubits32 ++
+  alloc_qubits work_qubits32 ++
+  apply_H_all phase_qubits32 ++
+  qpe_controlled_pows phase_qubits32 0 ++
+  [ OpAP appRQFT32 ] ++
+  meas_all phase_bits32.
+
+(* ---------- sanity checks ---------- *)
+
+Eval cbn in (length phase_qubits32).  (* 16 *)
+Eval cbn in (length work_qubits32).   (* 16 *)
+Eval cbn in (length phase_bits32).    (* 16 *)
+Eval cbn in (count_CU Shor_Qprog32).  (* 16 controlled operations *)
+
+
+Definition Shor32_dist0 : distributed_prog := gen_prog_paper seq0 moQ0 moO0 Shor_Qprog32.
+Definition Shor32_dist5 : distributed_prog := gen_prog_paper seq0 moQ0 moO5 Shor_Qprog32.
+
+Compute fit Shor32_dist0.
+Compute fit Shor32_dist5.
+
+
+(* ============================ *)
+(* GHZ on 32 qubits             *)
+(* ============================ *)
+
+Definition ghz32_n : nat := 32.
+
+Definition ghz32_qs : list var := List.seq 0 ghz32_n.
+
+(* measurement outputs*)
+Definition ghz32_outs : list var := List.seq 200 ghz32_n.
+
+Fixpoint cnot_from (ctrl : var) (qs : list var) : op_list :=
+  match qs with
+  | [] => []
+  | q :: tl =>
+      OpAP (CAppU L (CU ctrl (Num 0) (X q (Num 0))))
+      :: cnot_from ctrl tl
+  end.
+
+Definition GHZ32_prog : op_list :=
+  alloc_qubits ghz32_qs ++
+  [ OpAP (CAppU L (H 0 (Num 0))) ] ++
+  cnot_from 0 (List.seq 1 (ghz32_n - 1)) ++
+  meas_all ghz32_outs.
+
+Example test_GHZ32_has_31_CNOTs :
+  count_CU GHZ32_prog = 31.
+Proof. cbn; reflexivity. Qed.
+
+(* Run Alg1 on it (tune Kseq/Kmem if you want) *)
+Definition GHZ32_best : distributed_prog :=
+  auto_disq_alg1_paper 3 3 GHZ32_prog cfg2.
+
+Compute fit GHZ32_best.
+
+
+(* ============================================================ *)
+(* QFT Tests: 32 qubits and 64 qubits                            *)
+(* ============================================================ *)
+
+(* ---------- QFT-32 ---------- *)
+
+Definition qft32_n  : nat := 32.
+Definition qft32_q0 : var := 0.
+
+Definition qft32_qubits : list var := List.seq qft32_q0 qft32_n.
+Definition qft32_outs   : list var := List.seq 100 qft32_n.
+
+Definition QFT32_prog : op_list :=
+  alloc_qubits qft32_qubits ++
+  [ OpAP (CAppU L (QFT qft32_q0 qft32_n));
+    OpAP (CAppU L (RQFT qft32_q0 qft32_n))
+  ] ++
+  meas_all qft32_outs.
+
+Example test_QFT32_counts :
+  count_QFT QFT32_prog = 1 /\ count_RQFT QFT32_prog = 1.
+Proof. cbn; auto. Qed.
+
+Definition QFT32_dist0 : distributed_prog :=
+  gen_prog_paper seq0 moQ0 moO0 QFT32_prog.
+
+Definition QFT32_dist5 : distributed_prog :=
+  gen_prog_paper seq0 moQ0 moO5 QFT32_prog.
+
+Compute fit QFT32_dist0.
+Compute fit QFT32_dist5.
+
+Eval cbn in (length qft32_qubits).  (* 32 *)
+Eval cbn in (length qft32_outs).    (* 32 *)
+
+
+(* ---------- QFT-64 ---------- *)
+
+Definition qft64_n  : nat := 64.
+Definition qft64_q0 : var := 0.
+
+Definition qft64_qubits : list var := List.seq qft64_q0 qft64_n.
+Definition qft64_outs   : list var := List.seq 1000 qft64_n.
+
+Definition QFT64_prog : op_list :=
+  alloc_qubits qft64_qubits ++
+  [ OpAP (CAppU L (QFT qft64_q0 qft64_n));
+    OpAP (CAppU L (RQFT qft64_q0 qft64_n))
+  ] ++
+  meas_all qft64_outs.
+
+Example test_QFT64_counts :
+  count_QFT QFT64_prog = 1 /\ count_RQFT QFT64_prog = 1.
+Proof. cbn; auto. Qed.
+
+Definition QFT64_dist0 : distributed_prog :=
+  gen_prog_paper seq0 moQ0 moO0 QFT64_prog.
+
+Definition QFT64_dist5 : distributed_prog :=
+  gen_prog_paper seq0 moQ0 moO5 QFT64_prog.
+
+Compute fit QFT64_dist0.
+Compute fit QFT64_dist5.
+
+Eval cbn in (length qft64_qubits).  (* 64 *)
+Eval cbn in (length qft64_outs).    (* 64 *)
+
+
+
+(* ===================================== *)
+(* Alg1 test for QFT-32 *)
+(* ===================================== *)
+
+Definition QFT32_best : distributed_prog :=
+  auto_disq_alg1_paper 1 1 QFT32_prog cfg6.
+
+Compute fit QFT32_best.
+
+(* ===================================== *)
+(* Alg1 test for QFT-64 *)
+(* ===================================== *)
+
+Definition QFT64_best : distributed_prog :=
+  auto_disq_alg1_paper 1 1 QFT64_prog cfg6.
+
+Compute fit QFT64_best.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

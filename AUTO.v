@@ -218,8 +218,8 @@ Fixpoint remove_exp (x : exp) (xs : list exp) : list exp :=
 Definition gen_os (R : op_list) : op_list := R.
 
 (* ------------------------------------------------------------------------- *)
-(* Paper Algorithm 1 line 3: hp <- gen_hp(R)                                  *)
-(* You used: order-in-R + share_qubit => dependency.                          *)
+(*             hp <- gen_hp(R)                                  *)
+(*        order-in-R + share_qubit => dependency.                          *)
 (* ------------------------------------------------------------------------- *)
 
 Fixpoint index_of_exp (x : exp) (xs : list exp) : nat :=
@@ -261,7 +261,81 @@ Definition vars_of_myOp (op : myOp) : list var :=
       vars_of_cbexp b
   end.
 
+(* --- extract qubits touched by an op --- *)
+Definition qubits_of_range (r : (nat * bound) * bound) : nat :=
+  let '((q,_),_) := r in q.
 
+Definition qubits_of_locus (k : locus) : list nat :=
+  map qubits_of_range k.
+
+Check SKIP.
+Print exp.
+Fixpoint qubits_of_exp (e : exp) : list nat :=
+  match e with
+  | SKIP _x _a => []
+  | X q _a     => [q]
+  | H q _a     => [q]
+  | QFT q _n   => [q]
+  | RQFT q _n  => [q]
+  | RZ _k q _a   => [q]
+  | RRZ _k q _a  => [q]
+  | SR _k q      => [q]
+  | SRR _k q     => [q]
+  | Addto _x q   => [q]
+  | CU c _a e1   => c :: qubits_of_exp e1
+  | Seq e1 e2    => qubits_of_exp e1 ++ qubits_of_exp e2
+  end.
+
+Definition qubits_of_cexp (c : cexp) : list nat :=
+  match c with
+  | CNew q _n      => [q]
+  | CAppU k e      => qubits_of_locus k ++ qubits_of_exp e
+  | CMeas _x k     => qubits_of_locus k
+  end.
+
+
+Definition qubits_of_cdexp (_d : cdexp) : list nat := [].
+
+Definition qubits_of_myOp (o : myOp) : list nat :=
+  match o with
+  | OpAP a      => qubits_of_cexp a
+  | OpDP d      => qubits_of_cdexp d
+  | OpIf _b p q => []
+  end.
+
+Fixpoint qubits_of_ops (ops : op_list) : list nat :=
+  match ops with
+  | [] => []
+  | o :: ops' => qubits_of_myOp o ++ qubits_of_ops ops'
+  end.
+
+Definition shares_any_qubit (o1 o2 : myOp) : bool :=
+  existsb (fun q => existsb (Nat.eqb q) (qubits_of_myOp o2))
+          (qubits_of_myOp o1).
+
+Definition is_empty_meas (o : myOp) : bool :=
+  match o with
+  | OpAP (CMeas x k) =>
+      match k with
+      | [] => true
+      | _  => false
+      end
+  | _ => false
+  end.
+
+Definition touches_program_qubit (all : list nat) (o : myOp) : bool :=
+  existsb (fun q => existsb (Nat.eqb q) all) (qubits_of_myOp o).
+
+
+
+
+
+
+
+
+
+
+(*
 Definition qubits_of_range (r : range) : list var :=
   match r with
   | (q, _lo, _hi) => [q]
@@ -277,7 +351,7 @@ Definition qubits_of_cexp (c : cexp) : list var :=
   | CAppU _ e    => vars_of_exp e
   | CMeas _ k    => qubits_of_locus k   (* NOT vars_of_locus *)
   end.
-
+*)
 (* Extract qubits touched by a locus *)
 Definition vars_of_bound (b : bound) : list var :=
   match b with
@@ -294,37 +368,19 @@ Definition vars_of_locus (L : locus) : list var :=
   concat (map vars_of_range L).
 
 (*
-(* Qubits touched by a cexp *)
-Definition qubits_of_cexp (c : cexp) : list var :=
-  match c with
-  | CNew q _     => [q]
-  | CAppU _ e    => vars_of_exp e
-  | CMeas _ k    => vars_of_locus k   (* IMPORTANT: not [x] *)
-  end.
-*)
 Definition qubits_of_myOp (o : myOp) : list var :=
   match o with
   | OpAP a => qubits_of_cexp a
   | OpDP _ => []          (* DP are classical comm ops, not “qubit sharing” *)
   | OpIf _ _ _ => []      (* guard is classical *)
   end.
-
+*)
 Definition share_qubit_myOp (o1 o2 : myOp) : bool :=
   negb (Nat.eqb
           (length (intersect (uniq (qubits_of_myOp o1))
                              (uniq (qubits_of_myOp o2))))
           0).
 
-(*
-
-Definition share_qubit_myOp (o1 o2 : myOp) : bool :=
-  negb (Nat.eqb
-          (length
-             (intersect
-                (uniq (vars_of_myOp o1))
-                (uniq (vars_of_myOp o2))))
-          0).
-*)
 Fixpoint index_of_myOp (x : myOp) (xs : list myOp) : nat :=
   match xs with
   | [] => 0
@@ -334,13 +390,27 @@ Fixpoint index_of_myOp (x : myOp) (xs : list myOp) : nat :=
       else S (index_of_myOp x tl)
   end.
 
+(* --- corrected hp --- *)
+Definition gen_hp (R : op_list) : hb_relation :=
+  let allQ := qubits_of_ops R in
+  fun o1 o2 =>
+    let i := index_of_myOp o1 R in
+    let j := index_of_myOp o2 R in
+    andb (Nat.ltb i j)
+         (orb (shares_any_qubit o1 o2)
+              (* key fix: empty-locus measurement depends on any earlier qubit op *)
+              (andb (is_empty_meas o2) (touches_program_qubit allQ o1))).
+
+
+(*
+
 Definition gen_hp (R : op_list) : hb_relation :=
   fun o1 o2 =>
     let i := index_of_myOp o1 R in
     let j := index_of_myOp o2 R in
     andb (Nat.ltb i j) (share_qubit_myOp o1 o2).
 
-
+*)
 (* ------------------------------------------------------------------------- *)
 (*                         MANY schedules                                    *)
 (* ------------------------------------------------------------------------- *)
@@ -1136,9 +1206,15 @@ Fixpoint remove_ops (eqb : myOp -> myOp -> bool) (xs rem : list myOp) : list myO
   | [] => []
   | x :: tl => if mem_op eqb x rem then remove_ops eqb tl rem else x :: remove_ops eqb tl rem
   end.
-
+(*
 Definition opt_hp (hp_l : hb_relation) (seq_l : seq_relation) : hb_relation :=
   fun a b => andb (hp_l a b) (Nat.ltb (seq_l a) (seq_l b)).
+*)
+Definition opt_hp (hp_l : hb_relation) (seq_l : seq_relation) : hb_relation :=
+  fun a b =>
+    if Nat.eqb (seq_l a) (seq_l b)
+    then hp_l a b          (* keep edge when tied *)
+    else andb (hp_l a b) (Nat.ltb (seq_l a) (seq_l b)).
 
 Fixpoint reachable_fuel
   (eqb : myOp -> myOp -> bool)
@@ -1176,6 +1252,46 @@ Definition scc_of
             (reachable eqb hp nodes y x))
     nodes.
 
+Definition has_pred (eqb: myOp -> myOp -> bool)
+                   (hp : hb_relation) (nodes : list myOp) (x : myOp) : bool :=
+  existsb (fun y => andb (negb (eqb y x)) (hp y x)) nodes.
+
+Definition ready (eqb: myOp -> myOp -> bool)
+                (hp : hb_relation) (nodes : list myOp) (x : myOp) : bool :=
+  negb (has_pred eqb hp nodes x).
+
+Definition pick_ready (eqb: myOp -> myOp -> bool)
+                     (hp : hb_relation) (nodes : list myOp) : list myOp :=
+  filter (ready eqb hp nodes) nodes.
+
+Fixpoint layer_partition_fuel
+  (fuel  : nat)
+  (eqb   : myOp -> myOp -> bool)
+  (hp    : hb_relation)
+  (nodes : list myOp)
+  : list (list myOp) :=
+  match fuel with
+  | 0 => []
+  | S fuel' =>
+      match nodes with
+      | [] => []
+      | _ =>
+          let layer := pick_ready eqb hp nodes in
+          if Nat.eqb (length layer) 0 then
+            [] 
+          else
+            let rest := remove_ops eqb nodes layer in
+            layer :: layer_partition_fuel fuel' eqb hp rest
+      end
+  end.
+
+Definition layer_partition
+  (eqb  : myOp -> myOp -> bool)
+  (hp   : hb_relation)
+  (nodes : list myOp)
+  : list (list myOp) :=
+  layer_partition_fuel (length nodes) eqb hp nodes.
+
 Fixpoint scc_partition_fuel
   (fuel : nat)
   (eqb  : myOp -> myOp -> bool)
@@ -1201,8 +1317,11 @@ Definition scc_partition
   : list (list myOp) :=
   scc_partition_fuel (length nodes) eqb hp nodes.
 
+
 Definition gen_ops (seq_l : seq_relation) (sbar : list myOp) : list process :=
   map myOp_to_process (sort_by_seq seq_l sbar).
+Definition alg3_loop_fold (seq_l : seq_relation) (S : list (list myOp)) : list process :=
+  concat (map (fun sbar => gen_ops seq_l sbar) S).
 
 Fixpoint alg3_loop
   (seq_l : seq_relation)
@@ -1218,15 +1337,25 @@ Fixpoint alg3_loop
       alg3_loop seq_l S' Rbar'
   end.
 
-
 Definition auto_parallelize_alg3
-  (eqb  : myOp -> myOp -> bool)   
-  (ops_l : list myOp)            
+  (eqb   : myOp -> myOp -> bool)
+  (ops_l : list myOp)
   (hp_l  : hb_relation)
   (seq_l : seq_relation)
   : list process :=
-  let hp_l' := opt_hp hp_l seq_l in  
-  let S := scc_partition eqb hp_l' (uniq_ops eqb ops_l) in  
+  let hp_l' := opt_hp hp_l seq_l in
+  let S := scc_partition  eqb hp_l' (uniq_ops eqb ops_l) in
   alg3_loop seq_l S ([] : list process).
+
+Definition auto_parallelize_alg3_layers
+  (eqb   : myOp -> myOp -> bool)
+  (ops_l : list myOp)
+  (hp_l  : hb_relation)
+  (seq_l : seq_relation)
+  : list process :=
+  let hp_l' := opt_hp hp_l seq_l in
+  let S := layer_partition eqb hp_l' (uniq_ops eqb ops_l) in
+  alg3_loop seq_l S ([] : list process).
+
 
 

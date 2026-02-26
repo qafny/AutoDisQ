@@ -67,10 +67,6 @@ val of_hex_uint : uint0 -> int
 
 val of_num_uint : uint1 -> int
 
-val divmod : int -> int -> int -> int -> int * int
-
-val modulo : int -> int -> int
-
 module Nat :
  sig
   val add : int -> int -> int
@@ -111,6 +107,8 @@ val existsb : ('a1 -> bool) -> 'a1 list -> bool
 val forallb : ('a1 -> bool) -> 'a1 list -> bool
 
 val filter : ('a1 -> bool) -> 'a1 list -> 'a1 list
+
+val seq : int -> int -> int list
 
 type var = int
 
@@ -231,15 +229,25 @@ val vars_of_cbexp : cbexp -> var list
 
 val vars_of_myOp : myOp -> var list
 
-val qubits_of_range : range -> var list
+val qubits_of_range : ((int * bound) * bound) -> int
 
-val qubits_of_locus : locus -> var list
+val qubits_of_locus : locus -> int list
 
-val qubits_of_cexp : cexp -> var list
+val qubits_of_exp : exp -> int list
 
-val qubits_of_myOp : myOp -> var list
+val qubits_of_cexp : cexp -> int list
 
-val share_qubit_myOp : myOp -> myOp -> bool
+val qubits_of_cdexp : cdexp -> int list
+
+val qubits_of_myOp : myOp -> int list
+
+val qubits_of_ops : op_list -> int list
+
+val shares_any_qubit : myOp -> myOp -> bool
+
+val is_empty_meas : myOp -> bool
+
+val touches_program_qubit : int list -> myOp -> bool
 
 val index_of_myOp : myOp -> myOp list -> int
 
@@ -390,6 +398,20 @@ val reachable :
 val scc_of :
   (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp -> myOp list
 
+val has_pred :
+  (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp -> bool
+
+val ready : (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp -> bool
+
+val pick_ready :
+  (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp list
+
+val layer_partition_fuel :
+  int -> (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp list list
+
+val layer_partition :
+  (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp list list
+
 val scc_partition_fuel :
   int -> (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp list list
 
@@ -398,13 +420,21 @@ val scc_partition :
 
 val gen_ops : seq_relation -> myOp list -> process list
 
+val alg3_loop_fold : seq_relation -> myOp list list -> process list
+
 val alg3_loop : seq_relation -> myOp list list -> process list -> process list
 
 val auto_parallelize_alg3 :
   (myOp -> myOp -> bool) -> myOp list -> hb_relation -> seq_relation ->
   process list
 
+val auto_parallelize_alg3_layers :
+  (myOp -> myOp -> bool) -> myOp list -> hb_relation -> seq_relation ->
+  process list
+
 val l : locus
+
+val cfg2 : config
 
 val p1_q : var
 
@@ -480,7 +510,21 @@ val w0 : var
 
 val w1 : var
 
+val alloc_qubits : var list -> op_list
+
+val apply_H_all : var list -> op_list
+
+val meas_all : var list -> op_list
+
 val iNC_mod4 : exp
+
+val repeat_exp : int -> exp -> exp
+
+val pow2 : int -> int
+
+val controlled_pow : var -> int -> op_list
+
+val qpe_controlled_pows : var list -> int -> op_list
 
 val pow_mod : int -> int -> int -> int
 
@@ -535,3 +579,67 @@ val meas_p1 : cexp
 val meas_p2 : cexp
 
 val shor_Qprog : op_list
+
+val alloc_qubits_from : var list -> op_list
+
+val apply_H_all_from : var list -> op_list
+
+val meas_all_from : var list -> op_list
+
+val t_phase64 : int
+
+val phase_qubits64 : var list
+
+val phase_bits64 : var list
+
+val appRQFT64 : cexp
+
+val shor_Qprog_64 : op_list
+
+val t_phase32 : int
+
+val n_work32 : int
+
+val phase_qubits32 : var list
+
+val work_qubits32 : var list
+
+val phase_bits32 : var list
+
+val appRQFT32 : cexp
+
+val shor_Qprog32 : op_list
+
+val ghz32_n : int
+
+val ghz32_qs : var list
+
+val ghz32_outs : var list
+
+val cnot_from : var -> var list -> op_list
+
+val gHZ32_prog : op_list
+
+val gHZ32_best : distributed_prog
+
+val qft32_n : int
+
+val qft32_q0 : var
+
+val qft32_qubits : var list
+
+val qft32_outs : var list
+
+val qFT32_prog : op_list
+
+val qFT32_dist0 : distributed_prog
+
+val qft64_n : int
+
+val qft64_q0 : var
+
+val qft64_qubits : var list
+
+val qft64_outs : var list
+
+val qFT64_prog : op_list

@@ -26,6 +26,7 @@ Extraction
   gen_prog_loop_alg2
   gen_prog_paper
   auto_parallelize_alg3
+  auto_parallelize_alg3_layers
   gen_hp
   gen_mem_seed
   gen_seq_many
@@ -38,12 +39,32 @@ Extraction
   mem_up_smap
 scc_partition_fuel
   scc_partition
+ remove_ops
+ has_pred
+ ready
+ pick_ready
+layer_partition_fuel
+ layer_partition
   alg3_loop
+alg3_loop_fold
   find_period_exact
   shor_factors_from_r
   pow_mod
-
+qubits_of_range
+qubits_of_locus
+ qubits_of_exp
+ qubits_of_cexp
+qubits_of_cdexp
+qubits_of_myOp
+qubits_of_ops
+ shares_any_qubit
  P_1 P_3 P_4 P_5 P_6
+Shor_Qprog_64 
+ phase_qubits64
+appRQFT64
+phase_bits64 
+apply_H_all_from
+alloc_qubits_from
 Shor_Qprog.
 
 
