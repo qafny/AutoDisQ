@@ -7,9 +7,5 @@ OQASMProof.v
 CLArith.v
 RZArith.v
 DisQSyntax.v
-DisQDef.v
-DisQKind.v
-DisQSem.v
-DisQType.v
 AUTO.v
 AUTO_Test.v
