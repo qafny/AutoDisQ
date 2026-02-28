@@ -1,8 +1,13 @@
 From Coq Require Import List Arith Bool Nat.
 Import ListNotations.
+Require Import Coq.Sorting.Mergesort.
+Require Import Coq.Structures.Orders.
+Require Import Coq.Lists.List.
+Require Import Coq.Lists.ListSet.
 Local Open Scope nat_scope.
 Local Open Scope list_scope.
 
+Require Import QuantumLib.Prelim.
 Require Import DisQ.BasicUtility.   (* var := nat *)
 Require Import DisQ.DisQSyntax.     (* exp, process, memb, config, ... *)
 
@@ -12,11 +17,10 @@ Definition membrane_id : Type := var.
 
 Inductive myOp : Type :=
 | OpAP  (a : cexp)                         
-| OpDP  (a : cdexp)                       
-| OpIf  (b : cbexp) (p q : process). 
+| OpIf  (b : cbexp) (p q : list cexp). 
 
 Definition op_list : Type := list myOp.
-Definition hb_relation : Type := myOp -> myOp -> bool.
+Definition hb_relation : Type := nat -> nat -> bool.
 Definition rank         : Type := nat.
 Definition seq_relation : Type := myOp -> rank.
 Definition op_mem_assign : Type := myOp -> membrane_id.
@@ -48,6 +52,7 @@ Definition cbexp_eqb (b1 b2 : cbexp) : bool :=
   | _, _ => false
   end.
 
+(*
 Definition bound_eqb (b1 b2 : bound) : bool :=
   match b1, b2 with
   | BVar v1 n1, BVar v2 n2 =>
@@ -56,13 +61,14 @@ Definition bound_eqb (b1 b2 : bound) : bool :=
       Nat.eqb n1 n2
   | _, _ => false
   end.
+*)
 
 Definition range_eqb (r1 r2 : range) : bool :=
   match r1, r2 with
-  | (x1, lo1, hi1), (x2, lo2, hi2) =>
+  | (x1, (lo1, hi1)), (x2, (lo2, hi2)) =>
       andb (Nat.eqb x1 x2)
-           (andb (bound_eqb lo1 lo2)
-                 (bound_eqb hi1 hi2))
+           (andb (Nat.eqb lo1 lo2)
+                 (Nat.eqb hi1 hi2))
   end.
 
 Definition locus_eqb (l1 l2 : locus) : bool :=
@@ -97,6 +103,8 @@ Fixpoint exp_eqb (e1 e2 : exp) : bool :=
   | _, _ => false
   end.
 
+
+(*
 Definition cexp_eqb (c1 c2 : cexp) : bool :=
   match c1, c2 with
   | CNew x1 n1, CNew x2 n2 =>
@@ -105,13 +113,6 @@ Definition cexp_eqb (c1 c2 : cexp) : bool :=
       andb (locus_eqb l1 l2) (exp_eqb e1 e2)
   | CMeas x1 k1, CMeas x2 k2 =>
       andb (Nat.eqb x1 x2) (locus_eqb k1 k2)
-  | _, _ => false
-  end.
-
-Definition cdexp_eqb (d1 d2 : cdexp) : bool :=
-  match d1, d2 with
-  | NewCh c1 n1, NewCh c2 n2 =>
-      andb (Nat.eqb c1 c2) (Nat.eqb n1 n2)
   | Send c1 a1, Send c2 a2 =>
       andb (Nat.eqb c1 c2) (aexp_eqb a1 a2)
   | Recv c1 x1, Recv c2 x2 =>
@@ -124,25 +125,22 @@ Fixpoint process_eqb (p1 p2 : process) : bool :=
   | PNil, PNil => true
   | AP a1 p1', AP a2 p2' =>
       andb (cexp_eqb a1 a2) (process_eqb p1' p2')
-  | DP a1 p1', DP a2 p2' =>
-      andb (cdexp_eqb a1 a2) (process_eqb p1' p2')
   | PIf b1 p1a p1b, PIf b2 p2a p2b =>
       andb (cbexp_eqb b1 b2)
            (andb (process_eqb p1a p2a) (process_eqb p1b p2b))
   | _, _ => false
   end.
-
-
-
+*)
+(*
 Definition myOp_eqb (x y : myOp) : bool :=
   match x, y with
   | OpAP a1, OpAP a2 => cexp_eqb a1 a2
-  | OpDP a1, OpDP a2 => cdexp_eqb a1 a2
   | OpIf b1 p1 q1, OpIf b2 p2 q2 =>
       andb (cbexp_eqb b1 b2)
            (andb (process_eqb p1 p2) (process_eqb q1 q2))
   | _, _ => false
   end.
+*)
 
 Definition qubit_mem_assign : Type := var -> membrane_id.
 
@@ -150,11 +148,150 @@ Definition fitness_value    : Type := nat.
 Definition distributed_prog : Type := config.
 
 
+(*
+ locus lib
+*)
+
+Module RangeOrder <: TotalLeBool'.
+  Definition t := range.
+  Definition leb (x y:range) := if Nat.ltb (fst x) (fst y) then true
+    else if Nat.eqb (fst x) (fst y) then 
+         (if (Nat.ltb (fst (snd x)) (fst (snd y))) then true
+          else if (Nat.eqb (fst (snd x)) (fst (snd y))) then (Nat.leb (snd (snd x)) (snd (snd y))) else false) else false.   
+  Infix "[<=]" := leb (at level 50). 
+  Theorem leb_total : forall x y, (x [<=] y) = true \/ (y [<=] x) = true.
+  Proof.
+  intros.
+  unfold leb.
+  destruct x; simpl in *.
+  destruct y; simpl in *.
+  destruct p; simpl in *.
+  destruct p0; simpl in *.
+  bdestruct (v <? v0). left. easy.
+  bdestruct (v =? v0).
+  bdestruct (n <? n1). left. easy.
+  bdestruct (n =? n1).
+  bdestruct (n0 <=? n2). left. easy.
+  bdestruct (v0 <? v). right. easy.
+  bdestruct (v0 =? v).
+  bdestruct (n1 <? n). right. easy.
+  subst. bdestruct (n1 =? n1).
+  bdestruct (n2 <=? n0). right. easy.
+  1-3: lia.
+  subst. bdestruct (v0 <? v0). right. easy.
+  bdestruct (v0 =? v0).
+  bdestruct (n1 <? n). right. easy. assert (n = n1) by lia. subst.
+  bdestruct (n1 =? n1). 1 - 3: lia.
+  right.
+  bdestruct (v0 <? v). easy.
+  bdestruct (v0 =? v). subst. 1 - 2: lia.
+  Qed.
+End RangeOrder.
+
+(* 2. Instantiate the Sort module with your order *)
+Module SortRange := Sort(RangeOrder).
+
+
+Check SortRange.sort.
+
+(*
+Define intersect of two locus.
+*)
+Definition nat_range_inter (x y : (nat * nat)) :=
+      ((fst x <=? fst y) && (fst y <? snd x))
+  ||  ((fst y <? fst x) && (fst x <? snd y)).
+
+Definition range_intersect (x y : range) := ((fst x) =? (fst y)) && nat_range_inter (snd x) (snd y).
+
+Definition same_name (x y:range) := fst x =? fst y.
+
+Fixpoint intersect' (x:range) (y:locus) :=
+   match y with nil => false
+              | a::yas => if same_name x a then (if nat_range_inter (snd x) (snd a) then true else intersect' x yas) else false
+   end.
+
+Fixpoint intersect (x y:locus) :=
+   match x with nil => false 
+             | a::xas => if intersect' a y then true else intersect xas y end.
+
+Definition get_locus (x:cexp) :=
+  match x with CNew a => [a]
+             | CAppU l e => l
+             | CMeas x k => k
+             | Send c x a => [(x,(a,S a))]
+             | Recv c x y => [(x,(y,S y))]
+  end.
+
+Definition get_loci (x : list cexp) := fold_left (fun a b => get_locus b ++ a) x nil.
+
+Definition get_vars_cexp (x:cexp) :=
+  match x with CNew a => nil
+             | CAppU l e => nil
+             | CMeas x k => [x]
+             | Send c x a => nil
+             | Recv c x y => nil
+  end.
+
+Fixpoint get_vars_aexp (x:aexp) :=
+  match x with BA a => [a]
+             | Num n => nil
+             | APlus e1 e2 => get_vars_aexp e1 ++ get_vars_aexp e2
+             | AMult e1 e2 => get_vars_aexp e1 ++ get_vars_aexp e2
+             | AModMult e1 e2 e3 => get_vars_aexp e1 ++ get_vars_aexp e2 ++ get_vars_aexp e3
+  end.
+
+Definition get_vars_bexp (x:cbexp) :=
+  match x with CEq a b => get_vars_aexp a ++ get_vars_aexp b
+             | CLt a b =>  get_vars_aexp a ++ get_vars_aexp b
+  end.
+
+Definition is_inter (x y: cexp) :=
+  match get_locus x, get_locus y with la,lb => intersect la lb end.
+
+Definition inter_vars (xs ys : list var) : bool :=
+   match set_inter Nat.eq_dec xs ys with nil => false | _ => true end.
+
+Definition gen_hb_single (x y: nat * myOp) acc :=
+   match snd x, snd y
+    with OpAP xa, OpAP ya => fun i j => if (i =? fst x) && (j =? fst y) then is_inter xa ya else acc i j
+       | OpAP xa, OpIf ya la ra => 
+             fun i j => if (i =? fst x) && (j =? fst y) 
+                    then intersect (get_locus xa) (get_loci (la++ra)) && inter_vars (get_vars_cexp xa) (get_vars_bexp ya) else acc i j
+       | OpIf ya la ra, OpAP xa =>
+             fun i j => if (i =? fst y) && (j =? fst x)
+                    then intersect (get_locus xa) (get_loci (la++ra)) && inter_vars (get_vars_cexp xa) (get_vars_bexp ya) else acc i j
+       | OpIf xa la ra, OpIf ya lb rb =>
+             fun i j => if (i =? fst y) && (j =? fst x)
+                    then intersect (get_loci (la++ra)) (get_loci (lb++rb)) && inter_vars (get_vars_bexp xa) (get_vars_bexp ya) else acc i j
+   end.
+
+(* --- corrected hp --- *)
+Fixpoint opListOrder' (l : op_list) (n:nat) :=
+  match l with nil => nil
+             | x::xs => (n,x)::opListOrder' xs (n+1)
+  end.
+Definition opListOrder l := opListOrder' l 0.
+
+Definition empty_hp := fun (x y:nat) => false.
+
+
+Fixpoint gen_hb' (x: nat * myOp) l (acc:hb_relation) := 
+  match l with nil => acc
+             | a::xas => gen_hb' x xas (gen_hb_single x a acc)
+  end.
+
+Fixpoint gen_hb_a (R : list (nat * myOp)) acc :=
+   match R with nil => acc
+             | a::xas => gen_hb_a xas (gen_hb' a xas acc)
+   end.
+Definition gen_hb (R : list (nat * myOp)) := gen_hb_a R empty_hp.
+
 
 (* ------------------------------------------------------------------------- *)
 (* Basic list helpers                                                        *)
 (* ------------------------------------------------------------------------- *)
 
+(*
 Definition var_eqb (x y : var) : bool := Nat.eqb x y.
 
 Fixpoint mem_var (x : var) (xs : list var) : bool :=
@@ -174,6 +311,8 @@ Fixpoint intersect (xs ys : list var) : list var :=
   | [] => []
   | x :: tl => if mem_var x ys then x :: intersect tl ys else intersect tl ys
   end.
+*)
+
 
 (* ------------------------------------------------------------------------- *)
 (* vars_of_exp                                                               *)
@@ -234,6 +373,7 @@ Fixpoint vars_of_aexp (a : aexp) : list var :=
   | Num _ => []
   | APlus a1 a2 => vars_of_aexp a1 ++ vars_of_aexp a2
   | AMult a1 a2 => vars_of_aexp a1 ++ vars_of_aexp a2
+  | AModMult a1 a2 a3 =>  vars_of_aexp a1 ++ vars_of_aexp a2 ++ vars_of_aexp a3
   end.
 
 Definition vars_of_cbexp (b : cbexp) : list var :=
@@ -250,20 +390,16 @@ Definition vars_of_myOp (op : myOp) : list var :=
       | CAppU _ e => vars_of_exp e
       | CNew x _ => [x]
       | CMeas x _ => [x]
-      end
-  | OpDP a =>
-      match a with
-      | NewCh c _ => [c]
-      | Send c e => c :: vars_of_aexp e
-      | Recv c x => [c; x]
+      | Send x _ => [x]
+      | Recv x _ => [x]
       end
   | OpIf b _ _ =>
       vars_of_cbexp b
   end.
 
 (* --- extract qubits touched by an op --- *)
-Definition qubits_of_range (r : (nat * bound) * bound) : nat :=
-  let '((q,_),_) := r in q.
+Definition qubits_of_range (r : range) : nat :=
+  let '(q,(_,_)) := r in q.
 
 Definition qubits_of_locus (k : locus) : list nat :=
   map qubits_of_range k.
@@ -389,17 +525,6 @@ Fixpoint index_of_myOp (x : myOp) (xs : list myOp) : nat :=
       then 0
       else S (index_of_myOp x tl)
   end.
-
-(* --- corrected hp --- *)
-Definition gen_hp (R : op_list) : hb_relation :=
-  let allQ := qubits_of_ops R in
-  fun o1 o2 =>
-    let i := index_of_myOp o1 R in
-    let j := index_of_myOp o2 R in
-    andb (Nat.ltb i j)
-         (orb (shares_any_qubit o1 o2)
-              (* key fix: empty-locus measurement depends on any earlier qubit op *)
-              (andb (is_empty_meas o2) (touches_program_qubit allQ o1))).
 
 
 (*

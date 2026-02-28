@@ -32,13 +32,13 @@ Inductive bound := BVar (v:var) (n:nat) | BNum (n:nat).
 Definition simple_bound (b:bound) :=
    match b with BNum n => True | BVar x n => False end.
 
-Definition range : Set := var * bound * bound.
+Definition range : Set := var * (nat * nat).
 
 Definition locus : Type := list range.
 Definition glocus : Type := list (range * var).  (** range * location **)
 
 Inductive aexp := BA (x:var) | Num (n:nat)
-         | APlus (e1:aexp) (e2:aexp) | AMult (e1:aexp) (e2:aexp).
+         | APlus (e1:aexp) (e2:aexp) | AMult (e1:aexp) (e2:aexp) | AModMult (e1:aexp) (e2:aexp) (e3:aexp).
 
 Coercion BA : var >-> aexp.
 
@@ -95,24 +95,19 @@ Inductive single_u := RH (p:varia) | SQFT (x:var) | SRQFT (x:var).
 
 (*********** DisQ Syntax  ***************)
 (** Local Action  **)
-Inductive cexp := CNew (x: var) (n: nat)
+Inductive cexp := CNew (x:range)
              | CAppU (l: locus) (e: exp)
-             | CMeas (x: var) (k: locus).
-
-(** Communication Action **)
-Inductive cdexp := NewCh (c: var) (n: nat)
-             | Send (c: var) (a: aexp)
-             | Recv (c: var) (x: var).
+             | CMeas (x: var) (k: locus)
+             | Send (c: var) (x:var) (a: nat) (* quantum send *)
+             | Recv (c: var) (x:var) (y:nat). (* quantum rev *)
 
 (** Process  **)
 Inductive process := PNil
                 | AP (a: cexp) (p: process)
-                | DP (a:cdexp) (p:process)
                 | PIf (b: cbexp) (p: process) (q: process).
 
 (** Membrane **)
-Inductive memb := Memb (l: var) (lp: list process)
-                 | LockMemb (l: var) (r: process) (lp: list process).
+Inductive memb := Memb (l: var) (lp: process).
 
 (** Configuration **)
 Definition config : Type := list memb.
