@@ -79,7 +79,7 @@ let pp_myOp = function
 let pp_myOp_list (xs : myOp list) : unit =
   List.iter (fun o -> Printf.printf "  %s\n%!" (pp_myOp o)) xs
 
-(* Use your extracted opt_hp, but keep the name clear. *)
+(* Use extracted opt_hp. *)
 let hp_opt (hp : hb_relation) (seq : seq_relation) : hb_relation =
   opt_hp hp seq
 
@@ -101,7 +101,7 @@ let show_alg3_blocks (pname:string) (ops:op_list) : unit =
       pp_myOp_list block)
     blocks
 
-(* Also print the flattened schedule returned by auto_parallelize_alg3 *)
+(* print the flattened schedule returned by auto_parallelize_alg3 *)
 let show_alg3_flat (pname:string) (ops:op_list) : unit =
   Printf.printf "\n==============================\n%!";
   Printf.printf "[Alg3] Flattened grouped schedule for %s\n%!" pname;
@@ -187,7 +187,7 @@ let () =
   test_alg2 "Shor_Qprog" shor_Qprog 3;
   test_alg2 "Shor_Qprog" shor_Qprog 5;
 
-  (* -------- Algorithm 2: EXTRA tests you requested -------- *)
+  (* -------- Algorithm 2:  -------- *)
   show "QFT32_dist0 (already distributed)" qFT32_dist0;
   show "GHZ32_best (already distributed)" gHZ32_best;
 
@@ -219,8 +219,7 @@ let () =
   (* -------- Algorithm 1: Shor auto search -------- *)
   test_alg1 "Shor_Qprog" shor_Qprog 3 3;
 
-  (* -------- Algorithm 1: EXTRA tests you requested -------- *)
-  (* qFT32_dist0 and gHZ32_best are distributed_prog, so DO NOT call test_alg1/test_alg2 on them. *)
+  (* -------- Algorithm 1:  -------- *)
   test_alg1 "GHZ32_prog"   gHZ32_prog   3 3;
   test_alg1 "QFT64_prog"   qFT64_prog   3 3;
   test_alg1 "Shor_Qprog32" shor_Qprog32 3 3;
@@ -245,8 +244,8 @@ let () =
   show_alg3_blocks "Shor_Qprog" shor_Qprog;
   show_alg3_flat   "Shor_Qprog" shor_Qprog;
 
-  (* -------- Algorithm 3: SHOW PARTITIONS (SCC): EXTRA tests -------- *)
-  (* qFT32_dist0 and gHZ32_best are distributed_prog, so DO NOT call show_alg3_* on them. *)
+  (* -------- Algorithm 3: SHOW PARTITIONS (SCC):  -------- *)
+
   show_alg3_blocks "GHZ32_prog" gHZ32_prog;
   show_alg3_flat   "GHZ32_prog" gHZ32_prog;
 
@@ -278,8 +277,7 @@ let () =
   show_alg3_layers_blocks "Shor_Qprog" shor_Qprog;
   show_alg3_layers_flat   "Shor_Qprog" shor_Qprog;
 
-  (* -------- Algorithm 3: SHOW PARTITIONS (Layers): EXTRA tests -------- *)
-  (* qFT32_dist0 and gHZ32_best are distributed_prog, so DO NOT call show_alg3_* on them. *)
+  (* -------- Algorithm 3: SHOW PARTITIONS (Layers):  -------- *)
   show_alg3_layers_blocks "GHZ32_prog" gHZ32_prog;
   show_alg3_layers_flat   "GHZ32_prog" gHZ32_prog;
 
