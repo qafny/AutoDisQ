@@ -842,6 +842,7 @@ Definition Shor_dist5 : distributed_prog :=
 Compute Shor_dist5.
 Compute fit Shor_dist5.
 
+
 Opaque controlled_pow.
 Opaque qpe_controlled_pows.
 
@@ -1086,7 +1087,6 @@ Definition QFT64_best : distributed_prog :=
   auto_disq_alg1_paper 1 1 QFT64_prog cfg6.
 
 Compute fit QFT64_best.
-
 
 
 
