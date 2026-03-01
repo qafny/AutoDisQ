@@ -29,7 +29,7 @@ Inductive union_f : (ktype * locus) -> (ktype * locus) -> (ktype * locus) -> Pro
 
 Inductive type_aexp : aenv -> aexp -> (ktype*locus) -> Prop :=
    | ba_type : forall env b, AEnv.MapsTo b CT env -> type_aexp env (BA b) (CT,[])
-   | ba_type_q : forall env b n lc, AEnv.MapsTo b (QT lc n) env -> type_aexp env (BA b) (QT lc n,[(b,BNum 0,BNum n)])
+   | ba_type_q : forall env b n lc, AEnv.MapsTo b (QT lc n) env -> type_aexp env (BA b) (QT lc n,[(b,(0,n))])
    | num_type : forall env n, type_aexp env (Num n) (CT,[])
    | plus_type : forall env e1 e2 t1 t2 t3, 
                    type_aexp env e1 t1 -> type_aexp env e2 t2 -> union_f t1 t2 t3 -> 
@@ -41,7 +41,7 @@ Inductive type_aexp : aenv -> aexp -> (ktype*locus) -> Prop :=
 Inductive type_vari : aenv -> varia -> (ktype*locus) -> Prop :=
    | aexp_type : forall env a t, type_aexp env a t -> type_vari env a t
    | index_type : forall env x n v lc,
-       AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> type_vari env (Index x (Num v)) (QT lc 1,[(x,BNum v,BNum (S v))]).
+       AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> type_vari env (Index x (Num v)) (QT lc 1,[(x,(v,(S v)))]).
 
 
 Inductive type_cbexp : aenv -> cbexp -> ktype -> Prop :=
@@ -55,51 +55,51 @@ Inductive type_bexp : aenv -> bexp -> (ktype*locus) -> Prop :=
 
    | beq_type_1 : forall env a b x m n v lc, AEnv.MapsTo a (QT lc m) env -> 
              AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> 
-           type_bexp env (BEq (BA a) ((Num b)) x (Num v)) (QT lc (m+1),((a,BNum 0,BNum m)::[(x,BNum v,BNum (S v))]))
+           type_bexp env (BEq (BA a) ((Num b)) x (Num v)) (QT lc (m+1),((a,(0,m))::[(x,(v,(S v)))]))
    | beq_type_2 : forall env a b x m n v lc, AEnv.MapsTo a (QT lc m) env -> 
              AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> 
-           type_bexp env (BEq ((Num b)) (BA a) x (Num v)) (QT lc (m+1),((a,BNum 0,BNum m)::[(x,BNum v,BNum (S v))]))
+           type_bexp env (BEq ((Num b)) (BA a) x (Num v)) (QT lc (m+1),((a,(0,m))::[(x,(v,(S v)))]))
    | blt_type_1 : forall env a b x m n v lc, AEnv.MapsTo a (QT lc m) env -> 
              AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> 
-           type_bexp env (BLt (BA a) ((Num b)) x (Num v)) (QT lc (m+1),((a,BNum 0,BNum m)::[(x,BNum v,BNum (S v))]))
+           type_bexp env (BLt (BA a) ((Num b)) x (Num v)) (QT lc (m+1),((a,(0,m))::[(x,(v,(S v)))]))
    | blt_type_2 : forall env a b x m n v lc, AEnv.MapsTo a (QT lc m) env -> 
              AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> 
-           type_bexp env (BLt ((Num b)) (BA a) x (Num v)) (QT lc (m+1),((a,BNum 0,BNum m)::[(x,BNum v,BNum (S v))]))
+           type_bexp env (BLt ((Num b)) (BA a) x (Num v)) (QT lc (m+1),((a,(0,m))::[(x,(v,(S v)))]))
    | btest_type : forall env x n v lc, AEnv.MapsTo x (QT lc n) env -> 0 <= v < n 
-            -> type_bexp env (BTest x (Num v)) (QT lc 1,[((x,BNum v,BNum (S v)))])
+            -> type_bexp env (BTest x (Num v)) (QT lc 1,[((x,(v,(S v))))])
    | bneg_type : forall env b t, type_bexp env b t -> type_bexp env (BNeg b) t.
 
 
 Inductive type_exp : aenv -> exp -> (ktype*locus) -> Prop :=
-   | skip_fa : forall env x v n lc, AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> type_exp env (SKIP x (Num v)) (QT lc 1,([(x,BNum v, BNum (S v))]))
-   | x_fa : forall env x v n lc, AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> type_exp env (X x (Num v)) (QT lc 1,([(x,BNum v, BNum (S v))]))
-   | rz_fa : forall env q x v n lc, AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> type_exp env (RZ q x (Num v)) (QT lc 1, ([(x,BNum v, BNum (S v))]))
-   | rrz_fa : forall env q x v n lc, AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> type_exp env (RRZ q x (Num v)) (QT lc 1, ([(x,BNum v, BNum (S v))]))
-   | sr_fa : forall env q x n lc, AEnv.MapsTo x (QT lc n) env -> q < n -> type_exp env (SR q x) (QT lc n, ([(x,BNum 0, BNum n)]))
-   | srr_fa : forall env q x n lc,  AEnv.MapsTo x (QT lc n) env -> q < n -> type_exp env (SRR q x) (QT lc n, ([(x,BNum 0, BNum n)]))
-   | qft_fa : forall env q x n lc,  AEnv.MapsTo x (QT lc n) env -> q <= n -> 0 < n -> type_exp env (QFT x q) (QT lc n, ([(x,BNum 0, BNum n)]))
-   | rqft_fa : forall env q x n lc,  AEnv.MapsTo x (QT lc n) env -> q <= n -> 0 < n -> type_exp env (RQFT x q) (QT lc n, ([(x,BNum 0, BNum n)]))
+   | skip_fa : forall env x v n lc, AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> type_exp env (SKIP x (Num v)) (QT lc 1,([(x,(v, (S v)))]))
+   | x_fa : forall env x v n lc, AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> type_exp env (X x (Num v)) (QT lc 1,([(x,(v, (S v)))]))
+   | rz_fa : forall env q x v n lc, AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> type_exp env (RZ q x (Num v)) (QT lc 1, ([(x,(v, (S v)))]))
+   | rrz_fa : forall env q x v n lc, AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> type_exp env (RRZ q x (Num v)) (QT lc 1, ([(x,(v, (S v)))]))
+   | sr_fa : forall env q x n lc, AEnv.MapsTo x (QT lc n) env -> q < n -> type_exp env (SR q x) (QT lc n, ([(x,(0, n))]))
+   | srr_fa : forall env q x n lc,  AEnv.MapsTo x (QT lc n) env -> q < n -> type_exp env (SRR q x) (QT lc n, ([(x,(0, n))]))
+   | qft_fa : forall env q x n lc,  AEnv.MapsTo x (QT lc n) env -> q <= n -> 0 < n -> type_exp env (QFT x q) (QT lc n, ([(x,(0, n))]))
+   | rqft_fa : forall env q x n lc,  AEnv.MapsTo x (QT lc n) env -> q <= n -> 0 < n -> type_exp env (RQFT x q) (QT lc n, ([(x,(0, n))]))
    | cu_fa : forall env x v n e t1 t2 lc, AEnv.MapsTo x (QT lc n) env -> 0 <= v < n -> 
-            type_exp env e t1 -> union_f (QT lc 1, ([(x,BNum v, BNum (S v))])) t1 t2 -> type_exp env (CU x (Num v) e) t2
+            type_exp env e t1 -> union_f (QT lc 1, ([(x,(v, (S v)))])) t1 t2 -> type_exp env (CU x (Num v) e) t2
    | seq_fa : forall env e1 t1 e2 t2 t3, type_exp env e1 t1 -> type_exp env e2 t2 -> union_f t1 t2 t3 ->
                  type_exp env (Seq e1 e2) t3.
 
 Inductive fv_su : aenv -> single_u -> locus -> Prop :=
    fv_su_h : forall env a n s lc, type_vari env a (QT lc n, s) -> fv_su env (RH a) s
-  | fv_su_qft : forall env x n lc, AEnv.MapsTo x (QT lc n) env -> fv_su env (SQFT x) ([(x,BNum 0,BNum n)])
-  | fv_su_rqft : forall env x n lc, AEnv.MapsTo x (QT lc n) env -> fv_su env (SRQFT x) ([(x,BNum 0,BNum n)]).
+  | fv_su_qft : forall env x n lc, AEnv.MapsTo x (QT lc n) env -> fv_su env (SQFT x) ([(x,(0,n))])
+  | fv_su_rqft : forall env x n lc, AEnv.MapsTo x (QT lc n) env -> fv_su env (SRQFT x) ([(x,(0,n))]).
 
 Inductive fv_cexp : aenv -> cexp -> locus -> Prop :=
   | cmeas : forall env x l, fv_cexp env (CMeas x l) l
-  | cappu_fa : forall env l e, fv_cexp env (CAppU l e) l.
-
-Inductive fv_cdexp : aenv -> cdexp -> locus -> Prop :=
-  | csend_fa : forall env c a, fv_cdexp env (Send c a) nil
-  | crecv_fa : forall env c a,  fv_cdexp env (Recv c a) nil.                                    
+  | cappu_fa : forall env l e, fv_cexp env (CAppU l e) l
+  | cnew_fv : forall env x, fv_cexp env (CNew x) ([x])
+  | csend_fa : forall env c x a, fv_cexp env (Send c x a) ([(x,(a,a+1))])
+  | crecv_fa : forall env c x a,  fv_cexp env (Recv c x a) ([(x,(a,a+1))]).                                    
 
 Fixpoint freeVarsAExp (a:aexp) := match a with BA x => ([x]) | Num n => nil
             | APlus e1 e2 => (freeVarsAExp e1)++(freeVarsAExp e2)
             | AMult e1 e2 => (freeVarsAExp e1)++(freeVarsAExp e2)
+            | AModMult e1 e2 e3 => (freeVarsAExp e1)++(freeVarsAExp e2)++(freeVarsAExp e3)
   end.
 Definition freeVarsVari (a:varia) := match a with AExp x => freeVarsAExp x
             | Index x v => (x::freeVarsAExp v)
@@ -168,6 +168,9 @@ Fixpoint simp_aexp (a:aexp) :=
              | AMult c d => match (simp_aexp c,simp_aexp d) with (Some v1,Some v2) => Some (v1*v2)
                                 | (_,_) => None
                             end
+             | AModMult c d e => match (simp_aexp c,simp_aexp d, simp_aexp e) with (Some v1,Some v2, Some v3) => Some ((v1*v2) mod v3)
+                                | (_,_) => None
+                            end
    end.
 
 Fixpoint simp_bexp (a:bexp) :=
@@ -227,6 +230,12 @@ Proof.
   destruct (simp_aexp a1) eqn:eq1.
   destruct (simp_aexp a2) eqn:eq2. inv H. erewrite IHa1; try easy. erewrite IHa2; try easy.
   inv H. inv H.
+  destruct (simp_aexp a1) eqn:eq1.
+  destruct (simp_aexp a2) eqn:eq2.
+  destruct (simp_aexp a3) eqn:eq3.
+  inv H. erewrite IHa1; try easy. erewrite IHa2; try easy.
+  erewrite IHa3; try easy.
+  1-3:inv H.
 Qed.
 
 Lemma subst_aexp_not_eq: forall e x v, subst_aexp e x v <> x.
@@ -245,38 +254,26 @@ Proof.
   simpl in *. intros R. destruct R; subst.
   specialize (subst_aexp_not_eq n1 x v) as X1. rewrite eq1 in X1. easy.
   specialize (IHn2 x v). easy.
-  destruct (subst_aexp n2 x v) eqn:eq2.
-  simpl in *. intros R. destruct R; subst.
-  specialize (subst_aexp_not_eq n2 x v) as X1. rewrite eq2 in X1. easy.
-  easy. simpl in *. easy.
-  specialize (IHn2 x v). rewrite eq2 in IHn2. simpl in *. easy.
-  specialize (IHn2 x v). rewrite eq2 in IHn2. simpl in *. easy.
-  specialize (IHn1 x v). rewrite eq1 in IHn1. simpl in *.
-  intros R. apply in_app_iff in R.
-  destruct R. easy.
+  intros R. apply in_app_iff in R. destruct R.
+  specialize (IHn1 x v). easy.
   specialize (IHn2 x v). easy.
-  specialize (IHn1 x v). rewrite eq1 in IHn1. simpl in *.
-  intros R. apply in_app_iff in R.
-  destruct R. easy.
+  intros R. apply in_app_iff in R. destruct R.
+  specialize (IHn1 x v). rewrite eq1 in IHn1. easy.
   specialize (IHn2 x v). easy.
-  destruct (subst_aexp n1 x v) eqn:eq1.
-  simpl in *. intros R. destruct R; subst.
-  specialize (subst_aexp_not_eq n1 x v) as X1. rewrite eq1 in X1. easy.
+  intros R. apply in_app_iff in R. destruct R.
+  specialize (IHn1 x v). rewrite eq1 in IHn1. easy.
   specialize (IHn2 x v). easy.
-  destruct (subst_aexp n2 x v) eqn:eq2.
-  simpl in *. intros R. destruct R; subst.
-  specialize (subst_aexp_not_eq n2 x v) as X1. rewrite eq2 in X1. easy.
-  easy. simpl in *. easy.
-  specialize (IHn2 x v). rewrite eq2 in IHn2. simpl in *. easy.
-  specialize (IHn2 x v). rewrite eq2 in IHn2. simpl in *. easy.
-  specialize (IHn1 x v). rewrite eq1 in IHn1. simpl in *.
-  intros R. apply in_app_iff in R.
-  destruct R. easy.
+  intros R. apply in_app_iff in R. destruct R.
+  specialize (IHn1 x v). rewrite eq1 in IHn1. easy.
   specialize (IHn2 x v). easy.
-  specialize (IHn1 x v). rewrite eq1 in IHn1. simpl in *.
-  intros R. apply in_app_iff in R.
-  destruct R. easy.
+  intros R. apply in_app_iff in R. destruct R; try easy.
+  specialize (IHn1 x v). easy.
   specialize (IHn2 x v). easy.
+  intros R. apply in_app_iff in R. destruct R; try easy.
+  specialize (IHn1 x v). easy.
+  apply in_app_iff in H. destruct H; try easy.
+  specialize (IHn2 x v). easy.
+  specialize (IHn3 x v). easy.
 Qed.
 
 Lemma freeVarsCBExpNotIn: forall n x v, ~ In x (freeVarsCBexp (subst_cbexp n x v)).
@@ -301,6 +298,12 @@ Proof.
   apply in_app_iff in H. destruct H.
   apply in_app_iff. left. apply IHn1 in H. easy.
   apply IHn2 in H. apply in_app_iff. right. easy.
+  apply in_app_iff in H. destruct H.
+  apply in_app_iff. left. apply IHn1 in H. easy.
+  apply in_app_iff in H. destruct H.
+  apply in_app_iff. right. apply in_app_iff. left. apply IHn2 in H. easy.
+  apply in_app_iff. right. apply in_app_iff. right. 
+  apply IHn3 in H. easy.
 Qed.
 
 Lemma freeVarsMAExp_subst: forall n y x v, In y (freeVarsMAExp (subst_mexp n x v))

@@ -26,25 +26,25 @@ Check exp.
 (* A locus is a list of ranges (x,n,m). Each range can be compiled to a list of qubits from x[n] to x[m].
    Locus A is a sub_locus of another one B if every qubits in A is in B.
    The determination of the sub_loci and eq_loci are based on 
-   a decision procedure to determine if a range is in another one. *)
+   a decision procedure to determine if a range is in another one. 
 Inductive simple_ses : locus -> Prop :=
     simple_ses_empty : simple_ses nil
   | simple_ses_many :  forall a x y l, simple_bound x -> simple_bound y -> simple_ses l -> simple_ses ((a,x,y)::l).
-
+*)
 
 Inductive ses_eq : locus -> locus -> Prop :=
    ses_eq_empty : forall a, ses_eq a a
- | ses_eq_range_empty : forall x n a b, ses_eq a b -> ses_eq ((x,n,n)::a) b
+ | ses_eq_range_empty : forall x n a b, ses_eq a b -> ses_eq ((x,(n,n))::a) b
  | ses_eq_split: forall x i n m a b, n <= i < m -> 
-        ses_eq ((x,BNum n,BNum i)::((x,BNum i,BNum m)::a)) b -> ses_eq ((x,BNum n,BNum m)::a) b
- | ses_eq_merge: forall x i n m a b, n <= i < m -> ses_eq ((x,BNum n,BNum m)::a) b
-        -> ses_eq ((x,BNum n,BNum i)::((x,BNum i,BNum m)::a)) b.
+        ses_eq ((x,(n,i))::((x,(i,m))::a)) b -> ses_eq ((x,(n,m))::a) b
+ | ses_eq_merge: forall x i n m a b, n <= i < m -> ses_eq ((x,(n,m))::a) b
+        -> ses_eq ((x,(n,i))::((x,(i,m))::a)) b.
 
 Axiom ses_eq_comm: forall a b, ses_eq a b -> ses_eq b a.
 
 Fixpoint is_ses_empty (s:locus) : Prop :=
    match s with nil => False
-              | (x,a,b)::xs => (a = b) /\ is_ses_empty xs
+              | (x,(a,b))::xs => (a = b) /\ is_ses_empty xs
    end. 
 
 Axiom ses_eq_id: forall l, ses_eq l l.
@@ -53,11 +53,9 @@ Inductive ses_sub : locus -> locus -> Prop :=
    ses_sub_prop : forall a b b', ses_eq (a++b') b -> ses_sub a b.
 
 Definition in_range (r1 r2:range) :=
-  match r1 with (x,BNum a,BNum b) => 
-    match r2 with (y,BNum c, BNum d) => ((x = y) /\ (c <= a) /\ (b <= d))
-                  | _ => False
+  match r1 with (x,(a,b)) => 
+    match r2 with (y,(c, d)) => ((x = y) /\ (c <= a) /\ (b <= d))
     end
-              | _ => False
   end.
 
 Inductive ses_dis_aux : range -> locus -> Prop := 
@@ -75,20 +73,18 @@ Inductive two_ses_dis : locus -> locus -> Prop :=
    two_ses_empty : forall s, two_ses_dis nil s
  | two_ses_many: forall a l s, ses_dis_aux a s -> two_ses_dis l s -> two_ses_dis (a::l) s. 
 
-Definition join_two_ses (a:(var * bound * bound)) (b:(var*bound*bound)) :=
-   match a with (x,BNum n1,BNum n2) => 
-      match b with (y,BNum m1,BNum m2) => 
+Definition join_two_ses (a:(var * (nat * nat))) (b:(var*(nat * nat))) :=
+   match a with (x,(n1,n2)) => 
+      match b with (y,(m1,m2)) => 
             if x =? y then (if n1 <=? m1 then 
                                (if n2 <? m1 then None
-                                else if n2 <? m2 then Some (x,BNum n1,BNum m2)
-                                else Some(x,BNum n1,BNum n2))
+                                else if n2 <? m2 then Some (x,(n1,m2))
+                                else Some(x,(n1,n2)))
                             else if m2 <? n1 then None
-                            else if n2 <? m2 then Some (x,BNum m1,BNum m2)
-                            else Some (x,BNum m1,BNum n2))
+                            else if n2 <? m2 then Some (x,(m1,m2))
+                            else Some (x,(m1,n2)))
             else None
-            | _ => None
      end
-          | _ => None
    end.
 
 Fixpoint dom {A:Type} (l: list (locus * A)) :=
@@ -96,14 +92,14 @@ Fixpoint dom {A:Type} (l: list (locus * A)) :=
                | ((a,b)::lm) => a::(dom lm)
     end.
 
-Fixpoint join_ses_aux (a:(var * bound * bound)) (l:list ((var * bound * bound))) :=
+Fixpoint join_ses_aux (a:(var * (nat * nat))) (l:list ((var * (nat * nat)))) :=
      match l with [] => ([a])
            | (x::xs) => match join_two_ses a x with None => x::join_ses_aux a xs
                                          | Some ax => ax::xs
                         end
      end.
 
-Fixpoint join_ses (l1 l2:list ((var * bound * bound))) :=
+Fixpoint join_ses (l1 l2:list ((var * (nat * nat)))) :=
     match l1 with [] => l2
                | x::xs => join_ses_aux x (join_ses xs l2)
    end.
@@ -132,32 +128,32 @@ Inductive se_type : Type := THT (n:nat) (t:type_elem).
 Definition type_map := list (locus * se_type).
 Definition type_gmap := list (locus * se_type * var).
 
+(*
 Definition simple_tenv (t:type_map) := forall a b, In (a,b) t -> simple_ses a.
+*)
 
 Fixpoint ses_len_aux (l:list (var * nat * nat)) :=
    match l with nil => 0 | (x,l,h)::xl => (h - l) + ses_len_aux xl end. 
 
 Fixpoint get_core_ses (l:locus) :=
    match l with [] => Some nil
-           | (x,BNum n, BNum m)::al => 
+           | (x,(n, m))::al => 
       match get_core_ses al with None => None
                            | Some xl => Some ((x,n,m)::xl)
       end
-            | _ => None
    end.
 
 Definition ses_len (l:locus) := match get_core_ses l with None => None | Some xl => Some (ses_len_aux xl) end.
 
-Fixpoint gses_len_aux (l:list ((var * nat * nat) * var)) :=
-   match l with nil => 0 | ((x,l,h),a)::xl => (h - l) + gses_len_aux xl end. 
+Fixpoint gses_len_aux (l:list ((var * (nat * nat)) * var)) :=
+   match l with nil => 0 | ((x,(l,h)),a)::xl => (h - l) + gses_len_aux xl end. 
 
 Fixpoint gget_core_ses (l:glocus) :=
    match l with [] => Some nil
-           | ((x,BNum n, BNum m),l)::al => 
+           | ((x,(n,m)),l)::al => 
       match gget_core_ses al with None => None
-                           | Some xl => Some (((x,n,m),l)::xl)
+                           | Some xl => Some (((x,(n,m)),l)::xl)
       end
-            | _ => None
    end.
 
 Definition gses_len (l:glocus) := match gget_core_ses l with None => None | Some xl => Some (gses_len_aux xl) end.
@@ -169,7 +165,7 @@ Lemma get_core_ses_app: forall l l' l1 l1', get_core_ses l = Some l' -> get_core
      -> get_core_ses (l++l1) = Some (l'++l1').
 Proof.
   induction l;intros;simpl in *. inv H. simpl in *. easy.
-  destruct a. destruct p. destruct b0. easy. destruct b. easy.
+  destruct a. destruct p.
   destruct (get_core_ses l) eqn:eq1; try easy. inv H. rewrite (IHl l0 l1 l1'); try easy.
 Qed.
 
@@ -177,8 +173,7 @@ Lemma get_core_ses_app_none: forall l l' l1, get_core_ses l = Some l' -> get_cor
      -> get_core_ses (l++l1) = None.
 Proof.
   induction l;intros;simpl in *. easy.
-  destruct a. destruct p. destruct b0; try easy.
-  destruct b; try easy.
+  destruct a. destruct p.
   destruct (get_core_ses l) eqn:eq1; try easy. inv H.
   rewrite IHl with (l' := l0); try easy.
 Qed.
@@ -555,6 +550,7 @@ Fixpoint subst_aexp (a:aexp) (x:var) (n:nat) :=
               | Num a => Num a
               | APlus c d =>  APlus (subst_aexp c x n) (subst_aexp d x n) 
               | AMult c d =>  AMult (subst_aexp c x n) (subst_aexp d x n) 
+              | AModMult c d e => AModMult (subst_aexp c x n) (subst_aexp d x n) (subst_aexp e x n)
     end.
 
 
@@ -579,6 +575,7 @@ Fixpoint subst_bexp (a:bexp) (x:var) (n:nat) :=
 Definition subst_bound (b:bound) (x:var) (n:nat) :=
    match b with (BVar y m) => if x =? y then BNum (n+m) else (BVar y m) | BNum m => BNum m end.
 
+(*
 Definition subst_range (r:range) (x:var) (n:nat) := 
    match r with (a,b,c) => (a,subst_bound b x n,subst_bound c x n) end.
 
@@ -586,7 +583,7 @@ Fixpoint subst_locus (l:locus) (x:var) (n:nat) :=
   match l with nil => nil
           | y::yl => (subst_range y x n)::(subst_locus yl x n)
   end.
-
+*)
 Fixpoint subst_exp (e:exp) (x:var) (n:nat) :=
         match e with SKIP y a => SKIP y (subst_aexp a x n)
                    | X y a => X y (subst_aexp a x n)
@@ -609,21 +606,17 @@ Definition subst_mexp (e:maexp) (x:var) (n:nat) :=
 
 Definition subst_cexp (e:cexp) (x:var) (n:nat) :=
         match e with
+        | CNew l => CNew l
         | CAppU l e' => CAppU l (subst_exp e' x n)
-        | other => other                      
+        | CMeas x k => CMeas x k
+        | Send c x a => Send c x a
+        | Recv c x y => Recv c x y                    
         end.
 
-Definition subst_cdexp (e:cdexp) (x:var) (n:nat) :=
-        match e with
-        | Send c a => Send c (subst_aexp a x n)
-        | Recv c y => Recv c y
-        | other => other                   
-        end.
 
 Fixpoint subst_pexp (p:process) (x:var) (n:nat) := 
    match p with PNil => PNil 
               | AP a q => AP (subst_cexp a x n) (subst_pexp q x n) 
-              | DP a q => DP (subst_cdexp a x n) (subst_pexp q x n) 
               | PIf b q r => PIf b (subst_pexp q x n) (subst_pexp r x n)
    end. 
 
@@ -654,7 +647,7 @@ Definition empty_tenv := @TEnv.empty qtype.
 (* Compiling locus to OQASM variables. *)
 Fixpoint ses_vars (s:locus) :=
   match s with nil => nil
-            | (x,a,b)::l => @set_add var (Nat.eq_dec) x (ses_vars l)
+            | (x,(a,b))::l => @set_add var (Nat.eq_dec) x (ses_vars l)
   end.
 
 Fixpoint form_oenv (s:list var) := 
@@ -671,7 +664,7 @@ Definition id_qenv : (var -> nat) := fun _ => 0.
 
 Fixpoint compile_ses_qenv (env:aenv) (l:locus) : ((var -> nat) * list var) :=
    match l with nil => (id_qenv,nil)
-       | ((x,a,b)::xl) => match AEnv.find x env with
+       | ((x,(a,b))::xl) => match AEnv.find x env with
               Some (QT loc n) =>
               match compile_ses_qenv env xl with (f,l) => 
                  if var_in_list l x then (f,l) else (fun y => if y =? x then n else f y,x::l)
@@ -752,7 +745,7 @@ Fixpoint gen_qubits (x:var) (l n:nat) :=
   match n with 0 => nil | S m => (x,l+m)::(gen_qubits x l m) end.
 
 Definition gen_qubit_range (r:range) :=
-  match r with  (x,BNum l,BNum h) => Some (gen_qubits x l (h-l)) | _ => None end.
+  match r with  (x,(l,h)) => Some (gen_qubits x l (h-l)) end.
 
 Fixpoint gen_qubit_ses (s:locus) :=
    match s with nil => Some nil | x::xl =>
