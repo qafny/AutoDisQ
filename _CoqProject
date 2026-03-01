@@ -9,6 +9,7 @@ RZArith.v
 DisQSyntax.v
 DisQDef.v
 DisQKind.v
+DisQSem.v
 AUTO.v
 AUTO_Test.v
 
