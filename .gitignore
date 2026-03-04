@@ -1,0 +1,18 @@
+# Coq compiled files
+*.vo
+*.vos
+*.vok
+*.glob
+
+# Coq auxiliary files
+*.aux
+
+# Editor backup files
+#*#
+*~
+
+# Crash files
+*.crashcoqide
+
+# Extraction
+extracted/
