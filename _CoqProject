@@ -10,5 +10,12 @@ DisQSyntax.v
 DisQDef.v
 DisQKind.v
 DisQSem.v
+<<<<<<< HEAD
 AUTO.v
 AUTO_Test.v
+=======
+DisQType.v
+AUTO.v
+AUTO_Test.v
+
+>>>>>>> e7c548b (Local changes)
