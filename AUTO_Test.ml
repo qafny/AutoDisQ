@@ -68,6 +68,344 @@ let seq0 : seq_relation = fun (_:myOp) -> 0
 let moQ0 : qubit_mem_assign = fun (_:var) -> 0
 let moO_const (k:int) : op_mem_assign = fun (_:myOp) -> k
 
+(* ---------- Runtime timing helpers (ADDED) ---------- *)
+
+let time_wall label (f : unit -> 'a) : 'a =
+  let t0 = Unix.gettimeofday () in
+  let r  = f () in
+  let t1 = Unix.gettimeofday () in
+  Printf.printf "[TIME][wall] %s: %.6f s\n%!" label (t1 -. t0);
+  r
+
+let time_cpu label (f : unit -> 'a) : 'a =
+  let t0 = Sys.time () in
+  let r  = f () in
+  let t1 = Sys.time () in
+  Printf.printf "[TIME][cpu ] %s: %.6f s\n%!" label (t1 -. t0);
+  r
+
+let time_both label (f : unit -> 'a) : 'a =
+  time_wall label (fun () -> time_cpu label f)
+
+(* ---------- Extra printers to SHOW partitions (Alg3) ---------- *)
+
+let pp_myOp = function
+  | OpAP a -> Printf.sprintf "OpAP(%s)" (pp_cexp a)
+  | OpDP d -> Printf.sprintf "OpDP(%s)" (pp_cdexp d)
+  | OpIf (_b, p, q) ->
+      Printf.sprintf "OpIf(...,%s,%s)" (pp_process p) (pp_process q)
+
+let pp_myOp_list (xs : myOp list) : unit =
+  List.iter (fun o -> Printf.printf "  %s\n%!" (pp_myOp o)) xs
+
+(* Use extracted opt_hp. *)
+let hp_opt (hp : hb_relation) (seq : seq_relation) : hb_relation =
+  opt_hp hp seq
+
+(* Print SCC blocks (this is the REAL “partition” before flattening) *)
+let show_alg3_blocks (pname:string) (ops:op_list) : unit =
+  Printf.printf "\n==============================\n%!";
+  Printf.printf "[Alg3] SCC partitions for %s\n%!" pname;
+
+  let hp  : hb_relation  = gen_hp ops in
+  let seq : seq_relation = seq0 in
+  let hp' : hb_relation  = hp_opt hp seq in
+
+  let blocks : myOp list list =
+    scc_partition myOp_eqb hp' (uniq_ops myOp_eqb ops)
+  in
+  List.iteri
+    (fun i block ->
+      Printf.printf "Block %d:\n%!" i;
+      pp_myOp_list block)
+    blocks
+
+(* print the flattened schedule returned by auto_parallelize_alg3 *)
+let show_alg3_flat (pname:string) (ops:op_list) : unit =
+  Printf.printf "\n==============================\n%!";
+  Printf.printf "[Alg3] Flattened grouped schedule for %s\n%!" pname;
+
+  let hp  : hb_relation  = gen_hp ops in
+  let seq : seq_relation = seq0 in
+  let procs : process list = auto_parallelize_alg3 myOp_eqb ops hp seq in
+  List.iter (fun pr -> Printf.printf "  %s\n%!" (pp_process pr)) procs
+
+(* --------- LAYER partition printers (Alg3-Layers) --------- *)
+
+let show_alg3_layers_blocks (pname:string) (ops:op_list) : unit =
+  Printf.printf "\n==============================\n%!";
+  Printf.printf "[Alg3-Layers] Ready-layer partitions for %s\n%!" pname;
+
+  let hp  : hb_relation  = gen_hp ops in
+  let seq : seq_relation = seq0 in
+  let hp' : hb_relation  = hp_opt hp seq in
+
+  let layers : myOp list list =
+    layer_partition myOp_eqb hp' (uniq_ops myOp_eqb ops)
+  in
+  List.iteri
+    (fun i layer ->
+      Printf.printf "Layer %d:\n%!" i;
+      pp_myOp_list layer)
+    layers
+
+let show_alg3_layers_flat (pname:string) (ops:op_list) : unit =
+  Printf.printf "\n==============================\n%!";
+  Printf.printf "[Alg3-Layers] Flattened grouped schedule for %s\n%!" pname;
+
+  let hp  : hb_relation  = gen_hp ops in
+  let seq : seq_relation = seq0 in
+  let procs : process list = auto_parallelize_alg3_layers myOp_eqb ops hp seq in
+  List.iter (fun pr -> Printf.printf "  %s\n%!" (pp_process pr)) procs
+
+let compare_alg3 (pname:string) (ops:op_list) : unit =
+  show_alg3_blocks pname ops;
+  show_alg3_flat   pname ops;
+  show_alg3_layers_blocks pname ops;
+  show_alg3_layers_flat   pname ops
+
+(* ---------- Test harness ---------- *)
+
+let show (title:string) (prog:distributed_prog) : unit =
+  Printf.printf "\n==============================\n%!";
+  Printf.printf "%s\n%!" title;
+  Printf.printf "Cost = %d\n%!" (fit prog);
+  pp_cfg prog
+
+let test_alg2 (pname:string) (p:op_list) (mem:int) : unit =
+  let label = Printf.sprintf "[Alg2] %s on mem%d" pname mem in
+  let prog =
+    time_both label (fun () ->
+      gen_prog_paper seq0 moQ0 (moO_const mem) p
+    )
+  in
+  show label prog
+
+let test_alg1 (pname:string) (p:op_list) (kseq:int) (kmem:int) : unit =
+  let cfg2 : config = [Memb (0, []); Memb (1, [])] in
+  let label =
+    Printf.sprintf "[Alg1] %s auto_disq_alg1_paper(kseq=%d,kmem=%d) on cfg2"
+      pname kseq kmem
+  in
+  let prog =
+    time_both label (fun () ->
+      auto_disq_alg1_paper kseq kmem p cfg2
+    )
+  in
+  show label prog
+
+let show_timed (title:string) (prog:distributed_prog) : unit =
+  (* already have a distributed_prog value; time only printing + fit+pp_cfg *)
+  ignore (time_both title (fun () -> show title prog))
+
+let () =
+  (* -------- Algorithm 2-------- *)
+  test_alg2 "P_1" p_1 0;
+  test_alg2 "P_1" p_1 1;
+
+  test_alg2 "P_3" p_3 0;
+  test_alg2 "P_3" p_3 1;
+
+  test_alg2 "P_4" p_4 0;
+  test_alg2 "P_4" p_4 1;
+  test_alg2 "P_4" p_4 5;
+
+  test_alg2 "P_5 (Grover)" p_5 0;
+  test_alg2 "P_5 (Grover)" p_5 5;
+
+  test_alg2 "P_6 (Teleport)" p_6 0;
+  test_alg2 "P_6 (Teleport)" p_6 5;
+
+  (* -------- Algorithm 2: Shor tests -------- *)
+  test_alg2 "Shor_Qprog" shor_Qprog 0;
+  test_alg2 "Shor_Qprog" shor_Qprog 1;
+  test_alg2 "Shor_Qprog" shor_Qprog 3;
+  test_alg2 "Shor_Qprog" shor_Qprog 5;
+
+  (* -------- Already-distributed examples (time printing only) -------- *)
+  show_timed "QFT32_dist0 (already distributed)" qFT32_dist0;
+  show_timed "GHZ32_best (already distributed)" gHZ32_best;
+
+  test_alg2 "GHZ32_prog" gHZ32_prog 0;
+  test_alg2 "GHZ32_prog" gHZ32_prog 1;
+  test_alg2 "GHZ32_prog" gHZ32_prog 5;
+
+  test_alg2 "QFT64_prog" qFT64_prog 0;
+  test_alg2 "QFT64_prog" qFT64_prog 1;
+  test_alg2 "QFT64_prog" qFT64_prog 5;
+
+  test_alg2 "Shor_Qprog32" shor_Qprog32 0;
+  test_alg2 "Shor_Qprog32" shor_Qprog32 1;
+  test_alg2 "Shor_Qprog32" shor_Qprog32 3;
+  test_alg2 "Shor_Qprog32" shor_Qprog32 5;
+
+  test_alg2 "Shor_Qprog_64" shor_Qprog_64 0;
+  test_alg2 "Shor_Qprog_64" shor_Qprog_64 1;
+  test_alg2 "Shor_Qprog_64" shor_Qprog_64 3;
+  test_alg2 "Shor_Qprog_64" shor_Qprog_64 5;
+
+  (* -------- Algorithm 1: auto search tests -------- *)
+  test_alg1 "P_1" p_1 3 3;
+  test_alg1 "P_3" p_3 3 3;
+  test_alg1 "P_4" p_4 3 3;
+  test_alg1 "P_5" p_5 3 3;
+  test_alg1 "P_6" p_6 3 3;
+
+  (* -------- Algorithm 1: Shor auto search -------- *)
+  test_alg1 "Shor_Qprog" shor_Qprog 3 3;
+
+  (* -------- Algorithm 1: bigger -------- *)
+  test_alg1 "GHZ32_prog"    gHZ32_prog    3 3;
+  test_alg1 "QFT64_prog"    qFT64_prog    3 3;
+  test_alg1 "Shor_Qprog32"  shor_Qprog32  3 3;
+  test_alg1 "Shor_Qprog_64" shor_Qprog_64 3 3;
+
+  (* -------- Algorithm 3: SHOW PARTITIONS (SCC) -------- *)
+  ignore (time_both "[Alg3] SCC partitions P_1" (fun () -> show_alg3_blocks "P_1" p_1));
+  ignore (time_both "[Alg3] Flat schedule P_1" (fun () -> show_alg3_flat "P_1" p_1));
+
+  ignore (time_both "[Alg3] SCC partitions P_3" (fun () -> show_alg3_blocks "P_3" p_3));
+  ignore (time_both "[Alg3] Flat schedule P_3" (fun () -> show_alg3_flat "P_3" p_3));
+
+  ignore (time_both "[Alg3] SCC partitions P_4" (fun () -> show_alg3_blocks "P_4" p_4));
+  ignore (time_both "[Alg3] Flat schedule P_4" (fun () -> show_alg3_flat "P_4" p_4));
+
+  ignore (time_both "[Alg3] SCC partitions P_5" (fun () -> show_alg3_blocks "P_5 (Grover)" p_5));
+  ignore (time_both "[Alg3] Flat schedule P_5" (fun () -> show_alg3_flat "P_5 (Grover)" p_5));
+
+  ignore (time_both "[Alg3] SCC partitions P_6" (fun () -> show_alg3_blocks "P_6 (Teleport)" p_6));
+  ignore (time_both "[Alg3] Flat schedule P_6" (fun () -> show_alg3_flat "P_6 (Teleport)" p_6));
+
+  ignore (time_both "[Alg3] SCC partitions Shor_Qprog" (fun () -> show_alg3_blocks "Shor_Qprog" shor_Qprog));
+  ignore (time_both "[Alg3] Flat schedule Shor_Qprog" (fun () -> show_alg3_flat "Shor_Qprog" shor_Qprog));
+
+  ignore (time_both "[Alg3] SCC partitions GHZ32_prog" (fun () -> show_alg3_blocks "GHZ32_prog" gHZ32_prog));
+  ignore (time_both "[Alg3] Flat schedule GHZ32_prog" (fun () -> show_alg3_flat "GHZ32_prog" gHZ32_prog));
+
+  ignore (time_both "[Alg3] SCC partitions QFT64_prog" (fun () -> show_alg3_blocks "QFT64_prog" qFT64_prog));
+  ignore (time_both "[Alg3] Flat schedule QFT64_prog" (fun () -> show_alg3_flat "QFT64_prog" qFT64_prog));
+
+  ignore (time_both "[Alg3] SCC partitions Shor_Qprog32" (fun () -> show_alg3_blocks "Shor_Qprog32" shor_Qprog32));
+  ignore (time_both "[Alg3] Flat schedule Shor_Qprog32" (fun () -> show_alg3_flat "Shor_Qprog32" shor_Qprog32));
+
+  ignore (time_both "[Alg3] SCC partitions Shor_Qprog_64" (fun () -> show_alg3_blocks "Shor_Qprog_64" shor_Qprog_64));
+  ignore (time_both "[Alg3] Flat schedule Shor_Qprog_64" (fun () -> show_alg3_flat "Shor_Qprog_64" shor_Qprog_64));
+
+  (* -------- Algorithm 3: SHOW PARTITIONS (Layers) -------- *)
+  ignore (time_both "[Alg3-Layers] Blocks P_1" (fun () -> show_alg3_layers_blocks "P_1" p_1));
+  ignore (time_both "[Alg3-Layers] Flat P_1"   (fun () -> show_alg3_layers_flat   "P_1" p_1));
+
+  ignore (time_both "[Alg3-Layers] Blocks P_3" (fun () -> show_alg3_layers_blocks "P_3" p_3));
+  ignore (time_both "[Alg3-Layers] Flat P_3"   (fun () -> show_alg3_layers_flat   "P_3" p_3));
+
+  ignore (time_both "[Alg3-Layers] Blocks P_4" (fun () -> show_alg3_layers_blocks "P_4" p_4));
+  ignore (time_both "[Alg3-Layers] Flat P_4"   (fun () -> show_alg3_layers_flat   "P_4" p_4));
+
+  ignore (time_both "[Alg3-Layers] Blocks P_5" (fun () -> show_alg3_layers_blocks "P_5 (Grover)" p_5));
+  ignore (time_both "[Alg3-Layers] Flat P_5"   (fun () -> show_alg3_layers_flat   "P_5 (Grover)" p_5));
+
+  ignore (time_both "[Alg3-Layers] Blocks P_6" (fun () -> show_alg3_layers_blocks "P_6 (Teleport)" p_6));
+  ignore (time_both "[Alg3-Layers] Flat P_6"   (fun () -> show_alg3_layers_flat   "P_6 (Teleport)" p_6));
+
+  ignore (time_both "[Alg3-Layers] Blocks Shor_Qprog" (fun () -> show_alg3_layers_blocks "Shor_Qprog" shor_Qprog));
+  ignore (time_both "[Alg3-Layers] Flat Shor_Qprog"   (fun () -> show_alg3_layers_flat   "Shor_Qprog" shor_Qprog));
+
+  ignore (time_both "[Alg3-Layers] Blocks GHZ32_prog" (fun () -> show_alg3_layers_blocks "GHZ32_prog" gHZ32_prog));
+  ignore (time_both "[Alg3-Layers] Flat GHZ32_prog"   (fun () -> show_alg3_layers_flat   "GHZ32_prog" gHZ32_prog));
+
+  ignore (time_both "[Alg3-Layers] Blocks QFT64_prog" (fun () -> show_alg3_layers_blocks "QFT64_prog" qFT64_prog));
+  ignore (time_both "[Alg3-Layers] Flat QFT64_prog"   (fun () -> show_alg3_layers_flat   "QFT64_prog" qFT64_prog));
+
+  ignore (time_both "[Alg3-Layers] Blocks Shor_Qprog32" (fun () -> show_alg3_layers_blocks "Shor_Qprog32" shor_Qprog32));
+  ignore (time_both "[Alg3-Layers] Flat Shor_Qprog32"   (fun () -> show_alg3_layers_flat   "Shor_Qprog32" shor_Qprog32));
+
+  ignore (time_both "[Alg3-Layers] Blocks Shor_Qprog_64" (fun () -> show_alg3_layers_blocks "Shor_Qprog_64" shor_Qprog_64));
+  ignore (time_both "[Alg3-Layers] Flat Shor_Qprog_64"   (fun () -> show_alg3_layers_flat   "Shor_Qprog_64" shor_Qprog_64));
+
+(*
+rm -f *.cmi *.cmo run_autodisq
+ocamlc -c autodisq_extract.mli
+ocamlc -c autodisq_extract.ml
+ocamlc -c AUTO_Test.ml
+ocamlc -o run_autodisq unix.cma autodisq_extract.cmo AUTO_Test.cmo
+./run_autodisq
+*)
+
+
+
+
+
+(*
+open Autodisq_extract
+
+(* ---------- printers  ---------- *)
+
+let rec pp_aexp = function
+  | BA x -> Printf.sprintf "BA(%d)" x
+  | Num n -> Printf.sprintf "Num(%d)" n
+  | APlus (a,b) -> Printf.sprintf "APlus(%s,%s)" (pp_aexp a) (pp_aexp b)
+  | AMult (a,b) -> Printf.sprintf "AMult(%s,%s)" (pp_aexp a) (pp_aexp b)
+
+(* --- print bounds/ranges/loci so we can see measurement loci --- *)
+let pp_bound = function
+  | BNum n -> Printf.sprintf "BNum(%d)" n
+  | BVar (v,off) -> Printf.sprintf "BVar(%d,%d)" v off
+
+let pp_range (((q, lo), hi) : range) =
+  Printf.sprintf "((%d,%s),%s)" q (pp_bound lo) (pp_bound hi)
+
+let pp_locus (k : locus) =
+  "[" ^ String.concat ";" (List.map pp_range k) ^ "]"
+
+let rec pp_exp = function
+  | SKIP (x,a)      -> Printf.sprintf "SKIP(%d,%s)" x (pp_aexp a)
+  | X (q,a)         -> Printf.sprintf "X(%d,%s)" q (pp_aexp a)
+  | H (q,a)         -> Printf.sprintf "H(%d,%s)" q (pp_aexp a)
+  | RZ (k,q,a)      -> Printf.sprintf "RZ(%d,%d,%s)" k q (pp_aexp a)
+  | RRZ (k,q,a)     -> Printf.sprintf "RRZ(%d,%d,%s)" k q (pp_aexp a)
+  | SR (k,q)        -> Printf.sprintf "SR(%d,%d)" k q
+  | SRR (k,q)       -> Printf.sprintf "SRR(%d,%d)" k q
+  | QFT (q,n)       -> Printf.sprintf "QFT(%d,%d)" q n
+  | RQFT (q,n)      -> Printf.sprintf "RQFT(%d,%d)" q n
+  | Addto (x,q)     -> Printf.sprintf "Addto(%d,%d)" x q
+  | CU (c,a,e)      -> Printf.sprintf "CU(%d,%s,%s)" c (pp_aexp a) (pp_exp e)
+  | Seq (e1,e2)     -> Printf.sprintf "Seq(%s,%s)" (pp_exp e1) (pp_exp e2)
+
+let pp_cexp = function
+  | CNew (q,n)        -> Printf.sprintf "CNew(%d,%d)" q n
+  | CAppU (loc,e)     -> Printf.sprintf "CAppU(%s,%s)" (pp_locus loc) (pp_exp e)
+  | CMeas (x,loc)     -> Printf.sprintf "CMeas(%d,%s)" x (pp_locus loc)
+
+let pp_cdexp = function
+  | NewCh (c,n) -> Printf.sprintf "NewCh(%d,%d)" c n
+  | Send (c,a)  -> Printf.sprintf "Send(%d,%s)" c (pp_aexp a)
+  | Recv (c,x)  -> Printf.sprintf "Recv(%d,%d)" c x
+
+let rec pp_process = function
+  | PNil -> "PNil"
+  | AP (a,p) -> Printf.sprintf "AP(%s); %s" (pp_cexp a) (pp_process p)
+  | DP (d,p) -> Printf.sprintf "DP(%s); %s" (pp_cdexp d) (pp_process p)
+  | PIf (_b,p1,p2) ->
+      Printf.sprintf "PIf(...,%s,%s)" (pp_process p1) (pp_process p2)
+
+let pp_memb (m : memb) : unit =
+  match m with
+  | Memb (id, ps) ->
+      Printf.printf "Memb %d:\n%!" id;
+      List.iter (fun p -> Printf.printf "  %s\n%!" (pp_process p)) ps
+  | LockMemb (id, _, ps) ->
+      Printf.printf "LockMemb %d:\n%!" id;
+      List.iter (fun p -> Printf.printf "  %s\n%!" (pp_process p)) ps
+
+let pp_cfg (cfg:config) : unit =
+  List.iter pp_memb cfg
+
+(* ---------- Shared compiler settings  ---------- *)
+
+let seq0 : seq_relation = fun (_:myOp) -> 0
+let moQ0 : qubit_mem_assign = fun (_:var) -> 0
+let moO_const (k:int) : op_mem_assign = fun (_:myOp) -> k
+
 (* ---------- Extra printers to SHOW partitions (Alg3) ---------- *)
 
 let pp_myOp = function
@@ -306,7 +644,7 @@ ocamlc -o run_autodisq autodisq_extract.cmo AUTO_Test.cmo
 *)
 
 
-
+*)
 
 
 

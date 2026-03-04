@@ -1,0 +1,2116 @@
+DIGEST a94bd8cd4fa60191cd36b0ad33287376
+FDisQ.AUTO_Test
+R24:27 Coq.Lists.List <> <> lib
+R29:33 Coq.Arith.Arith <> <> lib
+R35:38 Coq.Bool.Bool <> <> lib
+R40:42 Coq.Init.Nat <> <> lib
+R52:64 Coq.Lists.List ListNotations <> mod
+R140:156 DisQ.BasicUtility <> <> lib
+R193:207 DisQ.DisQSyntax <> <> lib
+R267:275 DisQ.AUTO <> <> lib
+R293:306 Coq.Program.Wf <> <> lib
+R324:341 Coq.Arith.PeanoNat <> <> lib
+R359:361 Coq.micromega.Lia <> <> lib
+def 377:380 <> cfg1
+R384:389 DisQ.DisQSyntax <> config def
+R394:394 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R404:405 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R415:415 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R395:398 DisQ.DisQSyntax <> Memb constr
+R402:403 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R406:409 DisQ.DisQSyntax <> Memb constr
+R413:414 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+def 430:432 <> op1
+R436:439 DisQ.AUTO <> myOp ind
+R444:447 DisQ.AUTO <> OpAP constr
+R450:453 DisQ.DisQSyntax <> CNew constr
+def 472:474 <> op2
+R478:481 DisQ.AUTO <> myOp ind
+R486:489 DisQ.AUTO <> OpAP constr
+R492:496 DisQ.DisQSyntax <> CMeas constr
+R506:510 DisQ.DisQSyntax <> locus def
+R501:502 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+def 526:527 <> R1
+R532:538 DisQ.AUTO <> op_list def
+R543:543 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R547:548 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R552:552 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R544:546 DisQ.AUTO_Test <> op1 def
+R549:551 DisQ.AUTO_Test <> op2 def
+def 567:568 <> P1
+R572:587 DisQ.AUTO <> distributed_prog def
+R594:613 DisQ.AUTO <> auto_disq_alg1_paper def
+R619:620 DisQ.AUTO_Test <> R1 def
+R622:625 DisQ.AUTO_Test <> cfg1 def
+R637:638 DisQ.AUTO_Test <> P1 def
+R650:652 DisQ.AUTO <> fit def
+R654:655 DisQ.AUTO_Test <> P1 def
+def 670:677 <> cfg_test
+R681:686 DisQ.DisQSyntax <> config def
+R691:691 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R701:702 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R712:712 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R692:695 DisQ.DisQSyntax <> Memb constr
+R699:700 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R703:706 DisQ.DisQSyntax <> Memb constr
+R710:711 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+def 727:733 <> S_empty
+R737:740 DisQ.AUTO <> Smap def
+R745:746 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+def 761:762 <> T1
+R769:784 DisQ.AUTO <> insert_send_recv def
+R786:793 DisQ.AUTO_Test <> cfg_test def
+R795:801 DisQ.AUTO_Test <> S_empty def
+R817:818 DisQ.AUTO_Test <> T1 def
+def 833:837 <> S_one
+R841:844 DisQ.AUTO <> Smap def
+R849:849 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R856:856 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R850:850 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R852:853 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R855:855 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+def 871:872 <> T2
+R879:894 DisQ.AUTO <> insert_send_recv def
+R896:903 DisQ.AUTO_Test <> cfg_test def
+R905:909 DisQ.AUTO_Test <> S_one def
+R925:926 DisQ.AUTO_Test <> T2 def
+def 942:946 <> S_two
+R950:953 DisQ.AUTO <> Smap def
+R958:958 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R964:965 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R971:971 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R959:959 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R961:961 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R963:963 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R966:966 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R968:968 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R970:970 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+def 985:986 <> T3
+R991:1006 DisQ.AUTO <> insert_send_recv def
+R1008:1015 DisQ.AUTO_Test <> cfg_test def
+R1017:1021 DisQ.AUTO_Test <> S_two def
+R1036:1037 DisQ.AUTO_Test <> T3 def
+def 1051:1060 <> memb_procs
+R1067:1070 DisQ.DisQSyntax <> memb ind
+binder 1063:1063 <> m:1
+R1075:1078 Coq.Init.Datatypes <> list ind
+R1080:1086 DisQ.DisQSyntax <> process ind
+R1099:1099 DisQ.AUTO_Test <> m:1 var
+R1110:1113 DisQ.DisQSyntax <> Memb constr
+R1130:1137 DisQ.DisQSyntax <> LockMemb constr
+def 1169:1182 <> flatten_config
+R1191:1196 DisQ.DisQSyntax <> config def
+binder 1185:1187 <> cfg:3
+R1201:1204 Coq.Init.Datatypes <> list ind
+R1206:1212 DisQ.DisQSyntax <> process ind
+R1225:1227 DisQ.AUTO_Test <> cfg:3 var
+R1238:1239 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R1244:1245 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R1252:1255 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R1256:1257 Coq.Lists.List <> tl def
+R1274:1277 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R1262:1271 DisQ.AUTO_Test <> memb_procs def
+R1278:1291 DisQ.AUTO_Test <> flatten_config:4 def
+R1312:1325 DisQ.AUTO_Test <> flatten_config def
+R1328:1330 Coq.Init.Datatypes <> fst def
+R1332:1333 DisQ.AUTO_Test <> T2 def
+def 1348:1352 <> opAP1
+R1356:1359 DisQ.AUTO <> myOp ind
+R1364:1367 DisQ.AUTO <> OpAP constr
+R1370:1373 DisQ.DisQSyntax <> CNew constr
+def 1393:1396 <> moQ0
+R1403:1406 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1400:1402 DisQ.BasicUtility <> var def
+R1407:1417 DisQ.AUTO <> membrane_id def
+def 1445:1452 <> moO_to_1
+R1460:1463 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1456:1459 DisQ.AUTO <> myOp ind
+R1464:1474 DisQ.AUTO <> membrane_id def
+def 1503:1504 <> TB
+R1511:1528 DisQ.AUTO <> gen_prog_loop_alg2 def
+R1541:1544 Coq.Init.Datatypes <> list ind
+R1546:1549 DisQ.AUTO <> myOp ind
+R1531:1531 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R1537:1537 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R1532:1536 DisQ.AUTO_Test <> opAP1 def
+R1552:1555 DisQ.AUTO_Test <> moQ0 def
+R1557:1564 DisQ.AUTO_Test <> moO_to_1 def
+R1566:1577 DisQ.AUTO <> empty_config def
+R1591:1592 DisQ.AUTO_Test <> TB def
+R1603:1616 DisQ.AUTO_Test <> flatten_config def
+R1618:1619 DisQ.AUTO_Test <> TB def
+def 1634:1638 <> cond0
+R1642:1646 DisQ.DisQSyntax <> cbexp ind
+R1651:1653 DisQ.DisQSyntax <> CEq constr
+R1656:1657 DisQ.DisQSyntax <> BA constr
+R1663:1665 DisQ.DisQSyntax <> Num constr
+def 1683:1688 <> p_then
+R1692:1698 DisQ.DisQSyntax <> process ind
+R1703:1704 DisQ.DisQSyntax <> AP constr
+R1707:1710 DisQ.DisQSyntax <> CNew constr
+R1717:1720 DisQ.DisQSyntax <> PNil constr
+def 1734:1739 <> p_else
+R1743:1749 DisQ.DisQSyntax <> process ind
+R1754:1757 DisQ.DisQSyntax <> PNil constr
+def 1772:1776 <> opIF1
+R1780:1783 DisQ.AUTO <> myOp ind
+R1788:1791 DisQ.AUTO <> OpIf constr
+R1793:1797 DisQ.AUTO_Test <> cond0 def
+R1799:1804 DisQ.AUTO_Test <> p_then def
+R1806:1811 DisQ.AUTO_Test <> p_else def
+def 1826:1827 <> TC
+R1834:1851 DisQ.AUTO <> gen_prog_loop_alg2 def
+R1871:1874 Coq.Init.Datatypes <> list ind
+R1876:1879 DisQ.AUTO <> myOp ind
+R1860:1863 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R1855:1859 DisQ.AUTO_Test <> opIF1 def
+R1864:1866 Coq.Init.Datatypes <> nil constr
+R1882:1885 DisQ.AUTO_Test <> moQ0 def
+R1887:1894 DisQ.AUTO_Test <> moO_to_1 def
+R1896:1907 DisQ.AUTO <> empty_config def
+R1922:1923 DisQ.AUTO_Test <> TC def
+R1934:1947 DisQ.AUTO_Test <> flatten_config def
+R1949:1950 DisQ.AUTO_Test <> TC def
+def 1965:1969 <> opAP2
+R1973:1976 DisQ.AUTO <> myOp ind
+R1981:1984 DisQ.AUTO <> OpAP constr
+R1987:1991 DisQ.DisQSyntax <> CMeas constr
+R2001:2005 DisQ.DisQSyntax <> locus def
+R1996:1997 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+def 2021:2024 <> seq2
+R2028:2031 Coq.Init.Datatypes <> list ind
+R2033:2036 DisQ.AUTO <> myOp ind
+R2041:2041 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2047:2048 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2054:2054 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2042:2046 DisQ.AUTO_Test <> opAP1 def
+R2049:2053 DisQ.AUTO_Test <> opAP2 def
+def 2069:2070 <> TD
+R2077:2089 DisQ.AUTO <> gen_prog_alg2 def
+R2091:2094 DisQ.AUTO_Test <> seq2 def
+R2096:2099 DisQ.AUTO_Test <> moQ0 def
+R2101:2108 DisQ.AUTO_Test <> moO_to_1 def
+R2120:2121 DisQ.AUTO_Test <> TD def
+R2132:2145 DisQ.AUTO_Test <> flatten_config def
+R2147:2148 DisQ.AUTO_Test <> TD def
+R2159:2166 DisQ.AUTO <> diff_mem def
+R2168:2171 DisQ.AUTO_Test <> moQ0 def
+R2174:2183 DisQ.AUTO <> locus_myOp def
+R2185:2189 DisQ.AUTO_Test <> opAP1 def
+R2203:2210 DisQ.AUTO <> diff_mem def
+R2213:2223 DisQ.AUTO <> mem_up_smap def
+R2225:2228 DisQ.AUTO_Test <> moQ0 def
+R2231:2238 DisQ.AUTO <> diff_mem def
+R2240:2243 DisQ.AUTO_Test <> moQ0 def
+R2246:2255 DisQ.AUTO <> locus_myOp def
+R2257:2261 DisQ.AUTO_Test <> opAP1 def
+R2287:2296 DisQ.AUTO <> locus_myOp def
+R2298:2302 DisQ.AUTO_Test <> opAP2 def
+def 2523:2526 <> cfgA
+R2530:2535 DisQ.DisQSyntax <> config def
+R2540:2540 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2550:2551 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2561:2561 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2541:2544 DisQ.DisQSyntax <> Memb constr
+R2548:2549 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R2552:2555 DisQ.DisQSyntax <> Memb constr
+R2559:2560 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+def 2612:2615 <> Aop1
+R2619:2622 DisQ.AUTO <> myOp ind
+R2627:2630 DisQ.AUTO <> OpAP constr
+R2633:2636 DisQ.DisQSyntax <> CNew constr
+def 2655:2658 <> Aop2
+R2662:2665 DisQ.AUTO <> myOp ind
+R2670:2673 DisQ.AUTO <> OpAP constr
+R2676:2680 DisQ.DisQSyntax <> CMeas constr
+R2690:2694 DisQ.DisQSyntax <> locus def
+R2685:2686 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+def 2710:2712 <> AR1
+R2717:2723 DisQ.AUTO <> op_list def
+R2728:2728 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2733:2734 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2739:2739 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2729:2732 DisQ.AUTO_Test <> Aop1 def
+R2735:2738 DisQ.AUTO_Test <> Aop2 def
+def 2754:2756 <> AP1
+R2760:2775 DisQ.AUTO <> distributed_prog def
+R2782:2801 DisQ.AUTO <> auto_disq_alg1_paper def
+R2807:2809 DisQ.AUTO_Test <> AR1 def
+R2811:2814 DisQ.AUTO_Test <> cfgA def
+R2826:2828 DisQ.AUTO_Test <> AP1 def
+R2839:2841 DisQ.AUTO <> fit def
+R2843:2845 DisQ.AUTO_Test <> AP1 def
+def 2860:2863 <> Aop3
+R2867:2870 DisQ.AUTO <> myOp ind
+R2875:2878 DisQ.AUTO <> OpAP constr
+R2881:2884 DisQ.DisQSyntax <> CNew constr
+def 2903:2906 <> Aop4
+R2910:2913 DisQ.AUTO <> myOp ind
+R2918:2921 DisQ.AUTO <> OpDP constr
+R2924:2928 DisQ.DisQSyntax <> NewCh constr
+def 2947:2949 <> AR2
+R2954:2960 DisQ.AUTO <> op_list def
+R2965:2965 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2970:2971 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2976:2977 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2982:2983 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2988:2988 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R2966:2969 DisQ.AUTO_Test <> Aop1 def
+R2972:2975 DisQ.AUTO_Test <> Aop3 def
+R2978:2981 DisQ.AUTO_Test <> Aop4 def
+R2984:2987 DisQ.AUTO_Test <> Aop2 def
+def 3003:3005 <> AP2
+R3009:3024 DisQ.AUTO <> distributed_prog def
+R3031:3050 DisQ.AUTO <> auto_disq_alg1_paper def
+R3056:3058 DisQ.AUTO_Test <> AR2 def
+R3060:3063 DisQ.AUTO_Test <> cfgA def
+R3075:3077 DisQ.AUTO_Test <> AP2 def
+R3088:3090 DisQ.AUTO <> fit def
+R3092:3094 DisQ.AUTO_Test <> AP2 def
+def 3312:3315 <> seq0
+R3319:3330 DisQ.AUTO <> seq_relation def
+def 3359:3366 <> moO_all0
+R3370:3382 DisQ.AUTO <> op_mem_assign def
+def 3410:3417 <> moQ_all0
+R3421:3436 DisQ.AUTO <> qubit_mem_assign def
+def 3465:3467 <> P2A
+R3471:3486 DisQ.AUTO <> distributed_prog def
+R3493:3506 DisQ.AUTO <> gen_prog_paper def
+R3508:3511 DisQ.AUTO_Test <> seq0 def
+R3513:3520 DisQ.AUTO_Test <> moQ_all0 def
+R3522:3529 DisQ.AUTO_Test <> moO_all0 def
+R3531:3533 DisQ.AUTO_Test <> AR1 def
+R3545:3547 DisQ.AUTO_Test <> P2A def
+R3558:3560 DisQ.AUTO <> fit def
+R3562:3564 DisQ.AUTO_Test <> P2A def
+def 3581:3588 <> moO_all1
+R3592:3604 DisQ.AUTO <> op_mem_assign def
+def 3632:3645 <> moQ_all0_again
+R3649:3664 DisQ.AUTO <> qubit_mem_assign def
+def 3693:3695 <> P2B
+R3699:3714 DisQ.AUTO <> distributed_prog def
+R3721:3734 DisQ.AUTO <> gen_prog_paper def
+R3736:3739 DisQ.AUTO_Test <> seq0 def
+R3741:3754 DisQ.AUTO_Test <> moQ_all0_again def
+R3756:3763 DisQ.AUTO_Test <> moO_all1 def
+R3765:3767 DisQ.AUTO_Test <> AR1 def
+R3779:3781 DisQ.AUTO_Test <> P2B def
+R3792:3794 DisQ.AUTO <> fit def
+R3796:3798 DisQ.AUTO_Test <> P2B def
+def 3813:3820 <> flat_cfg
+R3829:3834 DisQ.DisQSyntax <> config def
+binder 3823:3825 <> cfg:6
+R3839:3842 Coq.Init.Datatypes <> list ind
+R3844:3850 DisQ.DisQSyntax <> process ind
+R3863:3865 DisQ.AUTO_Test <> cfg:6 var
+R3876:3877 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R3882:3883 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R3898:3901 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R3889:3892 DisQ.DisQSyntax <> Memb constr
+R3902:3903 Coq.Lists.List <> tl def
+R3910:3913 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R3914:3921 DisQ.AUTO_Test <> flat_cfg:7 def
+R3945:3948 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R3930:3937 DisQ.DisQSyntax <> LockMemb constr
+R3949:3950 Coq.Lists.List <> tl def
+R3957:3960 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R3961:3968 DisQ.AUTO_Test <> flat_cfg:7 def
+R3989:3996 DisQ.AUTO_Test <> flat_cfg def
+R3998:4000 DisQ.AUTO_Test <> P2A def
+R4011:4018 DisQ.AUTO_Test <> flat_cfg def
+R4020:4022 DisQ.AUTO_Test <> P2B def
+def 4243:4244 <> B1
+R4248:4251 DisQ.AUTO <> myOp ind
+R4256:4259 DisQ.AUTO <> OpAP constr
+R4262:4265 DisQ.DisQSyntax <> CNew constr
+def 4284:4285 <> B2
+R4289:4292 DisQ.AUTO <> myOp ind
+R4297:4300 DisQ.AUTO <> OpAP constr
+R4303:4307 DisQ.DisQSyntax <> CMeas constr
+R4317:4321 DisQ.DisQSyntax <> locus def
+R4312:4313 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+def 4337:4338 <> B3
+R4342:4345 DisQ.AUTO <> myOp ind
+R4350:4353 DisQ.AUTO <> OpAP constr
+R4356:4359 DisQ.DisQSyntax <> CNew constr
+def 4379:4382 <> Bops
+R4386:4389 Coq.Init.Datatypes <> list ind
+R4391:4394 DisQ.AUTO <> myOp ind
+R4399:4399 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R4402:4403 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R4406:4407 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R4410:4410 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R4400:4401 DisQ.AUTO_Test <> B1 def
+R4404:4405 DisQ.AUTO_Test <> B2 def
+R4408:4409 DisQ.AUTO_Test <> B3 def
+def 4488:4490 <> hpB
+R4494:4504 DisQ.AUTO <> hb_relation def
+binder 4515:4515 <> a:9
+binder 4517:4517 <> b:10
+R4526:4528 Coq.Init.Datatypes <> orb def
+R4638:4641 Coq.Init.Datatypes <> andb def
+R4660:4667 DisQ.AUTO <> myOp_eqb def
+R4669:4669 DisQ.AUTO_Test <> b:10 var
+R4671:4672 DisQ.AUTO_Test <> B3 def
+R4644:4651 DisQ.AUTO <> myOp_eqb def
+R4653:4653 DisQ.AUTO_Test <> a:9 var
+R4655:4656 DisQ.AUTO_Test <> B2 def
+R4537:4539 Coq.Init.Datatypes <> orb def
+R4592:4595 Coq.Init.Datatypes <> andb def
+R4614:4621 DisQ.AUTO <> myOp_eqb def
+R4623:4623 DisQ.AUTO_Test <> b:10 var
+R4625:4626 DisQ.AUTO_Test <> B1 def
+R4598:4605 DisQ.AUTO <> myOp_eqb def
+R4607:4607 DisQ.AUTO_Test <> a:9 var
+R4609:4610 DisQ.AUTO_Test <> B2 def
+R4542:4545 Coq.Init.Datatypes <> andb def
+R4564:4571 DisQ.AUTO <> myOp_eqb def
+R4573:4573 DisQ.AUTO_Test <> b:10 var
+R4575:4576 DisQ.AUTO_Test <> B2 def
+R4548:4555 DisQ.AUTO <> myOp_eqb def
+R4557:4557 DisQ.AUTO_Test <> a:9 var
+R4559:4560 DisQ.AUTO_Test <> B1 def
+def 4732:4735 <> seqB
+R4739:4750 DisQ.AUTO <> seq_relation def
+binder 4761:4761 <> o:11
+R4773:4780 DisQ.AUTO <> myOp_eqb def
+R4782:4782 DisQ.AUTO_Test <> o:11 var
+R4784:4785 DisQ.AUTO_Test <> B1 def
+R4806:4813 DisQ.AUTO <> myOp_eqb def
+R4815:4815 DisQ.AUTO_Test <> o:11 var
+R4817:4818 DisQ.AUTO_Test <> B2 def
+def 4851:4854 <> Rpar
+R4858:4861 Coq.Init.Datatypes <> list ind
+R4863:4869 DisQ.DisQSyntax <> process ind
+R4876:4896 DisQ.AUTO <> auto_parallelize_alg3 def
+R4898:4905 DisQ.AUTO <> myOp_eqb def
+R4907:4910 DisQ.AUTO_Test <> Bops def
+R4912:4914 DisQ.AUTO_Test <> hpB def
+R4916:4919 DisQ.AUTO_Test <> seqB def
+R4931:4934 DisQ.AUTO_Test <> Rpar def
+def 5107:5108 <> q0
+R5112:5114 DisQ.BasicUtility <> var def
+def 5133:5134 <> q1
+R5138:5140 DisQ.BasicUtility <> var def
+def 5251:5251 <> L
+R5255:5259 DisQ.DisQSyntax <> locus def
+R5270:5274 DisQ.DisQSyntax <> locus def
+R5265:5266 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+def 5323:5327 <> eH_q0
+R5331:5333 DisQ.DisQSyntax <> exp ind
+R5338:5338 DisQ.DisQSyntax <> H constr
+R5340:5341 DisQ.AUTO_Test <> q0 def
+R5344:5346 DisQ.DisQSyntax <> Num constr
+def 5363:5367 <> eX_q1
+R5371:5373 DisQ.DisQSyntax <> exp ind
+R5378:5378 DisQ.DisQSyntax <> X constr
+R5380:5381 DisQ.AUTO_Test <> q1 def
+R5384:5386 DisQ.DisQSyntax <> Num constr
+def 5453:5455 <> eCX
+R5459:5461 DisQ.DisQSyntax <> exp ind
+R5466:5467 DisQ.DisQSyntax <> CU constr
+R5469:5470 DisQ.AUTO_Test <> q0 def
+R5473:5475 DisQ.DisQSyntax <> Num constr
+R5480:5484 DisQ.AUTO_Test <> eX_q1 def
+def 5545:5551 <> appH_q0
+R5555:5558 DisQ.DisQSyntax <> cexp ind
+R5563:5567 DisQ.DisQSyntax <> CAppU constr
+R5569:5569 DisQ.AUTO_Test <> L def
+R5571:5575 DisQ.AUTO_Test <> eH_q0 def
+def 5589:5593 <> appCX
+R5599:5602 DisQ.DisQSyntax <> cexp ind
+R5607:5611 DisQ.DisQSyntax <> CAppU constr
+R5613:5613 DisQ.AUTO_Test <> L def
+R5615:5617 DisQ.AUTO_Test <> eCX def
+def 5691:5696 <> new_q0
+R5700:5703 DisQ.DisQSyntax <> cexp ind
+R5708:5711 DisQ.DisQSyntax <> CNew constr
+R5713:5714 DisQ.AUTO_Test <> q0 def
+def 5730:5735 <> new_q1
+R5739:5742 DisQ.DisQSyntax <> cexp ind
+R5747:5750 DisQ.DisQSyntax <> CNew constr
+R5752:5753 DisQ.AUTO_Test <> q1 def
+def 5819:5820 <> x0
+R5824:5826 DisQ.BasicUtility <> var def
+def 5846:5847 <> x1
+R5851:5853 DisQ.BasicUtility <> var def
+def 5874:5880 <> meas_q0
+R5884:5887 DisQ.DisQSyntax <> cexp ind
+R5892:5896 DisQ.DisQSyntax <> CMeas constr
+R5898:5899 DisQ.AUTO_Test <> x0 def
+R5901:5901 DisQ.AUTO_Test <> L def
+def 5915:5921 <> meas_q1
+R5925:5928 DisQ.DisQSyntax <> cexp ind
+R5933:5937 DisQ.DisQSyntax <> CMeas constr
+R5939:5940 DisQ.AUTO_Test <> x1 def
+R5942:5942 DisQ.AUTO_Test <> L def
+def 5990:5994 <> Qprog
+R5998:6004 DisQ.AUTO <> op_list def
+R6011:6012 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6024:6029 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6041:6046 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6059:6064 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6075:6080 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6093:6098 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6111:6114 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6013:6016 DisQ.AUTO <> OpAP constr
+R6018:6023 DisQ.AUTO_Test <> new_q0 def
+R6030:6033 DisQ.AUTO <> OpAP constr
+R6035:6040 DisQ.AUTO_Test <> new_q1 def
+R6047:6050 DisQ.AUTO <> OpAP constr
+R6052:6058 DisQ.AUTO_Test <> appH_q0 def
+R6065:6068 DisQ.AUTO <> OpAP constr
+R6070:6074 DisQ.AUTO_Test <> appCX def
+R6081:6084 DisQ.AUTO <> OpAP constr
+R6086:6092 DisQ.AUTO_Test <> meas_q0 def
+R6099:6102 DisQ.AUTO <> OpAP constr
+R6104:6110 DisQ.AUTO_Test <> meas_q1 def
+def 6129:6132 <> cfg2
+R6136:6141 DisQ.DisQSyntax <> config def
+R6146:6146 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6156:6157 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6167:6167 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6147:6150 DisQ.DisQSyntax <> Memb constr
+R6154:6155 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R6158:6161 DisQ.DisQSyntax <> Memb constr
+R6165:6166 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+def 6181:6185 <> Pbest
+R6189:6204 DisQ.AUTO <> distributed_prog def
+R6211:6230 DisQ.AUTO <> auto_disq_alg1_paper def
+R6236:6240 DisQ.AUTO_Test <> Qprog def
+R6242:6245 DisQ.AUTO_Test <> cfg2 def
+R6257:6261 DisQ.AUTO_Test <> Pbest def
+R6272:6274 DisQ.AUTO <> fit def
+R6276:6280 DisQ.AUTO_Test <> Pbest def
+def 6296:6301 <> P_alg2
+R6305:6320 DisQ.AUTO <> distributed_prog def
+R6327:6340 DisQ.AUTO <> gen_prog_paper def
+R6342:6345 DisQ.AUTO_Test <> seq0 def
+R6347:6354 DisQ.AUTO_Test <> moQ_all0 def
+R6356:6363 DisQ.AUTO_Test <> moO_all0 def
+R6365:6369 DisQ.AUTO_Test <> Qprog def
+R6381:6386 DisQ.AUTO_Test <> P_alg2 def
+R6397:6399 DisQ.AUTO <> fit def
+R6401:6406 DisQ.AUTO_Test <> P_alg2 def
+def 6421:6430 <> moQ_start0
+R6434:6449 DisQ.AUTO <> qubit_mem_assign def
+def 6479:6485 <> P_reloc
+R6489:6504 DisQ.AUTO <> distributed_prog def
+R6511:6524 DisQ.AUTO <> gen_prog_paper def
+R6526:6529 DisQ.AUTO_Test <> seq0 def
+R6531:6540 DisQ.AUTO_Test <> moQ_start0 def
+R6542:6549 DisQ.AUTO_Test <> moO_all1 def
+R6551:6555 DisQ.AUTO_Test <> Qprog def
+R6567:6573 DisQ.AUTO_Test <> P_reloc def
+R6584:6586 DisQ.AUTO <> fit def
+R6588:6594 DisQ.AUTO_Test <> P_reloc def
+def 6610:6613 <> P1_q
+R6617:6619 DisQ.BasicUtility <> var def
+def 6638:6641 <> P1_x
+R6645:6647 DisQ.BasicUtility <> var def
+def 6668:6670 <> P_1
+R6674:6680 DisQ.AUTO <> op_list def
+R6687:6688 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6707:6712 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6738:6743 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6763:6766 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R6689:6692 DisQ.AUTO <> OpAP constr
+R6695:6698 DisQ.DisQSyntax <> CNew constr
+R6700:6703 DisQ.AUTO_Test <> P1_q def
+R6713:6716 DisQ.AUTO <> OpAP constr
+R6719:6723 DisQ.DisQSyntax <> CAppU constr
+R6725:6725 DisQ.AUTO_Test <> L def
+R6728:6728 DisQ.DisQSyntax <> H constr
+R6730:6733 DisQ.AUTO_Test <> P1_q def
+R6744:6747 DisQ.AUTO <> OpAP constr
+R6750:6754 DisQ.DisQSyntax <> CMeas constr
+R6756:6759 DisQ.AUTO_Test <> P1_x def
+R6761:6761 DisQ.AUTO_Test <> L def
+def 6803:6806 <> moO0
+R6810:6822 DisQ.AUTO <> op_mem_assign def
+def 6851:6859 <> P_1_dist0
+R6863:6878 DisQ.AUTO <> distributed_prog def
+R6885:6898 DisQ.AUTO <> gen_prog_paper def
+R6900:6903 DisQ.AUTO_Test <> seq0 def
+R6905:6908 DisQ.AUTO_Test <> moQ0 def
+R6910:6913 DisQ.AUTO_Test <> moO0 def
+R6915:6917 DisQ.AUTO_Test <> P_1 def
+R6929:6937 DisQ.AUTO_Test <> P_1_dist0 def
+R6948:6950 DisQ.AUTO <> fit def
+R6952:6960 DisQ.AUTO_Test <> P_1_dist0 def
+def 6975:6978 <> moO1
+R6982:6994 DisQ.AUTO <> op_mem_assign def
+def 7023:7031 <> P_1_dist1
+R7035:7050 DisQ.AUTO <> distributed_prog def
+R7057:7070 DisQ.AUTO <> gen_prog_paper def
+R7072:7075 DisQ.AUTO_Test <> seq0 def
+R7077:7080 DisQ.AUTO_Test <> moQ0 def
+R7082:7085 DisQ.AUTO_Test <> moO1 def
+R7087:7089 DisQ.AUTO_Test <> P_1 def
+R7101:7109 DisQ.AUTO_Test <> P_1_dist1 def
+R7120:7122 DisQ.AUTO <> fit def
+R7124:7132 DisQ.AUTO_Test <> P_1_dist1 def
+def 7147:7151 <> P_2_q
+R7155:7157 DisQ.BasicUtility <> var def
+def 7176:7180 <> P_2_x
+R7184:7186 DisQ.BasicUtility <> var def
+def 7207:7209 <> P_2
+R7213:7219 DisQ.AUTO <> op_list def
+R7226:7227 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R7247:7252 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R7279:7284 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R7314:7319 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R7340:7343 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R7228:7231 DisQ.AUTO <> OpAP constr
+R7234:7237 DisQ.DisQSyntax <> CNew constr
+R7239:7243 DisQ.AUTO_Test <> P_2_q def
+R7253:7256 DisQ.AUTO <> OpAP constr
+R7259:7263 DisQ.DisQSyntax <> CAppU constr
+R7265:7265 DisQ.AUTO_Test <> L def
+R7268:7268 DisQ.DisQSyntax <> H constr
+R7270:7274 DisQ.AUTO_Test <> P_2_q def
+R7285:7288 DisQ.AUTO <> OpAP constr
+R7291:7295 DisQ.DisQSyntax <> CAppU constr
+R7297:7297 DisQ.AUTO_Test <> L def
+R7300:7301 DisQ.DisQSyntax <> RZ constr
+R7305:7309 DisQ.AUTO_Test <> P_2_q def
+R7320:7323 DisQ.AUTO <> OpAP constr
+R7326:7330 DisQ.DisQSyntax <> CMeas constr
+R7332:7336 DisQ.AUTO_Test <> P_2_x def
+R7338:7338 DisQ.AUTO_Test <> L def
+def 7358:7366 <> P_2_dist0
+R7373:7386 DisQ.AUTO <> gen_prog_paper def
+R7388:7391 DisQ.AUTO_Test <> seq0 def
+R7393:7396 DisQ.AUTO_Test <> moQ0 def
+R7398:7401 DisQ.AUTO_Test <> moO0 def
+R7403:7405 DisQ.AUTO_Test <> P_2 def
+R7417:7425 DisQ.AUTO_Test <> P_2_dist0 def
+R7436:7438 DisQ.AUTO <> fit def
+R7440:7448 DisQ.AUTO_Test <> P_2_dist0 def
+def 7491:7494 <> cfg6
+R7498:7503 DisQ.DisQSyntax <> config def
+R7510:7511 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R7521:7522 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R7532:7533 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R7543:7544 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R7554:7555 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R7565:7566 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R7576:7577 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R7512:7515 DisQ.DisQSyntax <> Memb constr
+R7519:7520 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R7523:7526 DisQ.DisQSyntax <> Memb constr
+R7530:7531 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R7534:7537 DisQ.DisQSyntax <> Memb constr
+R7541:7542 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R7545:7548 DisQ.DisQSyntax <> Memb constr
+R7552:7553 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R7556:7559 DisQ.DisQSyntax <> Memb constr
+R7563:7564 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R7567:7570 DisQ.DisQSyntax <> Memb constr
+R7574:7575 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+def 7696:7699 <> moO2
+R7703:7715 DisQ.AUTO <> op_mem_assign def
+def 7743:7746 <> moO3
+R7750:7762 DisQ.AUTO <> op_mem_assign def
+def 7790:7793 <> moO4
+R7797:7809 DisQ.AUTO <> op_mem_assign def
+def 7837:7840 <> moO5
+R7844:7856 DisQ.AUTO <> op_mem_assign def
+def 7927:7935 <> P_1_dist2
+R7939:7954 DisQ.AUTO <> distributed_prog def
+R7961:7974 DisQ.AUTO <> gen_prog_paper def
+R7976:7979 DisQ.AUTO_Test <> seq0 def
+R7981:7984 DisQ.AUTO_Test <> moQ0 def
+R7986:7989 DisQ.AUTO_Test <> moO2 def
+R7991:7993 DisQ.AUTO_Test <> P_1 def
+R8004:8012 DisQ.AUTO_Test <> P_1_dist2 def
+R8023:8025 DisQ.AUTO <> fit def
+R8027:8035 DisQ.AUTO_Test <> P_1_dist2 def
+def 8050:8058 <> P_1_dist3
+R8062:8077 DisQ.AUTO <> distributed_prog def
+R8084:8097 DisQ.AUTO <> gen_prog_paper def
+R8099:8102 DisQ.AUTO_Test <> seq0 def
+R8104:8107 DisQ.AUTO_Test <> moQ0 def
+R8109:8112 DisQ.AUTO_Test <> moO3 def
+R8114:8116 DisQ.AUTO_Test <> P_1 def
+R8127:8135 DisQ.AUTO_Test <> P_1_dist3 def
+R8146:8148 DisQ.AUTO <> fit def
+R8150:8158 DisQ.AUTO_Test <> P_1_dist3 def
+def 8173:8181 <> P_1_dist4
+R8185:8200 DisQ.AUTO <> distributed_prog def
+R8207:8220 DisQ.AUTO <> gen_prog_paper def
+R8222:8225 DisQ.AUTO_Test <> seq0 def
+R8227:8230 DisQ.AUTO_Test <> moQ0 def
+R8232:8235 DisQ.AUTO_Test <> moO4 def
+R8237:8239 DisQ.AUTO_Test <> P_1 def
+R8250:8258 DisQ.AUTO_Test <> P_1_dist4 def
+R8269:8271 DisQ.AUTO <> fit def
+R8273:8281 DisQ.AUTO_Test <> P_1_dist4 def
+def 8296:8304 <> P_1_dist5
+R8308:8323 DisQ.AUTO <> distributed_prog def
+R8330:8343 DisQ.AUTO <> gen_prog_paper def
+R8345:8348 DisQ.AUTO_Test <> seq0 def
+R8350:8353 DisQ.AUTO_Test <> moQ0 def
+R8355:8358 DisQ.AUTO_Test <> moO5 def
+R8360:8362 DisQ.AUTO_Test <> P_1 def
+R8373:8381 DisQ.AUTO_Test <> P_1_dist5 def
+R8392:8394 DisQ.AUTO <> fit def
+R8396:8404 DisQ.AUTO_Test <> P_1_dist5 def
+def 8419:8424 <> P_3_q0
+R8428:8430 DisQ.BasicUtility <> var def
+def 8449:8454 <> P_3_q1
+R8458:8460 DisQ.BasicUtility <> var def
+def 8479:8484 <> P_3_q2
+R8488:8490 DisQ.BasicUtility <> var def
+def 8510:8515 <> P_3_x0
+R8519:8521 DisQ.BasicUtility <> var def
+def 8541:8546 <> P_3_x1
+R8550:8552 DisQ.BasicUtility <> var def
+def 8572:8577 <> P_3_x2
+R8581:8583 DisQ.BasicUtility <> var def
+def 8655:8659 <> CX_01
+R8663:8665 DisQ.DisQSyntax <> exp ind
+R8670:8671 DisQ.DisQSyntax <> CU constr
+R8673:8678 DisQ.AUTO_Test <> P_3_q0 def
+R8683:8683 DisQ.DisQSyntax <> X constr
+R8685:8690 DisQ.AUTO_Test <> P_3_q1 def
+def 8707:8711 <> CX_02
+R8715:8717 DisQ.DisQSyntax <> exp ind
+R8722:8723 DisQ.DisQSyntax <> CU constr
+R8725:8730 DisQ.AUTO_Test <> P_3_q0 def
+R8735:8735 DisQ.DisQSyntax <> X constr
+R8737:8742 DisQ.AUTO_Test <> P_3_q2 def
+def 8760:8762 <> P_3
+R8766:8772 DisQ.AUTO <> op_list def
+R8779:8780 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R8801:8806 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R8827:8832 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R8853:8859 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R8887:8892 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R8913:8918 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R8939:8945 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R8967:8972 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R8994:8999 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R9021:9024 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R8781:8784 DisQ.AUTO <> OpAP constr
+R8787:8790 DisQ.DisQSyntax <> CNew constr
+R8792:8797 DisQ.AUTO_Test <> P_3_q0 def
+R8807:8810 DisQ.AUTO <> OpAP constr
+R8813:8816 DisQ.DisQSyntax <> CNew constr
+R8818:8823 DisQ.AUTO_Test <> P_3_q1 def
+R8833:8836 DisQ.AUTO <> OpAP constr
+R8839:8842 DisQ.DisQSyntax <> CNew constr
+R8844:8849 DisQ.AUTO_Test <> P_3_q2 def
+R8860:8863 DisQ.AUTO <> OpAP constr
+R8866:8870 DisQ.DisQSyntax <> CAppU constr
+R8872:8872 DisQ.AUTO_Test <> L def
+R8875:8875 DisQ.DisQSyntax <> H constr
+R8877:8882 DisQ.AUTO_Test <> P_3_q0 def
+R8893:8896 DisQ.AUTO <> OpAP constr
+R8899:8903 DisQ.DisQSyntax <> CAppU constr
+R8905:8905 DisQ.AUTO_Test <> L def
+R8907:8911 DisQ.AUTO_Test <> CX_01 def
+R8919:8922 DisQ.AUTO <> OpAP constr
+R8925:8929 DisQ.DisQSyntax <> CAppU constr
+R8931:8931 DisQ.AUTO_Test <> L def
+R8933:8937 DisQ.AUTO_Test <> CX_02 def
+R8946:8949 DisQ.AUTO <> OpAP constr
+R8952:8956 DisQ.DisQSyntax <> CMeas constr
+R8958:8963 DisQ.AUTO_Test <> P_3_x0 def
+R8965:8965 DisQ.AUTO_Test <> L def
+R8973:8976 DisQ.AUTO <> OpAP constr
+R8979:8983 DisQ.DisQSyntax <> CMeas constr
+R8985:8990 DisQ.AUTO_Test <> P_3_x1 def
+R8992:8992 DisQ.AUTO_Test <> L def
+R9000:9003 DisQ.AUTO <> OpAP constr
+R9006:9010 DisQ.DisQSyntax <> CMeas constr
+R9012:9017 DisQ.AUTO_Test <> P_3_x2 def
+R9019:9019 DisQ.AUTO_Test <> L def
+def 9040:9048 <> P_3_dist0
+R9052:9067 DisQ.AUTO <> distributed_prog def
+R9074:9087 DisQ.AUTO <> gen_prog_paper def
+R9089:9092 DisQ.AUTO_Test <> seq0 def
+R9094:9097 DisQ.AUTO_Test <> moQ0 def
+R9099:9102 DisQ.AUTO_Test <> moO0 def
+R9104:9106 DisQ.AUTO_Test <> P_3 def
+R9118:9126 DisQ.AUTO_Test <> P_3_dist0 def
+R9137:9139 DisQ.AUTO <> fit def
+R9141:9149 DisQ.AUTO_Test <> P_3_dist0 def
+def 9165:9173 <> P_3_dist1
+R9177:9192 DisQ.AUTO <> distributed_prog def
+R9199:9212 DisQ.AUTO <> gen_prog_paper def
+R9214:9217 DisQ.AUTO_Test <> seq0 def
+R9219:9222 DisQ.AUTO_Test <> moQ0 def
+R9224:9227 DisQ.AUTO_Test <> moO1 def
+R9229:9231 DisQ.AUTO_Test <> P_3 def
+R9243:9251 DisQ.AUTO_Test <> P_3_dist1 def
+R9262:9264 DisQ.AUTO <> fit def
+R9266:9274 DisQ.AUTO_Test <> P_3_dist1 def
+def 9300:9304 <> P_4_q
+R9308:9310 DisQ.BasicUtility <> var def
+def 9329:9333 <> P_4_n
+R9337:9339 Coq.Init.Datatypes <> nat ind
+def 9358:9362 <> P_4_x
+R9366:9368 DisQ.BasicUtility <> var def
+def 9389:9391 <> P_4
+R9395:9401 DisQ.AUTO <> op_list def
+R9408:9409 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R9429:9434 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R9461:9466 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R9499:9504 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R9538:9543 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R9564:9567 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R9410:9413 DisQ.AUTO <> OpAP constr
+R9416:9419 DisQ.DisQSyntax <> CNew constr
+R9421:9425 DisQ.AUTO_Test <> P_4_q def
+R9435:9438 DisQ.AUTO <> OpAP constr
+R9441:9445 DisQ.DisQSyntax <> CAppU constr
+R9447:9447 DisQ.AUTO_Test <> L def
+R9450:9450 DisQ.DisQSyntax <> H constr
+R9452:9456 DisQ.AUTO_Test <> P_4_q def
+R9467:9470 DisQ.AUTO <> OpAP constr
+R9473:9477 DisQ.DisQSyntax <> CAppU constr
+R9479:9479 DisQ.AUTO_Test <> L def
+R9482:9484 DisQ.DisQSyntax <> QFT constr
+R9486:9490 DisQ.AUTO_Test <> P_4_q def
+R9492:9496 DisQ.AUTO_Test <> P_4_n def
+R9505:9508 DisQ.AUTO <> OpAP constr
+R9511:9515 DisQ.DisQSyntax <> CAppU constr
+R9517:9517 DisQ.AUTO_Test <> L def
+R9520:9523 DisQ.DisQSyntax <> RQFT constr
+R9525:9529 DisQ.AUTO_Test <> P_4_q def
+R9531:9535 DisQ.AUTO_Test <> P_4_n def
+R9544:9547 DisQ.AUTO <> OpAP constr
+R9550:9554 DisQ.DisQSyntax <> CMeas constr
+R9556:9560 DisQ.AUTO_Test <> P_4_x def
+R9562:9562 DisQ.AUTO_Test <> L def
+def 9584:9592 <> P_4_dist0
+R9596:9611 DisQ.AUTO <> distributed_prog def
+R9618:9631 DisQ.AUTO <> gen_prog_paper def
+R9633:9636 DisQ.AUTO_Test <> seq0 def
+R9638:9641 DisQ.AUTO_Test <> moQ0 def
+R9643:9646 DisQ.AUTO_Test <> moO0 def
+R9648:9650 DisQ.AUTO_Test <> P_4 def
+R9662:9670 DisQ.AUTO_Test <> P_4_dist0 def
+R9681:9683 DisQ.AUTO <> fit def
+R9685:9693 DisQ.AUTO_Test <> P_4_dist0 def
+def 9709:9717 <> P_4_dist1
+R9721:9736 DisQ.AUTO <> distributed_prog def
+R9743:9756 DisQ.AUTO <> gen_prog_paper def
+R9758:9761 DisQ.AUTO_Test <> seq0 def
+R9763:9766 DisQ.AUTO_Test <> moQ0 def
+R9768:9771 DisQ.AUTO_Test <> moO1 def
+R9773:9775 DisQ.AUTO_Test <> P_4 def
+R9787:9795 DisQ.AUTO_Test <> P_4_dist1 def
+R9806:9808 DisQ.AUTO <> fit def
+R9810:9818 DisQ.AUTO_Test <> P_4_dist1 def
+def 9834:9842 <> P_4_dist5
+R9846:9861 DisQ.AUTO <> distributed_prog def
+R9868:9881 DisQ.AUTO <> gen_prog_paper def
+R9883:9886 DisQ.AUTO_Test <> seq0 def
+R9888:9891 DisQ.AUTO_Test <> moQ0 def
+R9893:9896 DisQ.AUTO_Test <> moO5 def
+R9898:9900 DisQ.AUTO_Test <> P_4 def
+R9912:9920 DisQ.AUTO_Test <> P_4_dist5 def
+R9931:9933 DisQ.AUTO <> fit def
+R9935:9943 DisQ.AUTO_Test <> P_4_dist5 def
+def 10145:10150 <> P_5_q0
+R10154:10156 DisQ.BasicUtility <> var def
+def 10175:10180 <> P_5_q1
+R10184:10186 DisQ.BasicUtility <> var def
+def 10205:10210 <> P_5_x0
+R10214:10216 DisQ.BasicUtility <> var def
+def 10236:10241 <> P_5_x1
+R10245:10247 DisQ.BasicUtility <> var def
+def 10311:10318 <> theta_pi
+R10322:10324 Coq.Init.Datatypes <> nat ind
+def 10407:10415 <> ORACLE_01
+R10419:10421 DisQ.DisQSyntax <> exp ind
+R10426:10427 DisQ.DisQSyntax <> CU constr
+R10429:10434 DisQ.AUTO_Test <> P_5_q0 def
+R10439:10440 DisQ.DisQSyntax <> RZ constr
+R10444:10449 DisQ.AUTO_Test <> P_5_q1 def
+R10451:10458 DisQ.AUTO_Test <> theta_pi def
+def 10556:10558 <> P_5
+R10562:10568 DisQ.AUTO <> op_list def
+R10575:10576 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R10597:10602 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R10623:10669 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R10697:10702 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R10730:10814 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R10839:10865 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R10893:10898 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R10926:10931 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R10959:10964 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R10992:10997 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R11022:11027 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R11055:11060 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R11088:11093 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R11121:11126 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R11154:11178 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R11200:11205 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R11227:11230 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R10577:10580 DisQ.AUTO <> OpAP constr
+R10583:10586 DisQ.DisQSyntax <> CNew constr
+R10588:10593 DisQ.AUTO_Test <> P_5_q0 def
+R10603:10606 DisQ.AUTO <> OpAP constr
+R10609:10612 DisQ.DisQSyntax <> CNew constr
+R10614:10619 DisQ.AUTO_Test <> P_5_q1 def
+R10670:10673 DisQ.AUTO <> OpAP constr
+R10676:10680 DisQ.DisQSyntax <> CAppU constr
+R10682:10682 DisQ.AUTO_Test <> L def
+R10685:10685 DisQ.DisQSyntax <> H constr
+R10687:10692 DisQ.AUTO_Test <> P_5_q0 def
+R10703:10706 DisQ.AUTO <> OpAP constr
+R10709:10713 DisQ.DisQSyntax <> CAppU constr
+R10715:10715 DisQ.AUTO_Test <> L def
+R10718:10718 DisQ.DisQSyntax <> H constr
+R10720:10725 DisQ.AUTO_Test <> P_5_q1 def
+R10815:10818 DisQ.AUTO <> OpAP constr
+R10821:10825 DisQ.DisQSyntax <> CAppU constr
+R10827:10827 DisQ.AUTO_Test <> L def
+R10829:10837 DisQ.AUTO_Test <> ORACLE_01 def
+R10866:10869 DisQ.AUTO <> OpAP constr
+R10872:10876 DisQ.DisQSyntax <> CAppU constr
+R10878:10878 DisQ.AUTO_Test <> L def
+R10881:10881 DisQ.DisQSyntax <> H constr
+R10883:10888 DisQ.AUTO_Test <> P_5_q0 def
+R10899:10902 DisQ.AUTO <> OpAP constr
+R10905:10909 DisQ.DisQSyntax <> CAppU constr
+R10911:10911 DisQ.AUTO_Test <> L def
+R10914:10914 DisQ.DisQSyntax <> H constr
+R10916:10921 DisQ.AUTO_Test <> P_5_q1 def
+R10932:10935 DisQ.AUTO <> OpAP constr
+R10938:10942 DisQ.DisQSyntax <> CAppU constr
+R10944:10944 DisQ.AUTO_Test <> L def
+R10947:10947 DisQ.DisQSyntax <> X constr
+R10949:10954 DisQ.AUTO_Test <> P_5_q0 def
+R10965:10968 DisQ.AUTO <> OpAP constr
+R10971:10975 DisQ.DisQSyntax <> CAppU constr
+R10977:10977 DisQ.AUTO_Test <> L def
+R10980:10980 DisQ.DisQSyntax <> X constr
+R10982:10987 DisQ.AUTO_Test <> P_5_q1 def
+R10998:11001 DisQ.AUTO <> OpAP constr
+R11004:11008 DisQ.DisQSyntax <> CAppU constr
+R11010:11010 DisQ.AUTO_Test <> L def
+R11012:11020 DisQ.AUTO_Test <> ORACLE_01 def
+R11028:11031 DisQ.AUTO <> OpAP constr
+R11034:11038 DisQ.DisQSyntax <> CAppU constr
+R11040:11040 DisQ.AUTO_Test <> L def
+R11043:11043 DisQ.DisQSyntax <> X constr
+R11045:11050 DisQ.AUTO_Test <> P_5_q0 def
+R11061:11064 DisQ.AUTO <> OpAP constr
+R11067:11071 DisQ.DisQSyntax <> CAppU constr
+R11073:11073 DisQ.AUTO_Test <> L def
+R11076:11076 DisQ.DisQSyntax <> X constr
+R11078:11083 DisQ.AUTO_Test <> P_5_q1 def
+R11094:11097 DisQ.AUTO <> OpAP constr
+R11100:11104 DisQ.DisQSyntax <> CAppU constr
+R11106:11106 DisQ.AUTO_Test <> L def
+R11109:11109 DisQ.DisQSyntax <> H constr
+R11111:11116 DisQ.AUTO_Test <> P_5_q0 def
+R11127:11130 DisQ.AUTO <> OpAP constr
+R11133:11137 DisQ.DisQSyntax <> CAppU constr
+R11139:11139 DisQ.AUTO_Test <> L def
+R11142:11142 DisQ.DisQSyntax <> H constr
+R11144:11149 DisQ.AUTO_Test <> P_5_q1 def
+R11179:11182 DisQ.AUTO <> OpAP constr
+R11185:11189 DisQ.DisQSyntax <> CMeas constr
+R11191:11196 DisQ.AUTO_Test <> P_5_x0 def
+R11198:11198 DisQ.AUTO_Test <> L def
+R11206:11209 DisQ.AUTO <> OpAP constr
+R11212:11216 DisQ.DisQSyntax <> CMeas constr
+R11218:11223 DisQ.AUTO_Test <> P_5_x1 def
+R11225:11225 DisQ.AUTO_Test <> L def
+def 11246:11254 <> P_5_dist0
+R11259:11272 DisQ.AUTO <> gen_prog_paper def
+R11274:11277 DisQ.AUTO_Test <> seq0 def
+R11279:11282 DisQ.AUTO_Test <> moQ0 def
+R11284:11287 DisQ.AUTO_Test <> moO0 def
+R11289:11291 DisQ.AUTO_Test <> P_5 def
+R11302:11310 DisQ.AUTO_Test <> P_5_dist0 def
+R11321:11323 DisQ.AUTO <> fit def
+R11325:11333 DisQ.AUTO_Test <> P_5_dist0 def
+def 11348:11356 <> P_5_dist5
+R11361:11374 DisQ.AUTO <> gen_prog_paper def
+R11376:11379 DisQ.AUTO_Test <> seq0 def
+R11381:11384 DisQ.AUTO_Test <> moQ0 def
+R11386:11389 DisQ.AUTO_Test <> moO5 def
+R11391:11393 DisQ.AUTO_Test <> P_5 def
+R11404:11412 DisQ.AUTO_Test <> P_5_dist5 def
+R11423:11425 DisQ.AUTO <> fit def
+R11427:11435 DisQ.AUTO_Test <> P_5_dist5 def
+def 11653:11658 <> P_6_qs
+R11662:11664 DisQ.BasicUtility <> var def
+def 11716:11721 <> P_6_qa
+R11725:11727 DisQ.BasicUtility <> var def
+def 11772:11777 <> P_6_qb
+R11781:11783 DisQ.BasicUtility <> var def
+def 11836:11841 <> P_6_m1
+R11845:11847 DisQ.BasicUtility <> var def
+def 11908:11913 <> P_6_m2
+R11917:11919 DisQ.BasicUtility <> var def
+def 12010:12017 <> CNOT_a_b
+R12021:12023 DisQ.DisQSyntax <> exp ind
+R12028:12029 DisQ.DisQSyntax <> CU constr
+R12031:12036 DisQ.AUTO_Test <> P_6_qa def
+R12041:12041 DisQ.DisQSyntax <> X constr
+R12043:12048 DisQ.AUTO_Test <> P_6_qb def
+def 12065:12072 <> CNOT_s_a
+R12076:12078 DisQ.DisQSyntax <> exp ind
+R12083:12084 DisQ.DisQSyntax <> CU constr
+R12086:12091 DisQ.AUTO_Test <> P_6_qs def
+R12096:12096 DisQ.DisQSyntax <> X constr
+R12098:12103 DisQ.AUTO_Test <> P_6_qa def
+def 12176:12183 <> Zcorr_qb
+R12187:12189 DisQ.DisQSyntax <> exp ind
+R12194:12195 DisQ.DisQSyntax <> RZ constr
+R12199:12204 DisQ.AUTO_Test <> P_6_qb def
+R12206:12213 DisQ.AUTO_Test <> theta_pi def
+def 12227:12234 <> Xcorr_qb
+R12238:12240 DisQ.DisQSyntax <> exp ind
+R12245:12245 DisQ.DisQSyntax <> X constr
+R12248:12253 DisQ.AUTO_Test <> P_6_qb def
+def 12308:12317 <> proc_Xcorr
+R12321:12327 DisQ.DisQSyntax <> process ind
+R12332:12333 DisQ.DisQSyntax <> AP constr
+R12336:12340 DisQ.DisQSyntax <> CAppU constr
+R12342:12342 DisQ.AUTO_Test <> L def
+R12344:12351 DisQ.AUTO_Test <> Xcorr_qb def
+R12354:12357 DisQ.DisQSyntax <> PNil constr
+def 12371:12380 <> proc_Zcorr
+R12384:12390 DisQ.DisQSyntax <> process ind
+R12395:12396 DisQ.DisQSyntax <> AP constr
+R12399:12403 DisQ.DisQSyntax <> CAppU constr
+R12405:12405 DisQ.AUTO_Test <> L def
+R12407:12414 DisQ.AUTO_Test <> Zcorr_qb def
+R12417:12420 DisQ.DisQSyntax <> PNil constr
+def 12435:12437 <> P_6
+R12441:12447 DisQ.AUTO <> op_list def
+R12454:12481 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R12502:12507 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R12528:12533 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R12554:12615 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R12643:12693 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R12721:12726 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R12750:12795 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R12819:12824 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R12852:12858 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R12880:12885 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R12907:12913 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R12960:12965 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R13012:13016 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R12482:12485 DisQ.AUTO <> OpAP constr
+R12488:12491 DisQ.DisQSyntax <> CNew constr
+R12493:12498 DisQ.AUTO_Test <> P_6_qs def
+R12508:12511 DisQ.AUTO <> OpAP constr
+R12514:12517 DisQ.DisQSyntax <> CNew constr
+R12519:12524 DisQ.AUTO_Test <> P_6_qa def
+R12534:12537 DisQ.AUTO <> OpAP constr
+R12540:12543 DisQ.DisQSyntax <> CNew constr
+R12545:12550 DisQ.AUTO_Test <> P_6_qb def
+R12616:12619 DisQ.AUTO <> OpAP constr
+R12622:12626 DisQ.DisQSyntax <> CAppU constr
+R12628:12628 DisQ.AUTO_Test <> L def
+R12631:12631 DisQ.DisQSyntax <> H constr
+R12633:12638 DisQ.AUTO_Test <> P_6_qs def
+R12694:12697 DisQ.AUTO <> OpAP constr
+R12700:12704 DisQ.DisQSyntax <> CAppU constr
+R12706:12706 DisQ.AUTO_Test <> L def
+R12709:12709 DisQ.DisQSyntax <> H constr
+R12711:12716 DisQ.AUTO_Test <> P_6_qa def
+R12727:12730 DisQ.AUTO <> OpAP constr
+R12733:12737 DisQ.DisQSyntax <> CAppU constr
+R12739:12739 DisQ.AUTO_Test <> L def
+R12741:12748 DisQ.AUTO_Test <> CNOT_a_b def
+R12796:12799 DisQ.AUTO <> OpAP constr
+R12802:12806 DisQ.DisQSyntax <> CAppU constr
+R12808:12808 DisQ.AUTO_Test <> L def
+R12810:12817 DisQ.AUTO_Test <> CNOT_s_a def
+R12825:12828 DisQ.AUTO <> OpAP constr
+R12831:12835 DisQ.DisQSyntax <> CAppU constr
+R12837:12837 DisQ.AUTO_Test <> L def
+R12840:12840 DisQ.DisQSyntax <> H constr
+R12842:12847 DisQ.AUTO_Test <> P_6_qs def
+R12859:12862 DisQ.AUTO <> OpAP constr
+R12865:12869 DisQ.DisQSyntax <> CMeas constr
+R12871:12876 DisQ.AUTO_Test <> P_6_m1 def
+R12878:12878 DisQ.AUTO_Test <> L def
+R12886:12889 DisQ.AUTO <> OpAP constr
+R12892:12896 DisQ.DisQSyntax <> CMeas constr
+R12898:12903 DisQ.AUTO_Test <> P_6_m2 def
+R12905:12905 DisQ.AUTO_Test <> L def
+R12914:12917 DisQ.AUTO <> OpIf constr
+R12920:12922 DisQ.DisQSyntax <> CEq constr
+R12925:12926 DisQ.DisQSyntax <> BA constr
+R12928:12933 DisQ.AUTO_Test <> P_6_m2 def
+R12937:12939 DisQ.DisQSyntax <> Num constr
+R12945:12954 DisQ.AUTO_Test <> proc_Xcorr def
+R12956:12959 DisQ.DisQSyntax <> PNil constr
+R12966:12969 DisQ.AUTO <> OpIf constr
+R12972:12974 DisQ.DisQSyntax <> CEq constr
+R12977:12978 DisQ.DisQSyntax <> BA constr
+R12980:12985 DisQ.AUTO_Test <> P_6_m1 def
+R12989:12991 DisQ.DisQSyntax <> Num constr
+R12997:13006 DisQ.AUTO_Test <> proc_Zcorr def
+R13008:13011 DisQ.DisQSyntax <> PNil constr
+def 13031:13039 <> P_6_dist0
+R13044:13057 DisQ.AUTO <> gen_prog_paper def
+R13059:13062 DisQ.AUTO_Test <> seq0 def
+R13064:13067 DisQ.AUTO_Test <> moQ0 def
+R13069:13072 DisQ.AUTO_Test <> moO0 def
+R13074:13076 DisQ.AUTO_Test <> P_6 def
+R13087:13095 DisQ.AUTO_Test <> P_6_dist0 def
+R13106:13108 DisQ.AUTO <> fit def
+R13110:13118 DisQ.AUTO_Test <> P_6_dist0 def
+def 13133:13141 <> P_6_dist5
+R13146:13159 DisQ.AUTO <> gen_prog_paper def
+R13161:13164 DisQ.AUTO_Test <> seq0 def
+R13166:13169 DisQ.AUTO_Test <> moQ0 def
+R13171:13174 DisQ.AUTO_Test <> moO5 def
+R13176:13178 DisQ.AUTO_Test <> P_6 def
+R13189:13197 DisQ.AUTO_Test <> P_6_dist5 def
+R13208:13210 DisQ.AUTO <> fit def
+R13212:13220 DisQ.AUTO_Test <> P_6_dist5 def
+def 13423:13423 <> N
+R13427:13429 Coq.Init.Datatypes <> nat ind
+def 13449:13449 <> a
+R13453:13455 Coq.Init.Datatypes <> nat ind
+def 13532:13538 <> t_phase
+R13542:13544 Coq.Init.Datatypes <> nat ind
+def 13633:13634 <> w0
+R13638:13640 DisQ.BasicUtility <> var def
+def 13660:13661 <> w1
+R13665:13667 DisQ.BasicUtility <> var def
+def 13687:13697 <> work_qubits
+R13701:13704 Coq.Init.Datatypes <> list ind
+R13706:13708 DisQ.BasicUtility <> var def
+R13713:13713 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R13716:13717 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R13720:13720 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R13714:13715 DisQ.AUTO_Test <> w0 def
+R13718:13719 DisQ.AUTO_Test <> w1 def
+def 13790:13791 <> q2
+R13795:13797 DisQ.BasicUtility <> var def
+def 13817:13818 <> q3
+R13822:13824 DisQ.BasicUtility <> var def
+def 13843:13844 <> q4
+R13848:13850 DisQ.BasicUtility <> var def
+def 13870:13871 <> q5
+R13875:13877 DisQ.BasicUtility <> var def
+def 13896:13897 <> q6
+R13901:13903 DisQ.BasicUtility <> var def
+def 13923:13924 <> q7
+R13928:13930 DisQ.BasicUtility <> var def
+def 13949:13960 <> phase_qubits
+R13964:13967 Coq.Init.Datatypes <> list ind
+R13969:13971 DisQ.BasicUtility <> var def
+R13976:13976 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R13979:13979 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R13982:13982 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R13985:13985 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R13988:13988 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R13991:13991 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R13994:13994 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R13997:13997 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R14000:14000 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R13977:13978 DisQ.AUTO_Test <> q0 def
+R13980:13981 DisQ.AUTO_Test <> q1 def
+R13983:13984 DisQ.AUTO_Test <> q2 def
+R13986:13987 DisQ.AUTO_Test <> q3 def
+R13989:13990 DisQ.AUTO_Test <> q4 def
+R13992:13993 DisQ.AUTO_Test <> q5 def
+R13995:13996 DisQ.AUTO_Test <> q6 def
+R13998:13999 DisQ.AUTO_Test <> q7 def
+def 14074:14075 <> c0
+R14079:14081 DisQ.BasicUtility <> var def
+def 14102:14103 <> c1
+R14107:14109 DisQ.BasicUtility <> var def
+def 14130:14131 <> c2
+R14135:14137 DisQ.BasicUtility <> var def
+def 14158:14159 <> c3
+R14163:14165 DisQ.BasicUtility <> var def
+def 14186:14187 <> c4
+R14191:14193 DisQ.BasicUtility <> var def
+def 14214:14215 <> c5
+R14219:14221 DisQ.BasicUtility <> var def
+def 14242:14243 <> c6
+R14247:14249 DisQ.BasicUtility <> var def
+def 14270:14271 <> c7
+R14275:14277 DisQ.BasicUtility <> var def
+def 14298:14307 <> phase_bits
+R14311:14314 Coq.Init.Datatypes <> list ind
+R14316:14318 DisQ.BasicUtility <> var def
+R14323:14323 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R14326:14326 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R14329:14329 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R14332:14332 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R14335:14335 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R14338:14338 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R14341:14341 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R14344:14344 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R14347:14347 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R14324:14325 DisQ.AUTO_Test <> c0 def
+R14327:14328 DisQ.AUTO_Test <> c1 def
+R14330:14331 DisQ.AUTO_Test <> c2 def
+R14333:14334 DisQ.AUTO_Test <> c3 def
+R14336:14337 DisQ.AUTO_Test <> c4 def
+R14339:14340 DisQ.AUTO_Test <> c5 def
+R14342:14343 DisQ.AUTO_Test <> c6 def
+R14345:14346 DisQ.AUTO_Test <> c7 def
+def 14562:14573 <> alloc_qubits
+R14581:14584 Coq.Init.Datatypes <> list ind
+R14586:14588 DisQ.BasicUtility <> var def
+binder 14576:14577 <> qs:12
+R14593:14599 DisQ.AUTO <> op_list def
+R14612:14613 DisQ.AUTO_Test <> qs:12 var
+R14624:14625 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R14630:14631 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R14638:14641 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R14642:14643 Coq.Lists.List <> tl def
+R14663:14666 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R14648:14651 DisQ.AUTO <> OpAP constr
+R14654:14657 DisQ.DisQSyntax <> CNew constr
+R14667:14678 DisQ.AUTO_Test <> alloc_qubits:13 def
+def 14700:14710 <> apply_H_all
+R14718:14721 Coq.Init.Datatypes <> list ind
+R14723:14725 DisQ.BasicUtility <> var def
+binder 14713:14714 <> qs:15
+R14730:14736 DisQ.AUTO <> op_list def
+R14749:14750 DisQ.AUTO_Test <> qs:15 var
+R14761:14762 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R14767:14768 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R14775:14778 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R14779:14780 Coq.Lists.List <> tl def
+R14813:14816 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R14785:14788 DisQ.AUTO <> OpAP constr
+R14791:14795 DisQ.DisQSyntax <> CAppU constr
+R14797:14797 DisQ.AUTO_Test <> L def
+R14800:14800 DisQ.DisQSyntax <> H constr
+R14805:14807 DisQ.DisQSyntax <> Num constr
+R14817:14827 DisQ.AUTO_Test <> apply_H_all:16 def
+def 14849:14856 <> meas_all
+R14864:14867 Coq.Init.Datatypes <> list ind
+R14869:14871 DisQ.BasicUtility <> var def
+binder 14859:14860 <> xs:18
+R14876:14882 DisQ.AUTO <> op_list def
+R14895:14896 DisQ.AUTO_Test <> xs:18 var
+R14907:14908 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R14913:14914 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R14921:14924 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R14925:14926 Coq.Lists.List <> tl def
+R14947:14950 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R14931:14934 DisQ.AUTO <> OpAP constr
+R14937:14941 DisQ.DisQSyntax <> CMeas constr
+R14945:14945 DisQ.AUTO_Test <> L def
+R14951:14958 DisQ.AUTO_Test <> meas_all:19 def
+def 15173:15180 <> INC_mod4
+R15184:15186 DisQ.DisQSyntax <> exp ind
+R15193:15195 DisQ.DisQSyntax <> Seq constr
+R15198:15198 DisQ.DisQSyntax <> X constr
+R15200:15201 DisQ.AUTO_Test <> w0 def
+R15204:15206 DisQ.DisQSyntax <> Num constr
+R15219:15220 DisQ.DisQSyntax <> CU constr
+R15222:15223 DisQ.AUTO_Test <> w0 def
+R15226:15228 DisQ.DisQSyntax <> Num constr
+R15234:15234 DisQ.DisQSyntax <> X constr
+R15236:15237 DisQ.AUTO_Test <> w1 def
+R15240:15242 DisQ.DisQSyntax <> Num constr
+def 15260:15269 <> repeat_exp
+R15276:15278 Coq.Init.Datatypes <> nat ind
+binder 15272:15272 <> n:21
+R15286:15288 DisQ.DisQSyntax <> exp ind
+binder 15282:15282 <> e:22
+R15293:15295 DisQ.DisQSyntax <> exp ind
+R15308:15308 DisQ.AUTO_Test <> n:21 var
+R15324:15327 DisQ.DisQSyntax <> SKIP constr
+R15332:15334 DisQ.DisQSyntax <> Num constr
+R15344:15344 Coq.Init.Datatypes <> S constr
+R15352:15354 DisQ.DisQSyntax <> Seq constr
+R15356:15356 DisQ.AUTO_Test <> e:22 var
+R15359:15368 DisQ.AUTO_Test <> repeat_exp:23 def
+R15373:15373 DisQ.AUTO_Test <> e:22 var
+def 15395:15398 <> pow2
+R15405:15407 Coq.Init.Datatypes <> nat ind
+binder 15401:15401 <> k:25
+R15412:15414 Coq.Init.Datatypes <> nat ind
+R15419:15425 Coq.Arith.PeanoNat Nat pow def
+R15429:15429 DisQ.AUTO_Test <> k:25 var
+def 15490:15499 <> UModExpPow
+R15510:15512 Coq.Init.Datatypes <> nat ind
+binder 15502:15502 <> a:26
+binder 15504:15504 <> N:27
+binder 15506:15506 <> k:28
+R15522:15525 Coq.Init.Datatypes <> list ind
+R15527:15529 DisQ.BasicUtility <> var def
+binder 15516:15518 <> _ws:29
+R15534:15536 DisQ.DisQSyntax <> exp ind
+R15543:15552 DisQ.AUTO_Test <> repeat_exp def
+R15555:15558 DisQ.AUTO_Test <> pow2 def
+R15560:15560 DisQ.AUTO_Test <> k:28 var
+R15563:15570 DisQ.AUTO_Test <> INC_mod4 def
+R15580:15589 DisQ.AUTO_Test <> UModExpPow def
+def 15603:15616 <> controlled_pow
+R15629:15631 DisQ.BasicUtility <> var def
+binder 15619:15625 <> control:30
+R15639:15641 Coq.Init.Datatypes <> nat ind
+binder 15635:15635 <> k:31
+R15646:15652 DisQ.AUTO <> op_list def
+R15659:15660 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R15727:15728 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R15661:15664 DisQ.AUTO <> OpAP constr
+R15667:15671 DisQ.DisQSyntax <> CAppU constr
+R15673:15673 DisQ.AUTO_Test <> L def
+R15676:15677 DisQ.DisQSyntax <> CU constr
+R15679:15685 DisQ.AUTO_Test <> control:30 var
+R15688:15690 DisQ.DisQSyntax <> Num constr
+R15696:15705 DisQ.AUTO_Test <> UModExpPow def
+R15707:15707 DisQ.AUTO_Test <> a def
+R15709:15709 DisQ.AUTO_Test <> N def
+R15711:15711 DisQ.AUTO_Test <> k:31 var
+R15713:15723 DisQ.AUTO_Test <> work_qubits def
+def 15741:15759 <> qpe_controlled_pows
+R15767:15770 Coq.Init.Datatypes <> list ind
+R15772:15774 DisQ.BasicUtility <> var def
+binder 15762:15763 <> qs:32
+R15782:15784 Coq.Init.Datatypes <> nat ind
+binder 15778:15778 <> k:33
+R15789:15795 DisQ.AUTO <> op_list def
+R15808:15809 DisQ.AUTO_Test <> qs:32 var
+R15820:15821 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R15826:15827 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R15834:15837 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R15838:15839 Coq.Lists.List <> tl def
+R15862:15865 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R15844:15857 DisQ.AUTO_Test <> controlled_pow def
+R15861:15861 DisQ.AUTO_Test <> k:33 var
+R15866:15884 DisQ.AUTO_Test <> qpe_controlled_pows:34 def
+R15890:15890 Coq.Init.Datatypes <> S constr
+R15892:15892 DisQ.AUTO_Test <> k:33 var
+def 15914:15926 <> inv_qft_phase
+R15930:15936 DisQ.AUTO <> op_list def
+R15943:15944 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R15977:15978 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R15945:15948 DisQ.AUTO <> OpAP constr
+R15951:15955 DisQ.DisQSyntax <> CAppU constr
+R15957:15957 DisQ.AUTO_Test <> L def
+R15960:15963 DisQ.DisQSyntax <> RQFT constr
+R15965:15966 DisQ.AUTO_Test <> q0 def
+R15968:15974 DisQ.AUTO_Test <> t_phase def
+def 16199:16211 <> Shor_QPE_prog
+R16215:16221 DisQ.AUTO <> op_list def
+R16253:16258 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R16228:16239 DisQ.AUTO_Test <> alloc_qubits def
+R16241:16252 DisQ.AUTO_Test <> phase_qubits def
+R16283:16288 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R16259:16270 DisQ.AUTO_Test <> alloc_qubits def
+R16272:16282 DisQ.AUTO_Test <> work_qubits def
+R16313:16318 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R16289:16299 DisQ.AUTO_Test <> apply_H_all def
+R16301:16312 DisQ.AUTO_Test <> phase_qubits def
+R16353:16358 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R16319:16337 DisQ.AUTO_Test <> qpe_controlled_pows def
+R16339:16350 DisQ.AUTO_Test <> phase_qubits def
+R16372:16377 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R16359:16371 DisQ.AUTO_Test <> inv_qft_phase def
+R16378:16385 DisQ.AUTO_Test <> meas_all def
+R16387:16396 DisQ.AUTO_Test <> phase_bits def
+def 16658:16673 <> count_controlled
+R16682:16688 DisQ.AUTO <> op_list def
+binder 16676:16678 <> ops:36
+R16693:16695 Coq.Init.Datatypes <> nat ind
+R16708:16710 DisQ.AUTO_Test <> ops:36 var
+R16721:16722 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R16758:16761 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R16733:16736 DisQ.AUTO <> OpAP constr
+R16739:16743 DisQ.DisQSyntax <> CAppU constr
+R16748:16749 DisQ.DisQSyntax <> CU constr
+R16762:16763 Coq.Lists.List <> tl def
+R16768:16768 Coq.Init.Datatypes <> S constr
+R16771:16786 DisQ.AUTO_Test <> count_controlled:37 def
+R16797:16800 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R16801:16802 Coq.Lists.List <> tl def
+R16807:16822 DisQ.AUTO_Test <> count_controlled:37 def
+def 16843:16863 <> test_controlled_count
+R16899:16901 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16869:16884 DisQ.AUTO_Test <> count_controlled def
+R16886:16898 DisQ.AUTO_Test <> Shor_QPE_prog def
+R16902:16908 DisQ.AUTO_Test <> t_phase def
+def 17139:17141 <> gcd
+R17150:17152 Coq.Init.Datatypes <> nat ind
+binder 17144:17144 <> x:39
+binder 17146:17146 <> y:40
+R17169:17171 Coq.Init.Datatypes <> nat ind
+R17211:17213 DisQ.AUTO_Test <> gcd:41 def
+R17218:17227 Coq.Arith.PeanoNat Nat modulo def
+R17266:17284 Coq.Arith.PeanoNat Nat mod_upper_bound thm
+R17266:17284 Coq.Arith.PeanoNat Nat mod_upper_bound thm
+def 17351:17357 <> pow_mod
+R17368:17370 Coq.Init.Datatypes <> nat ind
+binder 17360:17360 <> a:43
+binder 17362:17362 <> e:44
+binder 17364:17364 <> n:45
+R17375:17377 Coq.Init.Datatypes <> nat ind
+R17390:17390 DisQ.AUTO_Test <> e:44 var
+R17407:17411 Coq.Arith.PeanoNat <> ::nat_scope:x_'mod'_x not
+R17412:17412 DisQ.AUTO_Test <> n:45 var
+R17418:17418 Coq.Init.Datatypes <> S constr
+R17426:17435 Coq.Arith.PeanoNat Nat modulo def
+R17439:17441 Coq.Init.Nat <> ::nat_scope:x_'*'_x not
+R17438:17438 DisQ.AUTO_Test <> a:43 var
+R17442:17448 DisQ.AUTO_Test <> pow_mod:46 def
+R17455:17455 DisQ.AUTO_Test <> n:45 var
+R17450:17450 DisQ.AUTO_Test <> a:43 var
+R17458:17458 DisQ.AUTO_Test <> n:45 var
+def 17480:17486 <> two_pow
+R17493:17495 Coq.Init.Datatypes <> nat ind
+binder 17489:17489 <> t:48
+R17500:17502 Coq.Init.Datatypes <> nat ind
+R17507:17513 Coq.Arith.PeanoNat Nat pow def
+R17517:17517 DisQ.AUTO_Test <> t:48 var
+def 17530:17551 <> find_period_exact_from
+R17567:17569 Coq.Init.Datatypes <> nat ind
+binder 17554:17554 <> m:49
+binder 17556:17556 <> t:50
+binder 17558:17558 <> r:51
+binder 17560:17563 <> fuel:52
+R17574:17576 Coq.Init.Datatypes <> nat ind
+R17589:17592 DisQ.AUTO_Test <> fuel:52 var
+R17614:17614 Coq.Init.Datatypes <> S constr
+R17634:17640 Coq.Arith.PeanoNat Nat eqb def
+R17643:17652 Coq.Arith.PeanoNat Nat modulo def
+R17656:17658 Coq.Init.Nat <> ::nat_scope:x_'*'_x not
+R17655:17655 DisQ.AUTO_Test <> m:49 var
+R17659:17659 DisQ.AUTO_Test <> r:51 var
+R17663:17669 DisQ.AUTO_Test <> two_pow def
+R17671:17671 DisQ.AUTO_Test <> t:50 var
+R17701:17722 DisQ.AUTO_Test <> find_period_exact_from:53 def
+R17729:17729 Coq.Init.Datatypes <> S constr
+R17731:17731 DisQ.AUTO_Test <> r:51 var
+R17726:17726 DisQ.AUTO_Test <> t:50 var
+R17724:17724 DisQ.AUTO_Test <> m:49 var
+R17688:17688 DisQ.AUTO_Test <> r:51 var
+def 17759:17775 <> find_period_exact
+R17789:17791 Coq.Init.Datatypes <> nat ind
+binder 17778:17778 <> m:55
+binder 17780:17780 <> t:56
+binder 17782:17785 <> Rmax:57
+R17796:17798 Coq.Init.Datatypes <> nat ind
+R17805:17826 DisQ.AUTO_Test <> find_period_exact_from def
+R17828:17828 DisQ.AUTO_Test <> m:55 var
+R17830:17830 DisQ.AUTO_Test <> t:56 var
+R17834:17837 DisQ.AUTO_Test <> Rmax:57 var
+def 17853:17871 <> shor_factors_from_r
+R17882:17884 Coq.Init.Datatypes <> nat ind
+binder 17874:17874 <> a:58
+binder 17876:17876 <> N:59
+binder 17878:17878 <> r:60
+R17893:17895 Coq.Init.Datatypes <> ::type_scope:x_'*'_x not
+R17890:17892 Coq.Init.Datatypes <> nat ind
+R17896:17898 Coq.Init.Datatypes <> nat ind
+R17909:17916 Coq.Arith.PeanoNat Nat even def
+R17918:17918 DisQ.AUTO_Test <> r:60 var
+R18063:18063 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R18065:18066 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R18068:18068 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R18067:18067 DisQ.AUTO_Test <> N:59 var
+R17938:17944 DisQ.AUTO_Test <> pow_mod def
+R17946:17946 DisQ.AUTO_Test <> a:58 var
+R17949:17955 Coq.Arith.PeanoNat Nat div def
+R17957:17957 DisQ.AUTO_Test <> r:60 var
+R17962:17962 DisQ.AUTO_Test <> N:59 var
+binder 17933:17933 <> x:61
+R17981:17987 Coq.Arith.PeanoNat Nat gcd def
+R17990:17996 Coq.Arith.PeanoNat Nat sub def
+R17998:17998 DisQ.AUTO_Test <> x:61 var
+R18003:18003 DisQ.AUTO_Test <> N:59 var
+binder 17975:17976 <> f1:62
+R18022:18028 Coq.Arith.PeanoNat Nat gcd def
+R18032:18034 Coq.Init.Nat <> ::nat_scope:x_'+'_x not
+R18031:18031 DisQ.AUTO_Test <> x:61 var
+R18038:18038 DisQ.AUTO_Test <> N:59 var
+binder 18016:18017 <> f2:63
+R18047:18047 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R18050:18051 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R18054:18054 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R18048:18049 DisQ.AUTO_Test <> f1:62 var
+R18052:18053 DisQ.AUTO_Test <> f2:63 var
+def 18084:18090 <> m_ideal
+R18094:18096 Coq.Init.Datatypes <> nat ind
+def 18114:18129 <> test_period_is_4
+R18171:18173 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R18135:18151 DisQ.AUTO_Test <> find_period_exact def
+R18153:18159 DisQ.AUTO_Test <> m_ideal def
+R18161:18167 DisQ.AUTO_Test <> t_phase def
+def 18211:18234 <> test_factors_are_3_and_5
+R18265:18267 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R18240:18258 DisQ.AUTO_Test <> shor_factors_from_r def
+R18260:18260 DisQ.AUTO_Test <> a def
+R18262:18262 DisQ.AUTO_Test <> N def
+R18268:18268 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R18270:18271 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R18273:18273 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+def 18720:18721 <> p0
+R18725:18727 DisQ.BasicUtility <> var def
+def 18746:18747 <> p1
+R18751:18753 DisQ.BasicUtility <> var def
+def 18772:18773 <> p2
+R18777:18779 DisQ.BasicUtility <> var def
+def 18888:18889 <> m0
+R18893:18895 DisQ.BasicUtility <> var def
+def 18916:18917 <> m1
+R18921:18923 DisQ.BasicUtility <> var def
+def 18944:18945 <> m2
+R18949:18951 DisQ.BasicUtility <> var def
+def 19079:19084 <> new_p0
+R19088:19091 DisQ.DisQSyntax <> cexp ind
+R19096:19099 DisQ.DisQSyntax <> CNew constr
+R19101:19102 DisQ.AUTO_Test <> p0 def
+def 19118:19123 <> new_p1
+R19127:19130 DisQ.DisQSyntax <> cexp ind
+R19135:19138 DisQ.DisQSyntax <> CNew constr
+R19140:19141 DisQ.AUTO_Test <> p1 def
+def 19157:19162 <> new_p2
+R19166:19169 DisQ.DisQSyntax <> cexp ind
+R19174:19177 DisQ.DisQSyntax <> CNew constr
+R19179:19180 DisQ.AUTO_Test <> p2 def
+def 19197:19202 <> new_w0
+R19206:19209 DisQ.DisQSyntax <> cexp ind
+R19214:19217 DisQ.DisQSyntax <> CNew constr
+R19219:19220 DisQ.AUTO_Test <> w0 def
+def 19236:19241 <> new_w1
+R19245:19248 DisQ.DisQSyntax <> cexp ind
+R19253:19256 DisQ.DisQSyntax <> CNew constr
+R19258:19259 DisQ.AUTO_Test <> w1 def
+def 19382:19388 <> appH_p0
+R19392:19395 DisQ.DisQSyntax <> cexp ind
+R19400:19404 DisQ.DisQSyntax <> CAppU constr
+R19406:19406 DisQ.AUTO_Test <> L def
+R19409:19409 DisQ.DisQSyntax <> H constr
+R19411:19412 DisQ.AUTO_Test <> p0 def
+R19415:19417 DisQ.DisQSyntax <> Num constr
+def 19435:19441 <> appH_p1
+R19445:19448 DisQ.DisQSyntax <> cexp ind
+R19453:19457 DisQ.DisQSyntax <> CAppU constr
+R19459:19459 DisQ.AUTO_Test <> L def
+R19462:19462 DisQ.DisQSyntax <> H constr
+R19464:19465 DisQ.AUTO_Test <> p1 def
+R19468:19470 DisQ.DisQSyntax <> Num constr
+def 19488:19494 <> appH_p2
+R19498:19501 DisQ.DisQSyntax <> cexp ind
+R19506:19510 DisQ.DisQSyntax <> CAppU constr
+R19512:19512 DisQ.AUTO_Test <> L def
+R19515:19515 DisQ.DisQSyntax <> H constr
+R19517:19518 DisQ.AUTO_Test <> p2 def
+R19521:19523 DisQ.DisQSyntax <> Num constr
+def 19717:19721 <> CU_p0
+R19725:19728 DisQ.DisQSyntax <> cexp ind
+R19735:19739 DisQ.DisQSyntax <> CAppU constr
+R19741:19741 DisQ.AUTO_Test <> L def
+R19744:19745 DisQ.DisQSyntax <> CU constr
+R19747:19748 DisQ.AUTO_Test <> p0 def
+R19751:19753 DisQ.DisQSyntax <> Num constr
+R19758:19765 DisQ.AUTO_Test <> INC_mod4 def
+def 19781:19785 <> CU_p1
+R19789:19792 DisQ.DisQSyntax <> cexp ind
+R19799:19803 DisQ.DisQSyntax <> CAppU constr
+R19805:19805 DisQ.AUTO_Test <> L def
+R19808:19809 DisQ.DisQSyntax <> CU constr
+R19811:19812 DisQ.AUTO_Test <> p1 def
+R19815:19817 DisQ.DisQSyntax <> Num constr
+R19835:19837 DisQ.DisQSyntax <> Seq constr
+R19839:19846 DisQ.AUTO_Test <> INC_mod4 def
+R19848:19855 DisQ.AUTO_Test <> INC_mod4 def
+def 19884:19888 <> CU_p2
+R19892:19895 DisQ.DisQSyntax <> cexp ind
+R19902:19906 DisQ.DisQSyntax <> CAppU constr
+R19908:19908 DisQ.AUTO_Test <> L def
+R19911:19912 DisQ.DisQSyntax <> CU constr
+R19914:19915 DisQ.AUTO_Test <> p2 def
+R19918:19920 DisQ.DisQSyntax <> Num constr
+R19938:19940 DisQ.DisQSyntax <> Seq constr
+R19942:19949 DisQ.AUTO_Test <> INC_mod4 def
+R19969:19971 DisQ.DisQSyntax <> Seq constr
+R19973:19980 DisQ.AUTO_Test <> INC_mod4 def
+R20005:20007 DisQ.DisQSyntax <> Seq constr
+R20009:20016 DisQ.AUTO_Test <> INC_mod4 def
+R20018:20025 DisQ.AUTO_Test <> INC_mod4 def
+def 20162:20168 <> appRQFT
+R20172:20175 DisQ.DisQSyntax <> cexp ind
+R20182:20186 DisQ.DisQSyntax <> CAppU constr
+R20188:20188 DisQ.AUTO_Test <> L def
+R20191:20194 DisQ.DisQSyntax <> RQFT constr
+R20196:20197 DisQ.AUTO_Test <> p0 def
+def 20321:20327 <> meas_p0
+R20331:20334 DisQ.DisQSyntax <> cexp ind
+R20339:20343 DisQ.DisQSyntax <> CMeas constr
+R20345:20346 DisQ.AUTO_Test <> m0 def
+R20348:20348 DisQ.AUTO_Test <> L def
+def 20362:20368 <> meas_p1
+R20372:20375 DisQ.DisQSyntax <> cexp ind
+R20380:20384 DisQ.DisQSyntax <> CMeas constr
+R20386:20387 DisQ.AUTO_Test <> m1 def
+R20389:20389 DisQ.AUTO_Test <> L def
+def 20403:20409 <> meas_p2
+R20413:20416 DisQ.DisQSyntax <> cexp ind
+R20421:20425 DisQ.DisQSyntax <> CMeas constr
+R20427:20428 DisQ.AUTO_Test <> m2 def
+R20430:20430 DisQ.AUTO_Test <> L def
+R20449:20457 DisQ.AUTO <> <> lib
+R20467:20470 DisQ.AUTO <> <> mod
+def 20651:20660 <> Shor_Qprog
+R20664:20670 DisQ.AUTO <> op_list def
+R20677:20678 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20690:20695 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20707:20712 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20724:20730 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20742:20747 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20759:20765 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20778:20783 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20796:20801 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20814:20820 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20831:20836 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20847:20852 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20863:20869 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20882:20888 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20901:20906 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20919:20924 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20937:20940 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R20679:20682 DisQ.AUTO <> OpAP constr
+R20684:20689 DisQ.AUTO_Test <> new_p0 def
+R20696:20699 DisQ.AUTO <> OpAP constr
+R20701:20706 DisQ.AUTO_Test <> new_p1 def
+R20713:20716 DisQ.AUTO <> OpAP constr
+R20718:20723 DisQ.AUTO_Test <> new_p2 def
+R20731:20734 DisQ.AUTO <> OpAP constr
+R20736:20741 DisQ.AUTO_Test <> new_w0 def
+R20748:20751 DisQ.AUTO <> OpAP constr
+R20753:20758 DisQ.AUTO_Test <> new_w1 def
+R20766:20769 DisQ.AUTO <> OpAP constr
+R20771:20777 DisQ.AUTO_Test <> appH_p0 def
+R20784:20787 DisQ.AUTO <> OpAP constr
+R20789:20795 DisQ.AUTO_Test <> appH_p1 def
+R20802:20805 DisQ.AUTO <> OpAP constr
+R20807:20813 DisQ.AUTO_Test <> appH_p2 def
+R20821:20824 DisQ.AUTO <> OpAP constr
+R20826:20830 DisQ.AUTO_Test <> CU_p0 def
+R20837:20840 DisQ.AUTO <> OpAP constr
+R20842:20846 DisQ.AUTO_Test <> CU_p1 def
+R20853:20856 DisQ.AUTO <> OpAP constr
+R20858:20862 DisQ.AUTO_Test <> CU_p2 def
+R20870:20873 DisQ.AUTO <> OpAP constr
+R20875:20881 DisQ.AUTO_Test <> appRQFT def
+R20889:20892 DisQ.AUTO <> OpAP constr
+R20894:20900 DisQ.AUTO_Test <> meas_p0 def
+R20907:20910 DisQ.AUTO <> OpAP constr
+R20912:20918 DisQ.AUTO_Test <> meas_p1 def
+R20925:20928 DisQ.AUTO <> OpAP constr
+R20930:20936 DisQ.AUTO_Test <> meas_p2 def
+def 21185:21194 <> Shor_dist0
+R21198:21213 DisQ.AUTO <> distributed_prog def
+R21220:21233 DisQ.AUTO <> gen_prog_paper def
+R21235:21238 DisQ.AUTO_Test <> seq0 def
+R21240:21243 DisQ.AUTO_Test <> moQ0 def
+R21245:21248 DisQ.AUTO_Test <> moO0 def
+R21250:21259 DisQ.AUTO_Test <> Shor_Qprog def
+R21271:21280 DisQ.AUTO_Test <> Shor_dist0 def
+R21291:21293 DisQ.AUTO <> fit def
+R21295:21304 DisQ.AUTO_Test <> Shor_dist0 def
+def 21371:21380 <> Shor_dist1
+R21384:21399 DisQ.AUTO <> distributed_prog def
+R21406:21419 DisQ.AUTO <> gen_prog_paper def
+R21421:21424 DisQ.AUTO_Test <> seq0 def
+R21426:21429 DisQ.AUTO_Test <> moQ0 def
+R21431:21434 DisQ.AUTO_Test <> moO1 def
+R21436:21445 DisQ.AUTO_Test <> Shor_Qprog def
+R21457:21466 DisQ.AUTO_Test <> Shor_dist1 def
+R21477:21479 DisQ.AUTO <> fit def
+R21481:21490 DisQ.AUTO_Test <> Shor_dist1 def
+def 21552:21561 <> Shor_dist2
+R21565:21580 DisQ.AUTO <> distributed_prog def
+R21587:21600 DisQ.AUTO <> gen_prog_paper def
+R21602:21605 DisQ.AUTO_Test <> seq0 def
+R21607:21610 DisQ.AUTO_Test <> moQ0 def
+R21612:21615 DisQ.AUTO_Test <> moO2 def
+R21617:21626 DisQ.AUTO_Test <> Shor_Qprog def
+R21638:21647 DisQ.AUTO_Test <> Shor_dist2 def
+R21658:21660 DisQ.AUTO <> fit def
+R21662:21671 DisQ.AUTO_Test <> Shor_dist2 def
+def 21733:21742 <> Shor_dist3
+R21746:21761 DisQ.AUTO <> distributed_prog def
+R21768:21781 DisQ.AUTO <> gen_prog_paper def
+R21783:21786 DisQ.AUTO_Test <> seq0 def
+R21788:21791 DisQ.AUTO_Test <> moQ0 def
+R21793:21796 DisQ.AUTO_Test <> moO3 def
+R21798:21807 DisQ.AUTO_Test <> Shor_Qprog def
+R21819:21828 DisQ.AUTO_Test <> Shor_dist3 def
+R21839:21841 DisQ.AUTO <> fit def
+R21843:21852 DisQ.AUTO_Test <> Shor_dist3 def
+def 21914:21923 <> Shor_dist5
+R21927:21942 DisQ.AUTO <> distributed_prog def
+R21949:21962 DisQ.AUTO <> gen_prog_paper def
+R21964:21967 DisQ.AUTO_Test <> seq0 def
+R21969:21972 DisQ.AUTO_Test <> moQ0 def
+R21974:21977 DisQ.AUTO_Test <> moO5 def
+R21979:21988 DisQ.AUTO_Test <> Shor_Qprog def
+R22000:22009 DisQ.AUTO_Test <> Shor_dist5 def
+R22020:22022 DisQ.AUTO <> fit def
+R22024:22033 DisQ.AUTO_Test <> Shor_dist5 def
+R22045:22058 DisQ.AUTO_Test <> controlled_pow def
+R22068:22086 DisQ.AUTO_Test <> qpe_controlled_pows def
+def 22149:22165 <> alloc_qubits_from
+R22173:22176 Coq.Init.Datatypes <> list ind
+R22178:22180 DisQ.BasicUtility <> var def
+binder 22168:22169 <> qs:64
+R22185:22191 DisQ.AUTO <> op_list def
+R22204:22205 DisQ.AUTO_Test <> qs:64 var
+R22216:22217 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R22222:22223 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R22230:22233 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R22234:22235 Coq.Lists.List <> tl def
+R22255:22258 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R22240:22243 DisQ.AUTO <> OpAP constr
+R22246:22249 DisQ.DisQSyntax <> CNew constr
+R22259:22275 DisQ.AUTO_Test <> alloc_qubits_from:65 def
+def 22331:22346 <> apply_H_all_from
+R22354:22357 Coq.Init.Datatypes <> list ind
+R22359:22361 DisQ.BasicUtility <> var def
+binder 22349:22350 <> qs:67
+R22366:22372 DisQ.AUTO <> op_list def
+R22385:22386 DisQ.AUTO_Test <> qs:67 var
+R22397:22398 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R22403:22404 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R22411:22414 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R22415:22416 Coq.Lists.List <> tl def
+R22449:22452 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R22421:22424 DisQ.AUTO <> OpAP constr
+R22427:22431 DisQ.DisQSyntax <> CAppU constr
+R22433:22433 DisQ.AUTO_Test <> L def
+R22436:22436 DisQ.DisQSyntax <> H constr
+R22441:22443 DisQ.DisQSyntax <> Num constr
+R22453:22468 DisQ.AUTO_Test <> apply_H_all_from:68 def
+def 22532:22544 <> meas_all_from
+R22552:22555 Coq.Init.Datatypes <> list ind
+R22557:22559 DisQ.BasicUtility <> var def
+binder 22547:22548 <> cs:70
+R22564:22570 DisQ.AUTO <> op_list def
+R22583:22584 DisQ.AUTO_Test <> cs:70 var
+R22595:22596 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R22601:22602 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R22609:22612 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R22613:22614 Coq.Lists.List <> tl def
+R22635:22638 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R22619:22622 DisQ.AUTO <> OpAP constr
+R22625:22629 DisQ.DisQSyntax <> CMeas constr
+R22633:22633 DisQ.AUTO_Test <> L def
+R22639:22651 DisQ.AUTO_Test <> meas_all_from:71 def
+def 22676:22684 <> t_phase64
+R22688:22690 Coq.Init.Datatypes <> nat ind
+def 22710:22723 <> phase_qubits64
+R22727:22730 Coq.Init.Datatypes <> list ind
+R22732:22734 DisQ.BasicUtility <> var def
+R22739:22746 Coq.Lists.List <> seq def
+R22750:22758 DisQ.AUTO_Test <> t_phase64 def
+def 22772:22783 <> phase_bits64
+R22788:22791 Coq.Init.Datatypes <> list ind
+R22793:22795 DisQ.BasicUtility <> var def
+R22800:22807 Coq.Lists.List <> seq def
+R22814:22822 DisQ.AUTO_Test <> t_phase64 def
+def 22920:22926 <> EXP_NOP
+R22930:22932 DisQ.DisQSyntax <> exp ind
+R22937:22940 DisQ.DisQSyntax <> SKIP constr
+R22945:22947 DisQ.DisQSyntax <> Num constr
+def 23003:23010 <> pow2_exp
+R23017:23019 Coq.Init.Datatypes <> nat ind
+binder 23013:23013 <> k:73
+R23027:23029 DisQ.DisQSyntax <> exp ind
+binder 23023:23023 <> U:74
+R23034:23036 DisQ.DisQSyntax <> exp ind
+R23049:23049 DisQ.AUTO_Test <> k:73 var
+R23065:23065 DisQ.AUTO_Test <> U:74 var
+R23102:23102 Coq.Init.Datatypes <> S constr
+R23126:23133 DisQ.AUTO_Test <> pow2_exp:75 def
+R23138:23138 DisQ.AUTO_Test <> U:74 var
+binder 23120:23121 <> Uk:77
+R23149:23151 DisQ.DisQSyntax <> Seq constr
+R23153:23154 DisQ.AUTO_Test <> Uk:77 var
+R23156:23157 DisQ.AUTO_Test <> Uk:77 var
+def 23253:23261 <> appRQFT64
+R23265:23268 DisQ.DisQSyntax <> cexp ind
+R23275:23279 DisQ.DisQSyntax <> CAppU constr
+R23281:23281 DisQ.AUTO_Test <> L def
+R23284:23287 DisQ.DisQSyntax <> RQFT constr
+def 23308:23320 <> Shor_Qprog_64
+R23324:23330 DisQ.AUTO <> op_list def
+R23369:23374 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R23337:23353 DisQ.AUTO_Test <> alloc_qubits_from def
+R23355:23368 DisQ.AUTO_Test <> phase_qubits64 def
+R23401:23406 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R23375:23375 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R23387:23388 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R23400:23400 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R23376:23379 DisQ.AUTO <> OpAP constr
+R23381:23386 DisQ.AUTO_Test <> new_w0 def
+R23389:23392 DisQ.AUTO <> OpAP constr
+R23394:23399 DisQ.AUTO_Test <> new_w1 def
+R23438:23443 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R23407:23422 DisQ.AUTO_Test <> apply_H_all_from def
+R23424:23437 DisQ.AUTO_Test <> phase_qubits64 def
+R23480:23485 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R23444:23462 DisQ.AUTO_Test <> qpe_controlled_pows def
+R23464:23477 DisQ.AUTO_Test <> phase_qubits64 def
+R23502:23507 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R23486:23486 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R23501:23501 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R23487:23490 DisQ.AUTO <> OpAP constr
+R23492:23500 DisQ.AUTO_Test <> appRQFT64 def
+R23508:23520 DisQ.AUTO_Test <> meas_all_from def
+R23522:23533 DisQ.AUTO_Test <> phase_bits64 def
+R23559:23565 DisQ.AUTO <> op_list def
+R23543:23555 DisQ.AUTO_Test <> Shor_Qprog_64 def
+R23582:23587 Coq.Init.Datatypes <> length def
+R23589:23601 DisQ.AUTO_Test <> Shor_Qprog_64 def
+def 23676:23683 <> count_CU
+R23692:23698 DisQ.AUTO <> op_list def
+binder 23686:23688 <> ops:78
+R23703:23705 Coq.Init.Datatypes <> nat ind
+R23718:23720 DisQ.AUTO_Test <> ops:78 var
+R23731:23732 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R23768:23771 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R23743:23746 DisQ.AUTO <> OpAP constr
+R23749:23753 DisQ.DisQSyntax <> CAppU constr
+R23758:23759 DisQ.DisQSyntax <> CU constr
+R23772:23773 Coq.Lists.List <> tl def
+R23778:23778 Coq.Init.Datatypes <> S constr
+R23781:23788 DisQ.AUTO_Test <> count_CU:79 def
+R23799:23802 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R23803:23804 Coq.Lists.List <> tl def
+R23809:23816 DisQ.AUTO_Test <> count_CU:79 def
+def 23875:23883 <> count_QFT
+R23892:23898 DisQ.AUTO <> op_list def
+binder 23886:23888 <> ops:81
+R23903:23905 Coq.Init.Datatypes <> nat ind
+R23918:23920 DisQ.AUTO_Test <> ops:81 var
+R23931:23932 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R23967:23970 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R23943:23946 DisQ.AUTO <> OpAP constr
+R23949:23953 DisQ.DisQSyntax <> CAppU constr
+R23958:23960 DisQ.DisQSyntax <> QFT constr
+R23971:23972 Coq.Lists.List <> tl def
+R23977:23977 Coq.Init.Datatypes <> S constr
+R23980:23988 DisQ.AUTO_Test <> count_QFT:82 def
+R23999:24002 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R24003:24004 Coq.Lists.List <> tl def
+R24009:24017 DisQ.AUTO_Test <> count_QFT:82 def
+def 24039:24048 <> count_RQFT
+R24057:24063 DisQ.AUTO <> op_list def
+binder 24051:24053 <> ops:84
+R24068:24070 Coq.Init.Datatypes <> nat ind
+R24083:24085 DisQ.AUTO_Test <> ops:84 var
+R24096:24097 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R24133:24136 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R24108:24111 DisQ.AUTO <> OpAP constr
+R24114:24118 DisQ.DisQSyntax <> CAppU constr
+R24123:24126 DisQ.DisQSyntax <> RQFT constr
+R24137:24138 Coq.Lists.List <> tl def
+R24143:24143 Coq.Init.Datatypes <> S constr
+R24146:24155 DisQ.AUTO_Test <> count_RQFT:85 def
+R24166:24169 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R24170:24171 Coq.Lists.List <> tl def
+R24176:24185 DisQ.AUTO_Test <> count_RQFT:85 def
+def 24253:24261 <> t_phase32
+R24265:24267 Coq.Init.Datatypes <> nat ind
+def 24287:24294 <> n_work32
+R24299:24301 Coq.Init.Datatypes <> nat ind
+def 24341:24354 <> phase_qubits32
+R24358:24361 Coq.Init.Datatypes <> list ind
+R24363:24365 DisQ.BasicUtility <> var def
+R24370:24377 Coq.Lists.List <> seq def
+R24382:24390 DisQ.AUTO_Test <> t_phase32 def
+R24379:24380 DisQ.AUTO_Test <> p0 def
+def 24406:24418 <> work_qubits32
+R24422:24425 Coq.Init.Datatypes <> list ind
+R24427:24429 DisQ.BasicUtility <> var def
+R24434:24441 Coq.Lists.List <> seq def
+R24446:24453 DisQ.AUTO_Test <> n_work32 def
+R24443:24444 DisQ.AUTO_Test <> w0 def
+def 24468:24479 <> phase_bits32
+R24483:24486 Coq.Init.Datatypes <> list ind
+R24488:24490 DisQ.BasicUtility <> var def
+R24495:24502 Coq.Lists.List <> seq def
+R24509:24517 DisQ.AUTO_Test <> t_phase32 def
+def 24532:24548 <> U_pow_placeholder
+R24556:24558 Coq.Init.Datatypes <> nat ind
+binder 24551:24552 <> _k:87
+R24563:24565 DisQ.DisQSyntax <> exp ind
+R24570:24577 DisQ.AUTO_Test <> INC_mod4 def
+def 24593:24601 <> appRQFT32
+R24605:24608 DisQ.DisQSyntax <> cexp ind
+R24613:24617 DisQ.DisQSyntax <> CAppU constr
+R24619:24619 DisQ.AUTO_Test <> L def
+R24622:24625 DisQ.DisQSyntax <> RQFT constr
+R24627:24628 DisQ.AUTO_Test <> p0 def
+R24630:24638 DisQ.AUTO_Test <> t_phase32 def
+def 24654:24665 <> Shor_Qprog32
+R24669:24675 DisQ.AUTO <> op_list def
+R24709:24714 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R24682:24693 DisQ.AUTO_Test <> alloc_qubits def
+R24695:24708 DisQ.AUTO_Test <> phase_qubits32 def
+R24741:24746 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R24715:24726 DisQ.AUTO_Test <> alloc_qubits def
+R24728:24740 DisQ.AUTO_Test <> work_qubits32 def
+R24773:24778 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R24747:24757 DisQ.AUTO_Test <> apply_H_all def
+R24759:24772 DisQ.AUTO_Test <> phase_qubits32 def
+R24815:24820 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R24779:24797 DisQ.AUTO_Test <> qpe_controlled_pows def
+R24799:24812 DisQ.AUTO_Test <> phase_qubits32 def
+R24839:24844 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R24821:24822 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R24837:24838 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R24823:24826 DisQ.AUTO <> OpAP constr
+R24828:24836 DisQ.AUTO_Test <> appRQFT32 def
+R24845:24852 DisQ.AUTO_Test <> meas_all def
+R24854:24865 DisQ.AUTO_Test <> phase_bits32 def
+R24925:24930 Coq.Init.Datatypes <> length def
+R24932:24945 DisQ.AUTO_Test <> phase_qubits32 def
+R24972:24977 Coq.Init.Datatypes <> length def
+R24979:24991 DisQ.AUTO_Test <> work_qubits32 def
+R25019:25024 Coq.Init.Datatypes <> length def
+R25026:25037 DisQ.AUTO_Test <> phase_bits32 def
+R25066:25073 DisQ.AUTO_Test <> count_CU def
+R25075:25086 DisQ.AUTO_Test <> Shor_Qprog32 def
+def 25135:25146 <> Shor32_dist0
+R25150:25165 DisQ.AUTO <> distributed_prog def
+R25170:25183 DisQ.AUTO <> gen_prog_paper def
+R25185:25188 DisQ.AUTO_Test <> seq0 def
+R25190:25193 DisQ.AUTO_Test <> moQ0 def
+R25195:25198 DisQ.AUTO_Test <> moO0 def
+R25200:25211 DisQ.AUTO_Test <> Shor_Qprog32 def
+def 25225:25236 <> Shor32_dist5
+R25240:25255 DisQ.AUTO <> distributed_prog def
+R25260:25273 DisQ.AUTO <> gen_prog_paper def
+R25275:25278 DisQ.AUTO_Test <> seq0 def
+R25280:25283 DisQ.AUTO_Test <> moQ0 def
+R25285:25288 DisQ.AUTO_Test <> moO5 def
+R25290:25301 DisQ.AUTO_Test <> Shor_Qprog32 def
+R25313:25315 DisQ.AUTO <> fit def
+R25317:25328 DisQ.AUTO_Test <> Shor32_dist0 def
+R25339:25341 DisQ.AUTO <> fit def
+R25343:25354 DisQ.AUTO_Test <> Shor32_dist5 def
+def 25476:25482 <> ghz32_n
+R25486:25488 Coq.Init.Datatypes <> nat ind
+def 25509:25516 <> ghz32_qs
+R25520:25523 Coq.Init.Datatypes <> list ind
+R25525:25527 DisQ.BasicUtility <> var def
+R25532:25539 Coq.Lists.List <> seq def
+R25543:25549 DisQ.AUTO_Test <> ghz32_n def
+def 25589:25598 <> ghz32_outs
+R25602:25605 Coq.Init.Datatypes <> list ind
+R25607:25609 DisQ.BasicUtility <> var def
+R25614:25621 Coq.Lists.List <> seq def
+R25627:25633 DisQ.AUTO_Test <> ghz32_n def
+def 25646:25654 <> cnot_from
+R25664:25666 DisQ.BasicUtility <> var def
+binder 25657:25660 <> ctrl:88
+R25675:25678 Coq.Init.Datatypes <> list ind
+R25680:25682 DisQ.BasicUtility <> var def
+binder 25670:25671 <> qs:89
+R25687:25693 DisQ.AUTO <> op_list def
+R25706:25707 DisQ.AUTO_Test <> qs:89 var
+R25718:25719 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R25724:25725 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R25732:25735 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R25736:25737 Coq.Lists.List <> tl def
+R25794:25803 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R25748:25751 DisQ.AUTO <> OpAP constr
+R25754:25758 DisQ.DisQSyntax <> CAppU constr
+R25760:25760 DisQ.AUTO_Test <> L def
+R25763:25764 DisQ.DisQSyntax <> CU constr
+R25766:25769 DisQ.AUTO_Test <> ctrl:88 var
+R25772:25774 DisQ.DisQSyntax <> Num constr
+R25780:25780 DisQ.DisQSyntax <> X constr
+R25785:25787 DisQ.DisQSyntax <> Num constr
+R25804:25812 DisQ.AUTO_Test <> cnot_from:90 def
+R25814:25817 DisQ.AUTO_Test <> ctrl:88 var
+def 25841:25850 <> GHZ32_prog
+R25854:25860 DisQ.AUTO <> op_list def
+R25888:25893 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R25867:25878 DisQ.AUTO_Test <> alloc_qubits def
+R25880:25887 DisQ.AUTO_Test <> ghz32_qs def
+R25926:25931 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R25894:25895 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R25924:25925 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R25896:25899 DisQ.AUTO <> OpAP constr
+R25902:25906 DisQ.DisQSyntax <> CAppU constr
+R25908:25908 DisQ.AUTO_Test <> L def
+R25911:25911 DisQ.DisQSyntax <> H constr
+R25916:25918 DisQ.DisQSyntax <> Num constr
+R25970:25975 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R25932:25940 DisQ.AUTO_Test <> cnot_from def
+R25945:25952 Coq.Lists.List <> seq def
+R25964:25966 Coq.Init.Nat <> ::nat_scope:x_'-'_x not
+R25957:25963 DisQ.AUTO_Test <> ghz32_n def
+R25976:25983 DisQ.AUTO_Test <> meas_all def
+R25985:25994 DisQ.AUTO_Test <> ghz32_outs def
+def 26006:26028 <> test_GHZ32_has_31_CNOTs
+R26053:26055 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R26034:26041 DisQ.AUTO_Test <> count_CU def
+R26043:26052 DisQ.AUTO_Test <> GHZ32_prog def
+def 26152:26161 <> GHZ32_best
+R26165:26180 DisQ.AUTO <> distributed_prog def
+R26187:26206 DisQ.AUTO <> auto_disq_alg1_paper def
+R26212:26221 DisQ.AUTO_Test <> GHZ32_prog def
+R26223:26226 DisQ.AUTO_Test <> cfg2 def
+R26238:26240 DisQ.AUTO <> fit def
+R26242:26251 DisQ.AUTO_Test <> GHZ32_best def
+def 26506:26512 <> qft32_n
+R26517:26519 Coq.Init.Datatypes <> nat ind
+def 26539:26546 <> qft32_q0
+R26550:26552 DisQ.BasicUtility <> var def
+def 26572:26583 <> qft32_qubits
+R26587:26590 Coq.Init.Datatypes <> list ind
+R26592:26594 DisQ.BasicUtility <> var def
+R26599:26606 Coq.Lists.List <> seq def
+R26617:26623 DisQ.AUTO_Test <> qft32_n def
+R26608:26615 DisQ.AUTO_Test <> qft32_q0 def
+def 26637:26646 <> qft32_outs
+R26652:26655 Coq.Init.Datatypes <> list ind
+R26657:26659 DisQ.BasicUtility <> var def
+R26664:26671 Coq.Lists.List <> seq def
+R26677:26683 DisQ.AUTO_Test <> qft32_n def
+def 26698:26707 <> QFT32_prog
+R26711:26717 DisQ.AUTO <> op_list def
+R26749:26754 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R26724:26735 DisQ.AUTO_Test <> alloc_qubits def
+R26737:26748 DisQ.AUTO_Test <> qft32_qubits def
+R26842:26847 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R26755:26756 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R26794:26799 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R26838:26841 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R26757:26760 DisQ.AUTO <> OpAP constr
+R26763:26767 DisQ.DisQSyntax <> CAppU constr
+R26769:26769 DisQ.AUTO_Test <> L def
+R26772:26774 DisQ.DisQSyntax <> QFT constr
+R26776:26783 DisQ.AUTO_Test <> qft32_q0 def
+R26785:26791 DisQ.AUTO_Test <> qft32_n def
+R26800:26803 DisQ.AUTO <> OpAP constr
+R26806:26810 DisQ.DisQSyntax <> CAppU constr
+R26812:26812 DisQ.AUTO_Test <> L def
+R26815:26818 DisQ.DisQSyntax <> RQFT constr
+R26820:26827 DisQ.AUTO_Test <> qft32_q0 def
+R26829:26835 DisQ.AUTO_Test <> qft32_n def
+R26848:26855 DisQ.AUTO_Test <> meas_all def
+R26857:26866 DisQ.AUTO_Test <> qft32_outs def
+def 26878:26894 <> test_QFT32_counts
+R26924:26927 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R26920:26922 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R26900:26908 DisQ.AUTO_Test <> count_QFT def
+R26910:26919 DisQ.AUTO_Test <> QFT32_prog def
+R26949:26951 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R26928:26937 DisQ.AUTO_Test <> count_RQFT def
+R26939:26948 DisQ.AUTO_Test <> QFT32_prog def
+def 26990:27000 <> QFT32_dist0
+R27004:27019 DisQ.AUTO <> distributed_prog def
+R27026:27039 DisQ.AUTO <> gen_prog_paper def
+R27041:27044 DisQ.AUTO_Test <> seq0 def
+R27046:27049 DisQ.AUTO_Test <> moQ0 def
+R27051:27054 DisQ.AUTO_Test <> moO0 def
+R27056:27065 DisQ.AUTO_Test <> QFT32_prog def
+def 27080:27090 <> QFT32_dist5
+R27094:27109 DisQ.AUTO <> distributed_prog def
+R27116:27129 DisQ.AUTO <> gen_prog_paper def
+R27131:27134 DisQ.AUTO_Test <> seq0 def
+R27136:27139 DisQ.AUTO_Test <> moQ0 def
+R27141:27144 DisQ.AUTO_Test <> moO5 def
+R27146:27155 DisQ.AUTO_Test <> QFT32_prog def
+R27167:27169 DisQ.AUTO <> fit def
+R27171:27181 DisQ.AUTO_Test <> QFT32_dist0 def
+R27192:27194 DisQ.AUTO <> fit def
+R27196:27206 DisQ.AUTO_Test <> QFT32_dist5 def
+R27223:27228 Coq.Init.Datatypes <> length def
+R27230:27241 DisQ.AUTO_Test <> qft32_qubits def
+R27268:27273 Coq.Init.Datatypes <> length def
+R27275:27284 DisQ.AUTO_Test <> qft32_outs def
+def 27349:27355 <> qft64_n
+R27360:27362 Coq.Init.Datatypes <> nat ind
+def 27382:27389 <> qft64_q0
+R27393:27395 DisQ.BasicUtility <> var def
+def 27415:27426 <> qft64_qubits
+R27430:27433 Coq.Init.Datatypes <> list ind
+R27435:27437 DisQ.BasicUtility <> var def
+R27442:27449 Coq.Lists.List <> seq def
+R27460:27466 DisQ.AUTO_Test <> qft64_n def
+R27451:27458 DisQ.AUTO_Test <> qft64_q0 def
+def 27480:27489 <> qft64_outs
+R27495:27498 Coq.Init.Datatypes <> list ind
+R27500:27502 DisQ.BasicUtility <> var def
+R27507:27514 Coq.Lists.List <> seq def
+R27521:27527 DisQ.AUTO_Test <> qft64_n def
+def 27542:27551 <> QFT64_prog
+R27555:27561 DisQ.AUTO <> op_list def
+R27593:27598 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R27568:27579 DisQ.AUTO_Test <> alloc_qubits def
+R27581:27592 DisQ.AUTO_Test <> qft64_qubits def
+R27686:27691 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R27599:27600 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R27638:27643 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R27682:27685 Coq.Lists.List ListNotations ::list_scope:'['_x_';'_x_';'_'..'_';'_x_']' not
+R27601:27604 DisQ.AUTO <> OpAP constr
+R27607:27611 DisQ.DisQSyntax <> CAppU constr
+R27613:27613 DisQ.AUTO_Test <> L def
+R27616:27618 DisQ.DisQSyntax <> QFT constr
+R27620:27627 DisQ.AUTO_Test <> qft64_q0 def
+R27629:27635 DisQ.AUTO_Test <> qft64_n def
+R27644:27647 DisQ.AUTO <> OpAP constr
+R27650:27654 DisQ.DisQSyntax <> CAppU constr
+R27656:27656 DisQ.AUTO_Test <> L def
+R27659:27662 DisQ.DisQSyntax <> RQFT constr
+R27664:27671 DisQ.AUTO_Test <> qft64_q0 def
+R27673:27679 DisQ.AUTO_Test <> qft64_n def
+R27692:27699 DisQ.AUTO_Test <> meas_all def
+R27701:27710 DisQ.AUTO_Test <> qft64_outs def
+def 27722:27738 <> test_QFT64_counts
+R27768:27771 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R27764:27766 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R27744:27752 DisQ.AUTO_Test <> count_QFT def
+R27754:27763 DisQ.AUTO_Test <> QFT64_prog def
+R27793:27795 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R27772:27781 DisQ.AUTO_Test <> count_RQFT def
+R27783:27792 DisQ.AUTO_Test <> QFT64_prog def
+def 27834:27844 <> QFT64_dist0
+R27848:27863 DisQ.AUTO <> distributed_prog def
+R27870:27883 DisQ.AUTO <> gen_prog_paper def
+R27885:27888 DisQ.AUTO_Test <> seq0 def
+R27890:27893 DisQ.AUTO_Test <> moQ0 def
+R27895:27898 DisQ.AUTO_Test <> moO0 def
+R27900:27909 DisQ.AUTO_Test <> QFT64_prog def
+def 27924:27934 <> QFT64_dist5
+R27938:27953 DisQ.AUTO <> distributed_prog def
+R27960:27973 DisQ.AUTO <> gen_prog_paper def
+R27975:27978 DisQ.AUTO_Test <> seq0 def
+R27980:27983 DisQ.AUTO_Test <> moQ0 def
+R27985:27988 DisQ.AUTO_Test <> moO5 def
+R27990:27999 DisQ.AUTO_Test <> QFT64_prog def
+R28011:28013 DisQ.AUTO <> fit def
+R28015:28025 DisQ.AUTO_Test <> QFT64_dist0 def
+R28036:28038 DisQ.AUTO <> fit def
+R28040:28050 DisQ.AUTO_Test <> QFT64_dist5 def
+R28067:28072 Coq.Init.Datatypes <> length def
+R28074:28085 DisQ.AUTO_Test <> qft64_qubits def
+R28112:28117 Coq.Init.Datatypes <> length def
+R28119:28128 DisQ.AUTO_Test <> qft64_outs def
+def 28274:28283 <> QFT32_best
+R28287:28302 DisQ.AUTO <> distributed_prog def
+R28309:28328 DisQ.AUTO <> auto_disq_alg1_paper def
+R28334:28343 DisQ.AUTO_Test <> QFT32_prog def
+R28345:28348 DisQ.AUTO_Test <> cfg6 def
+R28360:28362 DisQ.AUTO <> fit def
+R28364:28373 DisQ.AUTO_Test <> QFT32_best def
+def 28504:28513 <> QFT64_best
+R28517:28532 DisQ.AUTO <> distributed_prog def
+R28539:28558 DisQ.AUTO <> auto_disq_alg1_paper def
+R28564:28573 DisQ.AUTO_Test <> QFT64_prog def
+R28575:28578 DisQ.AUTO_Test <> cfg6 def
+R28590:28592 DisQ.AUTO <> fit def
+R28594:28603 DisQ.AUTO_Test <> QFT64_best def

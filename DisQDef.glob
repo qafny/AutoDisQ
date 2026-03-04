@@ -1,0 +1,50 @@
+DIGEST 0243d1a01cc34c77fa34cc6d65ee1c52
+FDisQ.DisQDef
+R15:19 Coq.Reals.Reals <> <> lib
+R37:41 Coq.micromega.Psatz <> <> lib
+R59:76 QuantumLib.Complex <> <> lib
+R94:102 SQIR.SQIR <> <> lib
+R120:142 QuantumLib.VectorStates <> <> lib
+R160:174 SQIR.UnitaryOps <> <> lib
+R192:208 Coq.btauto.Btauto <> <> lib
+R210:224 Coq.NArith.Nnat <> <> lib
+R243:247 DisQ.OQASM <> <> lib
+R265:276 DisQ.BasicUtility <> <> lib
+R294:307 Coq.Logic.Classical_Prop <> <> lib
+R325:332 DisQ.MathSpec <> <> lib
+R350:359 DisQ.DisQSyntax <> <> lib
+R454:460 Coq.Lists.ListSet <> <> lib
+R478:495 Coq.FSets.FMapList <> <> lib
+R513:531 Coq.FSets.FMapFacts <> <> lib
+R549:576 Coq.Structures.OrderedTypeEx <> <> lib
+R614:616 DisQ.DisQSyntax <> exp ind
+ind 1033:1042 <> simple_ses
+constr 1067:1082 <> simple_ses_empty
+constr 1105:1119 <> simple_ses_many
+R1051:1054 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1046:1050 DisQ.DisQSyntax <> locus def
+R1086:1095 DisQ.DisQDef <> simple_ses:1 ind
+R1097:1099 Coq.Init.Datatypes <> nil constr
+binder 1131:1131 <> a:3
+binder 1133:1133 <> x:4
+binder 1135:1135 <> y:5
+binder 1137:1137 <> l:6
+R1154:1157 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1140:1151 DisQ.DisQSyntax <> simple_bound def
+R1153:1153 DisQ.DisQDef <> x:4 var
+R1172:1175 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1158:1169 DisQ.DisQSyntax <> simple_bound def
+R1171:1171 DisQ.DisQDef <> y:5 var
+R1188:1191 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1176:1185 DisQ.DisQDef <> simple_ses:1 ind
+R1187:1187 DisQ.DisQDef <> l:6 var
+R1192:1201 DisQ.DisQDef <> simple_ses:1 ind
+R1211:1212 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R1204:1204 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1206:1206 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1208:1208 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1210:1210 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1205:1205 DisQ.DisQDef <> a:3 var
+R1207:1207 DisQ.DisQDef <> x:4 var
+R1209:1209 DisQ.DisQDef <> y:5 var
+R1213:1213 DisQ.DisQDef <> l:6 var

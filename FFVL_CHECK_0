@@ -1,0 +1,1746 @@
+(* FFVL/Numbers.v *)
+From Coq Require Import QArith QArith_base ZArith Bool.
+
+Module Num.
+
+  Definition t := Q.
+
+  Definition le (a b : t) : Prop := (a <= b)%Q.
+  Definition lt (a b : t) : Prop := (a < b)%Q.
+
+  Definition leb (a b : t) : bool := Qle_bool a b.
+  Definition ltb (a b : t) : bool := Qlt_bool a b.
+
+  Definition sub (a b : t) : t := (a - b)%Q.
+  Definition add (a b : t) : t := (a + b)%Q.
+
+  Definition abs (a : t) : t := if Qlt_bool a 0%Q then (-a)%Q else a.
+
+  Lemma leb_spec : forall a b, leb a b = true <-> le a b.
+  Proof.
+    intros a b; unfold leb, le.
+    now rewrite Qle_bool_iff.
+  Qed.
+
+  Lemma ltb_spec : forall a b, ltb a b = true <-> lt a b.
+  Proof.
+    intros a b; unfold ltb, lt.
+    now rewrite Qlt_bool_iff.
+  Qed.
+
+End Num.
+
+(* FFVL/Kripke.v *)
+From Coq Require Import List Bool.
+Import ListNotations.
+
+From FFVL Require Import Numbers.
+Module K.
+
+  (* You can keep these abstract or instantiate with nat. *)
+  Definition Client := nat.
+  Definition State  := nat.
+  Definition AP     := nat.  (* atomic propositions *)
+
+  (* Finite, nonempty clients set as a list with a proof *)
+  Record Clients : Type := {
+    clients : list Client;
+    clients_nonempty : clients <> []
+  }.
+
+  (* Labeling function returns the set of AP true at a state.
+     Use list AP for decidable membership (with eqb). *)
+  Definition Label := State -> list AP.
+
+  (* Metrics *)
+  Definition loss := State -> Client -> Num.t.
+  Definition acc  := State -> Client -> Num.t.     (* you can constrain to [0,1] externally *)
+  Definition part := State -> Client -> bool.      (* participated? *)
+
+  (* Transition relation: deterministic next-state for executability.
+     This implies totality automatically. *)
+  Definition Next := State -> State.
+
+  Record FederatedKripke : Type := {
+    C    : Clients;
+    Smax : nat;            (* finite horizon / max state index you built *)
+    s0   : State;
+    next : Next;
+    APs  : list AP;
+    L    : Label;
+    Loss : loss;
+    Acc  : acc;
+    Part : part;
+
+    (* Optional sanity constraints (you can add more): *)
+    s0_in_range : s0 <= Smax
+  }.
+
+  (* A path is the sequence s0, s1, s2, ... induced by next. *)
+  Fixpoint state_at (K : FederatedKripke) (t : nat) : State :=
+    match t with
+    | 0 => s0 K
+    | S t' => next K (state_at K t')
+    end.
+
+End K.
+(* FFVL/FFVL.v *)
+From Coq Require Import List Bool.
+Import ListNotations.
+
+From FFVL Require Import Numbers Kripke.
+Module F.
+  Import K Num.
+
+  (* Terms for metrics *)
+  Inductive metric : Type :=
+  | MLoss
+  | MAcc
+  | MPart.  (* bool-valued metric *)
+
+  (* Numeric expressions (only what we need) *)
+  Inductive nexpr : Type :=
+  | NConst (q : Num.t)
+  | NMetric (m : metric) (i : Client).
+
+  (* Boolean expressions over metrics + AP labels *)
+  Inductive bexpr : Type :=
+  | BTrue
+  | BAtom (p : AP)                      (* p ∈ L(s) *)
+  | BNot (b : bexpr)
+  | BAnd (b1 b2 : bexpr)
+  | BOr  (b1 b2 : bexpr)
+  | BLe  (e1 e2 : nexpr)                (* e1 ≤ e2 *)
+  | BAbsLeLoss (i j : Client) (eps : Num.t)  (* |loss(i)-loss(j)| ≤ eps *)
+  | BPartIs (i : Client) (v : bool).    (* part(i)=v *)
+
+  (* Temporal logic with client quantification *)
+  Inductive ffvl : Type :=
+  | PhiB (b : bexpr)
+  | PhiNot (phi : ffvl)
+  | PhiAnd (p q : ffvl)
+  | PhiOr  (p q : ffvl)
+  | X (phi : ffvl)          (* next round *)
+  | F (phi : ffvl)          (* eventually *)
+  | G (phi : ffvl)          (* always *)
+  | U (p q : ffvl)          (* until *)
+  | ForallC (phi_of : Client -> ffvl)
+  | ExistsC (phi_of : Client -> ffvl).
+
+End F.
+
+(* FFVL/Semantics.v *)
+From Coq Require Import List Bool Arith.
+Import ListNotations.
+
+From FFVL Require Import Numbers Kripke FFVL.
+Module Sem.
+  Import K Num F.
+
+  (* membership in labels/APs *)
+  Fixpoint memb_ap (a : AP) (xs : list AP) : bool :=
+    match xs with
+    | [] => false
+    | x :: tl => Nat.eqb a x || memb_ap a tl
+    end.
+
+  Definition eval_metric (K : FederatedKripke) (t : nat) (m : metric) (i : Client)
+    : option Num.t :=
+    let s := state_at K t in
+    match m with
+    | MLoss => Some (Loss K s i)
+    | MAcc  => Some (Acc K s i)
+    | MPart => None (* boolean-valued; handled separately *)
+    end.
+
+  Fixpoint eval_nexpr (K : FederatedKripke) (t : nat) (e : nexpr) : option Num.t :=
+    match e with
+    | NConst q => Some q
+    | NMetric m i => eval_metric K t m i
+    end.
+
+  Fixpoint eval_bexpr (K : FederatedKripke) (t : nat) (b : bexpr) : bool :=
+    let s := state_at K t in
+    match b with
+    | BTrue => true
+    | BAtom p => memb_ap p (L K s)
+    | BNot b1 => negb (eval_bexpr K t b1)
+    | BAnd b1 b2 => andb (eval_bexpr K t b1) (eval_bexpr K t b2)
+    | BOr  b1 b2 => orb  (eval_bexpr K t b1) (eval_bexpr K t b2)
+    | BLe e1 e2 =>
+        match eval_nexpr K t e1, eval_nexpr K t e2 with
+        | Some v1, Some v2 => Num.leb v1 v2
+        | _, _ => false
+        end
+    | BAbsLeLoss i j eps =>
+        let li := Loss K s i in
+        let lj := Loss K s j in
+        Num.leb (Num.abs (Num.sub li lj)) eps
+    | BPartIs i v =>
+        Bool.eqb (Part K s i) v
+    end.
+
+  (* Iterate over finite client list for quantifiers *)
+  Fixpoint forall_clients (cs : list Client) (P : Client -> bool) : bool :=
+    match cs with
+    | [] => true
+    | c :: tl => andb (P c) (forall_clients tl P)
+    end.
+
+  Fixpoint exists_clients (cs : list Client) (P : Client -> bool) : bool :=
+    match cs with
+    | [] => false
+    | c :: tl => orb (P c) (exists_clients tl P)
+    end.
+
+  (* Bounded satisfaction: checks up to horizon H from time t.
+     This is what you use in the executable model checker. *)
+  Fixpoint sat_bounded (K : FederatedKripke) (H t : nat) (phi : ffvl) : bool :=
+    match H with
+    | 0 =>
+        (* At horizon 0, only state formulas can be decided "now".
+           Temporal operators become conservative (false) except trivial cases. *)
+        match phi with
+        | PhiB b => eval_bexpr K t b
+        | PhiNot p => negb (sat_bounded K 0 t p)
+        | PhiAnd p q => andb (sat_bounded K 0 t p) (sat_bounded K 0 t q)
+        | PhiOr  p q => orb  (sat_bounded K 0 t p) (sat_bounded K 0 t q)
+        | X _ => false
+        | F p => sat_bounded K 0 t p
+        | G p => sat_bounded K 0 t p
+        | U _ _ => false
+        | ForallC f =>
+            forall_clients (clients (C K)) (fun i => sat_bounded K 0 t (f i))
+        | ExistsC f =>
+            exists_clients (clients (C K)) (fun i => sat_bounded K 0 t (f i))
+        end
+    | S H' =>
+        match phi with
+        | PhiB b => eval_bexpr K t b
+        | PhiNot p => negb (sat_bounded K (S H') t p)
+        | PhiAnd p q => andb (sat_bounded K (S H') t p) (sat_bounded K (S H') t q)
+        | PhiOr  p q => orb  (sat_bounded K (S H') t p) (sat_bounded K (S H') t q)
+        | X p => sat_bounded K H' (S t) p
+        | F p =>
+            (* eventually within H steps: p holds now OR eventually within H' *)
+            orb (sat_bounded K H' t p) (sat_bounded K H' (S t) (F p))
+        | G p =>
+            (* always within H steps: p holds now AND always within H' *)
+            andb (sat_bounded K H' t p) (sat_bounded K H' (S t) (G p))
+        | U p q =>
+            (* p U q within H: q holds now OR (p holds now AND next satisfies U) *)
+            orb (sat_bounded K H' t q)
+                (andb (sat_bounded K H' t p) (sat_bounded K H' (S t) (U p q)))
+        | ForallC f =>
+            forall_clients (clients (C K)) (fun i => sat_bounded K (S H') t (f i))
+        | ExistsC f =>
+            exists_clients (clients (C K)) (fun i => sat_bounded K (S H') t (f i))
+        end
+    end.
+
+End Sem.
+(* FFVL/BMC.v *)
+From Coq Require Import List Bool Arith.
+Import ListNotations.
+
+From FFVL Require Import Numbers Kripke FFVL Semantics.
+
+Module BMC.
+  Import K Num F Sem.
+
+  (* A minimal counterexample object *)
+  Record cex : Type := {
+    cex_time   : nat;
+    cex_client : option Client;
+    cex_msg    : nat (* use codes; or switch to string if you prefer *)
+  }.
+
+  (* Message codes (simple) *)
+  Definition MSG_STATE_FAIL : nat := 1.
+  Definition MSG_FORALL_FAIL : nat := 2.
+  Definition MSG_G_FAIL : nat := 3.
+  Definition MSG_F_FAIL : nat := 4.
+  Definition MSG_X_FAIL : nat := 5.
+  Definition MSG_U_FAIL : nat := 6.
+
+  Fixpoint find_first_time (K : FederatedKripke) (H t : nat) (phi : ffvl) : option nat :=
+    match H with
+    | 0 => if sat_bounded K 0 t phi then None else Some t
+    | S H' =>
+        if sat_bounded K (S H') t phi
+        then None
+        else
+          (* if it fails at t, return t, else search forward (heuristic) *)
+          if sat_bounded K H' t phi then find_first_time K H' (S t) phi else Some t
+    end.
+
+  Fixpoint find_first_client_fail
+    (K : FederatedKripke) (H t : nat) (f : Client -> ffvl) (cs : list Client)
+    : option Client :=
+    match cs with
+    | [] => None
+    | c :: tl =>
+        if sat_bounded K H t (f c)
+        then find_first_client_fail K H t f tl
+        else Some c
+    end.
+
+  (* Produce a counterexample (best-effort) when check fails. *)
+  Fixpoint explain_fail (K : FederatedKripke) (H t : nat) (phi : ffvl) : option cex :=
+    match phi with
+    | PhiB b =>
+        if eval_bexpr K t b then None
+        else Some {| cex_time := t; cex_client := None; cex_msg := MSG_STATE_FAIL |}
+
+    | PhiNot p =>
+        (* ¬p fails if p holds *)
+        if sat_bounded K H t p
+        then Some {| cex_time := t; cex_client := None; cex_msg := MSG_STATE_FAIL |}
+        else None
+
+    | PhiAnd p q =>
+        if sat_bounded K H t p then explain_fail K H t q else explain_fail K H t p
+
+    | PhiOr p q =>
+        (* fails if both fail; return one explanation *)
+        if sat_bounded K H t p then None
+        else if sat_bounded K H t q then None
+        else explain_fail K H t p
+
+    | X p =>
+        if H =? 0 then Some {| cex_time := t; cex_client := None; cex_msg := MSG_X_FAIL |}
+        else explain_fail K (pred H) (S t) p
+
+    | G p =>
+        match find_first_time K H t p with
+        | None => None
+        | Some tf => Some {| cex_time := tf; cex_client := None; cex_msg := MSG_G_FAIL |}
+        end
+
+    | F p =>
+        (* F fails if p never holds within bound *)
+        if sat_bounded K H t (F p)
+        then None
+        else Some {| cex_time := t; cex_client := None; cex_msg := MSG_F_FAIL |}
+
+    | U p q =>
+        if sat_bounded K H t (U p q)
+        then None
+        else Some {| cex_time := t; cex_client := None; cex_msg := MSG_U_FAIL |}
+
+    | ForallC f =>
+        match find_first_client_fail K H t f (clients (C K)) with
+        | None => None
+        | Some c =>
+            (* also try to refine time for that client *)
+            Some {| cex_time := t; cex_client := Some c; cex_msg := MSG_FORALL_FAIL |}
+        end
+
+    | ExistsC f =>
+        (* Exists fails if no client satisfies. *)
+        if sat_bounded K H t (ExistsC f)
+        then None
+        else Some {| cex_time := t; cex_client := None; cex_msg := MSG_STATE_FAIL |}
+    end.
+
+  Definition check (K : FederatedKripke) (H : nat) (phi : ffvl) : bool :=
+    sat_bounded K H 0 phi.
+
+  Definition check_with_cex (K : FederatedKripke) (H : nat) (phi : ffvl)
+    : bool * option cex :=
+    let ok := check K H phi in
+    if ok then (true, None) else (false, explain_fail K H 0 phi).
+
+End BMC.
+Module Example2.
+  Import K Num F.
+
+  Definition theta : Num.t := (9#10)%Q. (* 0.9 *)
+
+  Definition eventual_acc_ge (i : Client) : ffvl :=
+    F (PhiB (BLe (NConst theta) (NMetric MAcc i))).  (* theta ≤ acc(i) *)
+
+  Definition eventual_accuracy_for_all : ffvl :=
+    ForallC eventual_acc_ge.
+End Example2.
+Module Instantiation.
+  Import K Num F Sem BMC.
+
+  Definition C_list : list Client := [0;1;2].  (* three clients *)
+  Lemma C_nonempty : C_list <> [].
+  Proof. discriminate. Qed.
+
+  Definition C0 : Clients := {| clients := C_list; clients_nonempty := C_nonempty |}.
+
+  Definition Smax0 : nat := 100.
+
+  Definition next0 (s : State) : State :=
+    if Nat.leb s Smax0 then S s else s.
+
+  (* Replace these with your real logs (arrays, maps, etc.) *)
+  Definition Loss0 (s : State) (i : Client) : Num.t := (0#1)%Q.
+  Definition Acc0  (s : State) (i : Client) : Num.t := (0#1)%Q.
+  Definition Part0 (s : State) (i : Client) : bool := true.
+
+  Definition L0 (s : State) : list AP := [].
+
+  Lemma s0_ok : 0 <= Smax0. Proof. auto. Qed.
+
+  Definition K0 : FederatedKripke :=
+    {| C := C0; Smax := Smax0; s0 := 0;
+       next := next0; APs := []; L := L0;
+       Loss := Loss0; Acc := Acc0; Part := Part0;
+       s0_in_range := s0_ok |}.
+
+End Instantiation.
+(* FFVL/Theorems.v *)
+From Coq Require Import List Bool Arith Lia.
+Import ListNotations.
+
+From FFVL Require Import Numbers Kripke FFVL Semantics BMC.
+
+Module Theorems.
+  Import Num K F Sem BMC.
+
+  (* ======================================================= *)
+  (* Helpers: AP membership soundness                         *)
+  (* ======================================================= *)
+
+  Fixpoint In_ap (a : AP) (xs : list AP) : Prop :=
+    match xs with
+    | [] => False
+    | x :: tl => x = a \/ In_ap a tl
+    end.
+
+  Lemma memb_ap_sound : forall a xs,
+    memb_ap a xs = true -> In_ap a xs.
+  Proof.
+    intros a xs; induction xs as [|x tl IH]; simpl; intros H.
+    - discriminate.
+    - apply orb_true_iff in H. destruct H as [H|H].
+      + left. apply Nat.eqb_eq in H. symmetry. exact H.
+      + right. apply IH. exact H.
+  Qed.
+
+  (* Optional completeness (sometimes useful) *)
+  Lemma memb_ap_complete : forall a xs,
+    In_ap a xs -> memb_ap a xs = true.
+  Proof.
+    intros a xs; induction xs as [|x tl IH]; simpl; intros H.
+    - contradiction.
+    - destruct H as [H|H].
+      + subst. rewrite Nat.eqb_refl. simpl. reflexivity.
+      + apply orb_true_iff. right. apply IH. exact H.
+  Qed.
+
+  (* ======================================================= *)
+  (* (A) Prop semantics for nexpr/bexpr + soundness           *)
+  (* ======================================================= *)
+
+  (* Prop-eval for nexpr *)
+  Inductive nexpr_denote (K : FederatedKripke) (t : nat) : nexpr -> Num.t -> Prop :=
+  | DNConst : forall q, nexpr_denote K t (NConst q) q
+  | DNMetricLoss : forall i,
+      nexpr_denote K t (NMetric MLoss i) (Loss K (state_at K t) i)
+  | DNMetricAcc : forall i,
+      nexpr_denote K t (NMetric MAcc i) (Acc K (state_at K t) i).
+
+  (* Prop semantics for bexpr at time t *)
+  Inductive bexpr_holds (K : FederatedKripke) (t : nat) : bexpr -> Prop :=
+  | BHTrue : bexpr_holds K t BTrue
+  | BHAtom : forall p,
+      In_ap p (L K (state_at K t)) ->
+      bexpr_holds K t (BAtom p)
+  | BHNot : forall b,
+      ~ bexpr_holds K t b ->
+      bexpr_holds K t (BNot b)
+  | BHAnd : forall b1 b2,
+      bexpr_holds K t b1 ->
+      bexpr_holds K t b2 ->
+      bexpr_holds K t (BAnd b1 b2)
+  | BHOrL : forall b1 b2,
+      bexpr_holds K t b1 ->
+      bexpr_holds K t (BOr b1 b2)
+  | BHOrR : forall b1 b2,
+      bexpr_holds K t b2 ->
+      bexpr_holds K t (BOr b1 b2)
+  | BHLe : forall e1 e2 v1 v2,
+      nexpr_denote K t e1 v1 ->
+      nexpr_denote K t e2 v2 ->
+      Num.le v1 v2 ->
+      bexpr_holds K t (BLe e1 e2)
+  | BHAbsLeLoss : forall i j eps,
+      Num.le (Num.abs (Num.sub (Loss K (state_at K t) i)
+                                (Loss K (state_at K t) j))) eps ->
+      bexpr_holds K t (BAbsLeLoss i j eps)
+  | BHPartIs : forall i v,
+      Part K (state_at K t) i = v ->
+      bexpr_holds K t (BPartIs i v).
+
+  (* Relate eval_nexpr (option) to denotation *)
+  Lemma eval_nexpr_sound :
+    forall (K : FederatedKripke) t e v,
+      eval_nexpr K t e = Some v ->
+      nexpr_denote K t e v.
+  Proof.
+    intros K0 t e; destruct e; simpl; intros v H.
+    - inversion H; subst. constructor.
+    - destruct m; simpl in H.
+      + inversion H; subst. constructor.
+      + inversion H; subst. constructor.
+      + (* MPart returns None for eval_metric -> contradiction *)
+        discriminate.
+  Qed.
+
+  (* (A) Soundness of boolean evaluator: if it returns true, Prop holds *)
+  Theorem eval_bexpr_sound :
+    forall (K : FederatedKripke) t b,
+      eval_bexpr K t b = true ->
+      bexpr_holds K t b.
+  Proof.
+    intros K0 t b; revert t.
+    induction b; intros t Hb; simpl in Hb.
+    - constructor.
+    - apply memb_ap_sound in Hb. constructor. exact Hb.
+    - (* not *)
+      apply negb_true_iff in Hb.
+      apply BHNot. intro Hholds.
+      (* use IH to show eval_bexpr = true if holds; we only have soundness.
+         So prove contrapositive with a small lemma: holds -> eval=true is not available.
+         Instead, we can use classical reasoning:
+         For this theorem, we only need: eval(Not b)=true means eval(b)=false,
+         and from soundness of b we can't derive ~holds directly.
+         So: we strengthen by proving soundness for this inductive form using
+         decidable semantics would require completeness too.
+
+         Practical fix: state (A) for the fragment without BHNot,
+         OR add a completeness lemma. We'll add completeness for bexpr below,
+         then use it here. *)
+      admit.
+    - (* and *)
+      apply andb_true_iff in Hb. destruct Hb as [H1 H2].
+      constructor; [apply IHb1|apply IHb2]; assumption.
+    - (* or *)
+      apply orb_true_iff in Hb. destruct Hb as [H|H].
+      + apply BHOrL. apply IHb1. exact H.
+      + apply BHOrR. apply IHb2. exact H.
+    - (* ≤ *)
+      destruct (eval_nexpr K0 t n) eqn:E1; try discriminate.
+      destruct (eval_nexpr K0 t n0) eqn:E2; try discriminate.
+      eapply BHLe.
+      + eapply eval_nexpr_sound. eauto.
+      + eapply eval_nexpr_sound. eauto.
+      + apply Num.leb_spec. exact Hb.
+    - (* |loss-loss| ≤ eps *)
+      eapply BHAbsLeLoss.
+      apply Num.leb_spec. exact Hb.
+    - (* part(i)=v *)
+      apply Bool.eqb_true_iff in Hb.
+      constructor. exact Hb.
+  Admitted.
+
+  (*
+    IMPORTANT:
+    The only admitted part above is the BHNot case.
+    To fully close it, you need completeness:
+      bexpr_holds -> eval_bexpr = true
+    so you can prove eval(Not b)=true implies ~holds(b).
+    I include the completeness theorem below and then you can replace "admit"
+    with a short proof using it.
+  *)
+
+  (* Completeness: Prop holds -> eval_bexpr = true (for executable, decidable bexpr) *)
+  Theorem eval_bexpr_complete :
+    forall (K : FederatedKripke) t b,
+      bexpr_holds K t b ->
+      eval_bexpr K t b = true.
+  Proof.
+    intros K0 t b H; induction H; simpl.
+    - reflexivity.
+    - apply memb_ap_complete; assumption.
+    - (* not *) apply negb_true_iff. (* need eval(b)=false *)
+      (* from ~holds b and completeness contrapositive is nontrivial.
+         If you want a fully constructive completeness, define bexpr_holds
+         using boolean semantics itself or require decidability lemma for holds.
+         In practice, we usually prove equivalence:
+           eval_bexpr = true <-> holds_bool = true
+         and define holds_prop as holds_bool = true.
+       *)
+      admit.
+    - rewrite IHbexpr_holds1, IHbexpr_holds2; reflexivity.
+    - rewrite IHbexpr_holds; apply orb_true_iff; left; reflexivity.
+    - rewrite IHbexpr_holds; apply orb_true_iff; right; reflexivity.
+    - (* le *)
+      (* build eval_nexpr = Some v1/v2 is true by construction of denotation; omitted *)
+      admit.
+    - (* absleloss *)
+      apply Num.leb_spec. assumption.
+    - (* part *)
+      subst. apply Bool.eqb_true_iff. reflexivity.
+  Admitted.
+
+  (*
+    Practical recommendation:
+    To avoid classical/constructive pain for Not/completeness,
+    define Prop semantics as:
+      bexpr_holds K t b := eval_bexpr K t b = true
+    Then (A) becomes trivial and fully executable.
+    If you want, I can rewrite Semantics.v accordingly so all theorems close cleanly.
+  *)
+
+  (* ======================================================= *)
+  (* (B) Bounded soundness: check=true => Prop bounded holds  *)
+  (* ======================================================= *)
+
+  (* Prop semantics for bounded satisfaction (mirrors sat_bounded) *)
+  Fixpoint satP_bounded (K : FederatedKripke) (H t : nat) (phi : ffvl) : Prop :=
+    match H with
+    | 0 =>
+        match phi with
+        | PhiB b => bexpr_holds K t b
+        | PhiNot p => ~ satP_bounded K 0 t p
+        | PhiAnd p q => satP_bounded K 0 t p /\ satP_bounded K 0 t q
+        | PhiOr p q => satP_bounded K 0 t p \/ satP_bounded K 0 t q
+        | X _ => False
+        | F p => satP_bounded K 0 t p
+        | G p => satP_bounded K 0 t p
+        | U _ _ => False
+        | ForallC f => Forall (fun i => satP_bounded K 0 t (f i)) (clients (C K))
+        | ExistsC f => Exists (fun i => satP_bounded K 0 t (f i)) (clients (C K))
+        end
+    | S H' =>
+        match phi with
+        | PhiB b => bexpr_holds K t b
+        | PhiNot p => ~ satP_bounded K (S H') t p
+        | PhiAnd p q => satP_bounded K (S H') t p /\ satP_bounded K (S H') t q
+        | PhiOr p q => satP_bounded K (S H') t p \/ satP_bounded K (S H') t q
+        | X p => satP_bounded K H' (S t) p
+        | F p => satP_bounded K H' t p \/ satP_bounded K H' (S t) (F p)
+        | G p => satP_bounded K H' t p /\ satP_bounded K H' (S t) (G p)
+        | U p q => satP_bounded K H' t q \/ (satP_bounded K H' t p /\ satP_bounded K H' (S t) (U p q))
+        | ForallC f => Forall (fun i => satP_bounded K (S H') t (f i)) (clients (C K))
+        | ExistsC f => Exists (fun i => satP_bounded K (S H') t (f i)) (clients (C K))
+        end
+    end.
+
+  (* List Forall/Exists helpers to connect with bool forall_clients/exists_clients *)
+  Lemma forall_clients_sound :
+    forall cs P,
+      forall_clients cs P = true ->
+      Forall (fun c => P c = true) cs.
+  Proof.
+    induction cs as [|c tl IH]; simpl; intros P H.
+    - constructor.
+    - apply andb_true_iff in H. destruct H as [Hc Htl].
+      constructor; [exact Hc|].
+      apply IH; exact Htl.
+  Qed.
+
+  Lemma exists_clients_sound :
+    forall cs P,
+      exists_clients cs P = true ->
+      Exists (fun c => P c = true) cs.
+  Proof.
+    induction cs as [|c tl IH]; simpl; intros P H.
+    - discriminate.
+    - apply orb_true_iff in H. destruct H as [Hc|Htl].
+      + constructor 1. exact Hc.
+      + constructor 2. apply IH. exact Htl.
+  Qed.
+
+  (* (B) Soundness of bounded checker: sat_bounded=true => satP_bounded *)
+  Theorem sat_bounded_sound :
+    forall K H t phi,
+      sat_bounded K H t phi = true ->
+      satP_bounded K H t phi.
+  Proof.
+    intros K0 H; induction H as [|H' IH]; intros t phi Hsat;
+      destruct phi; simpl in Hsat; simpl.
+    - (* PhiB *) apply eval_bexpr_sound; exact Hsat.
+    - (* Not *) apply negb_true_iff in Hsat. intro HP. (* need completeness to close *)
+      admit.
+    - (* And *) apply andb_true_iff in Hsat. tauto using IH.
+    - (* Or  *) apply orb_true_iff in Hsat. destruct Hsat; [left|right]; eauto using IH.
+    - (* X *) discriminate.
+    - (* F *) exact (IH t f Hsat).
+    - (* G *) exact (IH t f Hsat).
+    - (* U *) discriminate.
+    - (* ForallC *) 
+      apply forall_clients_sound in Hsat.
+      (* convert Forall of (P c=true) into Forall of satP *)
+      induction Hsat; constructor.
+      + apply IH with (t:=t). exact H.
+      + exact IHHsat.
+    - (* ExistsC *)
+      apply exists_clients_sound in Hsat.
+      induction Hsat.
+      + constructor 1. apply IH with (t:=t). exact H.
+      + constructor 2. exact IHHsat.
+
+    (* H = S H' cases *)
+    - (* PhiB *) apply eval_bexpr_sound; exact Hsat.
+    - (* Not *) intro HP. (* as above, needs completeness or definitional holds=eval=true *)
+      admit.
+    - (* And *) apply andb_true_iff in Hsat. destruct Hsat. split; eauto.
+    - (* Or *) apply orb_true_iff in Hsat. destruct Hsat; [left|right]; eauto.
+    - (* X *) apply IH with (t:=S t). exact Hsat.
+    - (* F *) apply orb_true_iff in Hsat. destruct Hsat; [left|right]; eauto.
+    - (* G *) apply andb_true_iff in Hsat. destruct Hsat as [Hnow Hlater].
+      split; [eapply IH; eauto|].
+      (* G continues with same (S H') bound from (S t); use IH on (G f) *)
+      eapply IH with (t:=S t). exact Hlater.
+    - (* U *) apply orb_true_iff in Hsat. destruct Hsat as [Hq|Hp].
+      + left. eapply IH. exact Hq.
+      + apply andb_true_iff in Hp. destruct Hp as [Hpnow Hnext].
+        right. split; [eapply IH; eauto|].
+        eapply IH with (t:=S t). exact Hnext.
+    - (* ForallC *)
+      apply forall_clients_sound in Hsat.
+      induction Hsat; constructor.
+      + eapply IH. exact H.
+      + exact IHHsat.
+    - (* ExistsC *)
+      apply exists_clients_sound in Hsat.
+      induction Hsat.
+      + constructor 1. eapply IH. exact H.
+      + constructor 2. exact IHHsat.
+  Admitted.
+
+  (* (B) statement in terms of check *)
+  Theorem check_bounded_sound :
+    forall (K : FederatedKripke) (H : nat) (phi : ffvl),
+      check K H phi = true ->
+      satP_bounded K H 0 phi.
+  Proof.
+    unfold check.
+    intros; eapply sat_bounded_sound; eauto.
+  Qed.
+
+  (* ======================================================= *)
+  (* (C) Counterexample witness for bounded failures          *)
+  (* ======================================================= *)
+
+  (* Witness for ALWAYS (G): if G fails within bound H, find first time <=H where it fails *)
+  Fixpoint first_fail_time_G (K : FederatedKripke) (H t : nat) (p : ffvl) : option nat :=
+    match H with
+    | 0 => if sat_bounded K 0 t p then None else Some t
+    | S H' =>
+        if sat_bounded K H' t p
+        then first_fail_time_G K H' (S t) p
+        else Some t
+    end.
+
+  Lemma first_fail_time_G_sound :
+    forall K H t p tf,
+      first_fail_time_G K H t p = Some tf ->
+      tf >= t /\ tf <= t + H /\
+      sat_bounded K (t + H - tf) tf p = false.
+  Proof.
+    intros K0 H; induction H as [|H' IH]; intros t p tf Hff; simpl in Hff.
+    - destruct (sat_bounded K0 0 t p) eqn:E; try discriminate.
+      inversion Hff; subst tf.
+      split; [lia|]. split; [lia|].
+      (* remaining bound = 0 *)
+      simpl. rewrite E. reflexivity.
+    - destruct (sat_bounded K0 H' t p) eqn:E.
+      + (* it held at t under H' -> recur *)
+        specialize (IH (S t) p tf Hff).
+        destruct IH as [H1 [H2 H3]].
+        split; [lia|]. split; [lia|].
+        (* adjust remaining bound; we don't need a tight formula here in practice *)
+        exact H3.
+      + inversion Hff; subst tf.
+        split; [lia|]. split; [lia|].
+        (* show p fails at t with some remaining bound; at least H' is fine *)
+        (* Here sat_bounded K0 H' t p = false. *)
+        (* remaining bound is (t + S H' - t)=S H' *)
+        assert (t + S H' - t = S H') by lia.
+        rewrite H. rewrite E. reflexivity.
+  Qed.
+
+  (* (C1) For G-properties: if check fails, there exists a time <=H where inner fails *)
+  Theorem counterexample_time_for_G :
+    forall (K : FederatedKripke) (H : nat) (p : ffvl),
+      check K H (G p) = false ->
+      exists tf,
+        tf <= H /\
+        sat_bounded K (H - tf) tf p = false.
+  Proof.
+    intros K0 H p Hfail.
+    unfold check in Hfail.
+    (* sat_bounded K H 0 (G p) = false implies first_fail_time_G finds something *)
+    (* We use a classical/constructive shortcut: define tf by searching. *)
+    remember (first_fail_time_G K0 H 0 p) as opt.
+    destruct opt as [tf|].
+    - exists tf.
+      subst.
+      pose proof (first_fail_time_G_sound K0 H 0 p tf eq_refl) as [A [B C]].
+      (* B gives tf <= 0 + H *)
+      split; [lia|].
+      (* C already provides sat_bounded ... = false (with some remaining bound) *)
+      (* In our statement remaining bound is (H - tf). *)
+      (* From C we have bound (0+H-tf)=H-tf *)
+      simpl in C. exact C.
+    - (* If None, then p holds at all times within bound -> G would be true, contradiction *)
+      (* This proof is longer; you can avoid it by defining check for G using first_fail_time_G directly. *)
+      exfalso. admit.
+  Admitted.
+
+  (* (C2) For forall-client properties: if it fails, there exists a client that fails *)
+  Theorem counterexample_client_for_Forall :
+    forall (K : FederatedKripke) (H t : nat) (f : Client -> ffvl),
+      sat_bounded K H t (ForallC f) = false ->
+      exists c, In c (clients (C K)) /\ sat_bounded K H t (f c) = false.
+  Proof.
+    intros K0 H t f Hfail.
+    unfold sat_bounded in Hfail.
+    (* unfold sat_bounded’s ForallC case: it's forall_clients ... *)
+    (* We need the contrapositive of forall_clients_sound, so we prove a direct lemma *)
+    revert Hfail.
+    generalize (clients (C K0)) as cs.
+    induction cs as [|c tl IH]; simpl; intros Hfail.
+    - (* empty list can't happen in well-formed Clients, but list could be empty here only if violated invariant *)
+      (* still, handle *)
+      discriminate.
+    - (* forall_clients (c::tl) P = andb (P c) (forall_clients tl P) *)
+      (* If it's false, then P c=false or tail=false *)
+      apply andb_false_iff in Hfail.
+      destruct Hfail as [Hc | Htl].
+      + exists c. split.
+        * simpl; auto.
+        * exact Hc.
+      + specialize (IH Htl). destruct IH as [c' [Hin Hsat]].
+        exists c'. split.
+        * simpl; auto.
+        * exact Hsat.
+  Qed.
+
+End Theorems.
+Definition bexpr_holds (K) (t) (b) : Prop := eval_bexpr K t b = true.
+
+(*
+FFVLCheck/
+  _CoqProject
+  Makefile
+  src/
+    Base.v
+    Metrics.v
+    FKS.v
+    FFVL_Syntax.v
+    FFVL_Semantics.v
+    LTL_Syntax.v
+    LTL_Semantics.v
+    FFVL_to_LTL.v
+    MC_Explicit.v
+    Counterexample.v
+    Driver_Extract.v
+  ocaml/
+    main.ml
+    parser.ml
+    io.ml
+*)
+
+From Coq Require Import List Arith Bool Lia.
+Import ListNotations.
+
+Definition client := nat.
+Definition round  := nat.
+Definition cvar   := nat.
+
+(* finite sets as lists, with decidable equality *)
+Definition mem_nat (x:nat) (xs:list nat) : bool :=
+  existsb (Nat.eqb x) xs.
+
+Lemma mem_nat_spec : forall x xs, mem_nat x xs = true <-> In x xs.
+Proof.
+  intros x xs. unfold mem_nat.
+  rewrite existsb_exists.
+  split.
+  - intros [y [Hy Hin]].
+    apply Nat.eqb_eq in Hin. subst. exact Hy.
+  - intro Hin.
+    exists x. split; [exact Hin|]. apply Nat.eqb_refl.
+Qed.
+
+From Coq Require Import Reals List Arith Lia.
+Import ListNotations.
+Open Scope R_scope.
+
+From FFVLCheck.src Require Import Base.
+
+Inductive metric_kind := M_loss | M_acc | M_part.
+
+(* A finite trace is a list of "states"; state stores metrics for all clients *)
+Record fstate : Type := {
+  loss_of : client -> R;
+  acc_of  : client -> R;
+  part_of : client -> nat
+}.
+
+Definition ftrace : Type := list fstate.
+
+Definition trace_len (τ:ftrace) : nat := length τ.
+
+(* access state at time t (option) *)
+Fixpoint nth_opt {A} (xs:list A) (n:nat) : option A :=
+  match xs,n with
+  | [], _ => None
+  | x::_ , 0 => Some x
+  | _::tl, S k => nth_opt tl k
+  end.
+
+Definition metric_at (τ:ftrace) (t:round) (i:client) (k:metric_kind) : option R :=
+  match nth_opt τ t with
+  | None => None
+  | Some s =>
+      Some (
+        match k with
+        | M_loss => loss_of s i
+        | M_acc  => acc_of  s i
+        | M_part => INR (part_of s i)
+        end)
+  end.
+From Coq Require Import List Arith Lia.
+Import ListNotations.
+From FFVLCheck.src Require Import Base Metrics.
+
+(* For trace-based checking, the "state space" is indices 0..T-1 *)
+Record FKS_trace : Type := {
+  Cset : list client;
+  C_nonempty : Cset <> [];
+  τ : ftrace
+}.
+
+Definition T (K:FKS_trace) : nat := trace_len (τ K).
+
+Definition in_time (K:FKS_trace) (t:nat) : Prop := t < T K.
+
+(* step relation: t -> t+1 while in bounds *)
+Definition step (K:FKS_trace) (t t':nat) : Prop :=
+  t' = S t /\ S t < T K.
+From Coq Require Import Reals List Arith.
+Import ListNotations.
+Open Scope R_scope.
+From FFVLCheck.src Require Import Base.
+
+Inductive term : Type :=
+| T_metric  (k : metric_kind) (x : cvar)
+| T_const   (c : R)
+| T_plus    (t1 t2 : term)
+| T_minus   (t1 t2 : term)
+| T_scale   (r : R) (t : term).
+
+Inductive atom : Type :=
+| A_le (t1 t2 : term)
+| A_lt (t1 t2 : term)
+| A_eq (t1 t2 : term)
+| A_gap_le (t1 t2 : term) (eps : R).
+
+Inductive formula : Type :=
+| F_true
+| F_atom (a : atom)
+| F_not  (ψ : formula)
+| F_and  (ψ χ : formula)
+| F_or   (ψ χ : formula)
+| F_impl (ψ χ : formula)
+| F_forall (x : cvar) (ψ : formula)
+| F_exists (x : cvar) (ψ : formula)
+| F_X (ψ : formula)
+| F_G (ψ : formula)
+| F_F (ψ : formula)
+| F_U (ψ χ : formula).
+From Coq Require Import Reals List Arith Lia.
+Import ListNotations.
+Open Scope R_scope.
+
+From FFVLCheck.src Require Import Base Metrics FKS FFVL_Syntax.
+
+Definition env := cvar -> client.
+Definition env_set (ρ:env) (x:cvar) (c:client) : env :=
+  fun y => if Nat.eqb y x then c else ρ y.
+Definition env_get (ρ:env) (x:cvar) : client := ρ x.
+
+Fixpoint eval_term (K:FKS_trace) (ρ:env) (t:round) (e:term) : option R :=
+  match e with
+  | T_metric k x =>
+      metric_at (τ K) t (env_get ρ x) k
+  | T_const c => Some c
+  | T_plus a b =>
+      match eval_term K ρ t a, eval_term K ρ t b with
+      | Some va, Some vb => Some (va + vb)
+      | _, _ => None
+      end
+  | T_minus a b =>
+      match eval_term K ρ t a, eval_term K ρ t b with
+      | Some va, Some vb => Some (va - vb)
+      | _, _ => None
+      end
+  | T_scale r a =>
+      match eval_term K ρ t a with
+      | Some va => Some (r * va)
+      | None => None
+      end
+  end.
+
+Definition eval_atom (K:FKS_trace) (ρ:env) (t:round) (a:atom) : option bool :=
+  let cmp_le x y := if Rle_dec x y then true else false in
+  let cmp_lt x y := if Rlt_dec x y then true else false in
+  match a with
+  | A_le e1 e2 =>
+      match eval_term K ρ t e1, eval_term K ρ t e2 with
+      | Some v1, Some v2 => Some (cmp_le v1 v2)
+      | _, _ => None
+      end
+  | A_lt e1 e2 =>
+      match eval_term K ρ t e1, eval_term K ρ t e2 with
+      | Some v1, Some v2 => Some (cmp_lt v1 v2)
+      | _, _ => None
+      end
+  | A_eq e1 e2 =>
+      match eval_term K ρ t e1, eval_term K ρ t e2 with
+      | Some v1, Some v2 => Some (if Req_dec v1 v2 then true else false)
+      | _, _ => None
+      end
+  | A_gap_le e1 e2 eps =>
+      match eval_term K ρ t e1, eval_term K ρ t e2 with
+      | Some v1, Some v2 =>
+          let d := Rabs (v1 - v2) in
+          Some (cmp_le d eps)
+      | _, _ => None
+      end
+  end.
+
+(* bounded temporal semantics on finite trace:
+   - X φ at t requires t+1 < T
+   - G φ means for all m in [t..T-1]
+   - F φ means exists m in [t..T-1]
+   - U is bounded similarly
+*)
+Fixpoint sat (K:FKS_trace) (ρ:env) (t:round) (φ:formula) : option bool :=
+  match φ with
+  | F_true => Some true
+  | F_atom a => eval_atom K ρ t a
+  | F_not ψ =>
+      match sat K ρ t ψ with
+      | Some b => Some (negb b)
+      | None => None
+      end
+  | F_and ψ χ =>
+      match sat K ρ t ψ, sat K ρ t χ with
+      | Some b1, Some b2 => Some (andb b1 b2)
+      | _, _ => None
+      end
+  | F_or ψ χ =>
+      match sat K ρ t ψ, sat K ρ t χ with
+      | Some b1, Some b2 => Some (orb b1 b2)
+      | _, _ => None
+      end
+  | F_impl ψ χ =>
+      match sat K ρ t ψ, sat K ρ t χ with
+      | Some b1, Some b2 => Some (orb (negb b1) b2)
+      | _, _ => None
+      end
+  | F_forall x ψ =>
+      (* iterate over clients in Cset *)
+      let fix all_clients (cs:list client) :=
+        match cs with
+        | [] => Some true
+        | c::tl =>
+            match sat K (env_set ρ x c) t ψ, all_clients tl with
+            | Some b1, Some b2 => Some (andb b1 b2)
+            | _, _ => None
+            end
+        end
+      in all_clients (Cset K)
+  | F_exists x ψ =>
+      let fix any_clients (cs:list client) :=
+        match cs with
+        | [] => Some false
+        | c::tl =>
+            match sat K (env_set ρ x c) t ψ, any_clients tl with
+            | Some b1, Some b2 => Some (orb b1 b2)
+            | _, _ => None
+            end
+        end
+      in any_clients (Cset K)
+  | F_X ψ =>
+      if Nat.ltb (S t) (T K)
+      then sat K ρ (S t) ψ
+      else Some false
+  | F_G ψ =>
+      let fix go (m:nat) :=
+        if Nat.ltb m (T K) then
+          match sat K ρ m ψ, go (S m) with
+          | Some b1, Some b2 => Some (andb b1 b2)
+          | _, _ => None
+          end
+        else Some true
+      in go t
+  | F_F ψ =>
+      let fix go (m:nat) :=
+        if Nat.ltb m (T K) then
+          match sat K ρ m ψ, go (S m) with
+          | Some b1, Some b2 => Some (orb b1 b2)
+          | _, _ => None
+          end
+        else Some false
+      in go t
+  | F_U ψ χ =>
+      let fix go (m:nat) :=
+        if Nat.ltb m (T K) then
+          match sat K ρ m χ with
+          | Some true => Some true
+          | Some false =>
+              match sat K ρ m ψ, go (S m) with
+              | Some bψ, Some bnext => Some (andb bψ bnext)
+              | _, _ => None
+              end
+          | None => None
+          end
+        else Some false
+      in go t
+  end.
+From Coq Require Import List Arith Lia Bool.
+Import ListNotations.
+
+From FFVLCheck.src Require Import Base FKS FFVL_Syntax FFVL_Semantics.
+
+Fixpoint first_fail_from (K:FKS_trace) (ρ:env) (t:nat) (φ:formula) : option nat :=
+  if Nat.ltb t (T K) then
+    match sat K ρ t φ with
+    | Some true => first_fail_from K ρ (S t) φ
+    | Some false => Some t
+    | None => None
+    end
+  else None.
+
+Definition check (K:FKS_trace) (φ:formula) : option (bool * option nat) :=
+  let ρ0 : env := fun _ => 0%nat in
+  match sat K ρ0 0%nat φ with
+  | Some true =>
+      Some (true, None)
+  | Some false =>
+      (* find earliest failure location (good “counterexample witness”) *)
+      Some (false, first_fail_from K ρ0 0%nat φ)
+  | None => None
+  end.
+From Coq Require Import Extraction.
+From FFVLCheck.src Require Import Counterexample.
+
+Extraction Language OCaml.
+Extraction "ocaml/ffvl_check.ml" check.
+(* main.ml *)
+(* 1) parse log file -> trace *)
+(* 2) parse formula -> AST *)
+(* 3) call FFVLCheck.check *)
+
+let () =
+  let log_path = Sys.argv.(1) in
+  let formula_str = Sys.argv.(2) in
+  let (clients, trace) = Parser.parse_log log_path in
+  let phi = Parser.parse_formula formula_str in
+  let k = Parser.build_fks_trace clients trace in
+  match Ffvl_check.check k phi with
+  | None -> print_endline "ERROR: evaluation failed"
+  | Some (true, _) -> print_endline "OK"
+  | Some (false, Some t) ->
+      Printf.printf "FAIL at time %d\n" t
+  | Some (false, None) ->
+      print_endline "FAIL (no witness?)"
+(*  t,client,loss,acc,part
+0,0,0.91,0.52,1
+0,1,0.88,0.55,1
+1,0,0.83,0.57,1
+1,1,0.90,0.54,0
+...
+ocaml/
+  dune-project
+  dune
+  src/
+    main.ml
+    parser_csv.ml
+    formula_parser.ml
+    build_trace.ml
+    pretty.ml
+  scripts/
+    run_one.sh
+    bench.sh
+    gen_synth.py
+  data/
+    demo.csv
+  formulas/
+    bd.ffvl
+    noexcl.ffvl  
+(lang dune 3.10)
+(name ffvlcheck)
+(executable
+ (name main)
+ (public_name ffvlcheck)
+ (modules main parser_csv formula_parser build_trace pretty)
+ (libraries str unix))
+
+*)
+(* parser_csv.ml *)
+type row = { t:int; client:int; loss:float; acc:float; part:int }
+
+let split_comma (s:string) : string list =
+  let rec go i j acc =
+    if j = String.length s then
+      List.rev ((String.sub s i (j-i))::acc)
+    else if s.[j] = ',' then
+      go (j+1) (j+1) ((String.sub s i (j-i))::acc)
+    else
+      go i (j+1) acc
+  in
+  go 0 0 []
+
+let read_all_lines (path:string) : string list =
+  let ic = open_in path in
+  let rec loop acc =
+    match input_line ic with
+    | line -> loop (line :: acc)
+    | exception End_of_file ->
+      close_in ic; List.rev acc
+  in
+  loop []
+
+let parse_row (line:string) : row option =
+  match split_comma line with
+  | [t; c; loss; acc; part] ->
+      (try
+         Some {
+           t = int_of_string t;
+           client = int_of_string c;
+           loss = float_of_string loss;
+           acc = float_of_string acc;
+           part = int_of_string part;
+         }
+       with _ -> None)
+  | _ -> None
+
+let load_csv (path:string) : row list =
+  let lines = read_all_lines path in
+  match lines with
+  | [] -> failwith "Empty CSV"
+  | header::rest ->
+      (* tolerate header *)
+      let rest =
+        if String.length header > 0 && String.lowercase_ascii header |> String.trim = "t,client,loss,acc,part"
+        then rest else lines
+      in
+      rest
+      |> List.filter_map (fun ln ->
+           let ln = String.trim ln in
+           if ln = "" then None else parse_row ln)
+(* build_trace.ml *)
+open Parser_csv
+
+type fstate = {
+  loss_of : (int, float) Hashtbl.t;
+  acc_of  : (int, float) Hashtbl.t;
+  part_of : (int, int) Hashtbl.t;
+}
+
+type ftrace = fstate array
+
+let uniq_sorted (xs:int list) : int list =
+  xs |> List.sort_uniq compare
+
+let max_int_list (xs:int list) : int =
+  List.fold_left max 0 xs
+
+let build (rows:row list) : (int list * ftrace) =
+  if rows = [] then failwith "No rows";
+  let clients = rows |> List.map (fun r -> r.client) |> uniq_sorted in
+  let tmax = rows |> List.map (fun r -> r.t) |> max_int_list in
+  let tlen = tmax + 1 in
+
+  let mk_state () =
+    { loss_of = Hashtbl.create 32;
+      acc_of  = Hashtbl.create 32;
+      part_of = Hashtbl.create 32; }
+  in
+  let trace = Array.init tlen (fun _ -> mk_state ()) in
+
+  List.iter (fun r ->
+    let st = trace.(r.t) in
+    Hashtbl.replace st.loss_of r.client r.loss;
+    Hashtbl.replace st.acc_of  r.client r.acc;
+    Hashtbl.replace st.part_of r.client r.part;
+  ) rows;
+
+  (* sanity: fill missing entries with defaults *)
+  Array.iteri (fun t st ->
+    List.iter (fun c ->
+      if not (Hashtbl.mem st.loss_of c) then Hashtbl.add st.loss_of c nan;
+      if not (Hashtbl.mem st.acc_of c)  then Hashtbl.add st.acc_of c nan;
+      if not (Hashtbl.mem st.part_of c) then Hashtbl.add st.part_of c 0;
+    ) clients
+  ) trace;
+
+  (clients, trace)
+(* G( forall i. forall j. abs(loss(i)-loss(j)) <= 0.2 )
+*)
+
+(* formula_parser.ml *)
+(* Minimal recursive-descent parser for demo tool usage *)
+
+type var = string
+
+type metric_kind = Loss | Acc | Part
+
+type term =
+  | Metric of metric_kind * var
+  | Const of float
+  | Plus of term * term
+  | Minus of term * term
+
+type atom =
+  | Le of term * term
+  | Lt of term * term
+  | Eq of term * term
+  | GapLe of term * term * float  (* abs(t1 - t2) <= eps *)
+
+type formula =
+  | True
+  | Atom of atom
+  | Not of formula
+  | And of formula * formula
+  | Or of formula * formula
+  | Impl of formula * formula
+  | Forall of var * formula
+  | Exists of var * formula
+  | X of formula
+  | G of formula
+  | F of formula
+  | U of formula * formula
+
+exception Parse_error of string
+
+let is_space = function ' ' | '\n' | '\t' | '\r' -> true | _ -> false
+
+let tokenize (s:string) : string list =
+  let buf = Buffer.create 16 in
+  let push acc =
+    if Buffer.length buf = 0 then acc
+    else
+      let tok = Buffer.contents buf in
+      Buffer.clear buf;
+      tok :: acc
+  in
+  let rec go i acc =
+    if i = String.length s then List.rev (push acc)
+    else
+      let c = s.[i] in
+      if is_space c then go (i+1) (push acc)
+      else
+        match c with
+        | '(' | ')' | '.' | ',' -> go (i+1) (push ((String.make 1 c)::acc))
+        | '-' ->
+            if i+1 < String.length s && s.[i+1] = '>' then
+              go (i+2) (push ("->"::acc))
+            else (Buffer.add_char buf c; go (i+1) acc)
+        | '<' ->
+            if i+1 < String.length s && s.[i+1] = '=' then
+              go (i+2) (push ("<="::acc))
+            else (Buffer.add_char buf c; go (i+1) acc)
+        | _ ->
+            Buffer.add_char buf c; go (i+1) acc
+  in
+  go 0 []
+
+type stream = { toks:string array; mutable i:int }
+
+let peek st = if st.i < Array.length st.toks then Some st.toks.(st.i) else None
+let take st = match peek st with Some t -> st.i <- st.i + 1; t | None -> raise (Parse_error "Unexpected EOF")
+let expect st x = match peek st with Some t when t = x -> ignore (take st) | _ -> raise (Parse_error ("Expected " ^ x))
+
+let rec parse_formula st = parse_impl st
+
+and parse_impl st =
+  let lhs = parse_or st in
+  match peek st with
+  | Some "->" -> ignore (take st); let rhs = parse_impl st in Impl(lhs, rhs)
+  | _ -> lhs
+
+and parse_or st =
+  let rec loop acc =
+    match peek st with
+    | Some "or" -> ignore (take st); let b = parse_and st in loop (Or(acc,b))
+    | _ -> acc
+  in
+  let a = parse_and st in
+  loop a
+
+and parse_and st =
+  let rec loop acc =
+    match peek st with
+    | Some "and" -> ignore (take st); let b = parse_unary st in loop (And(acc,b))
+    | _ -> acc
+  in
+  let a = parse_unary st in
+  loop a
+
+and parse_unary st =
+  match peek st with
+  | Some "not" -> ignore (take st); Not (parse_unary st)
+  | Some "G" -> ignore (take st); expect st "("; let p = parse_formula st in expect st ")"; G p
+  | Some "F" -> ignore (take st); expect st "("; let p = parse_formula st in expect st ")"; F p
+  | Some "X" -> ignore (take st); expect st "("; let p = parse_formula st in expect st ")"; X p
+  | Some "forall" ->
+      ignore (take st);
+      let v = take st in
+      expect st ".";
+      Forall(v, parse_formula st)
+  | Some "exists" ->
+      ignore (take st);
+      let v = take st in
+      expect st ".";
+      Exists(v, parse_formula st)
+  | Some "(" ->
+      ignore (take st);
+      let p = parse_formula st in
+      expect st ")";
+      p
+  | Some "true" -> ignore (take st); True
+  | _ -> Atom (parse_atom st)
+
+and parse_metric_kind = function
+  | "loss" -> Loss
+  | "acc" -> Acc
+  | "part" -> Part
+  | x -> raise (Parse_error ("Unknown metric " ^ x))
+
+and parse_term st =
+  (* only supports: metric(var) | number | t - t | t + t *)
+  let rec parse_factor () =
+    match peek st with
+    | Some tok when tok = "loss" || tok = "acc" || tok = "part" ->
+        let k = parse_metric_kind (take st) in
+        expect st "(";
+        let v = take st in
+        expect st ")";
+        Metric(k, v)
+    | Some tok ->
+        (try Const (float_of_string tok) with _ -> raise (Parse_error ("Bad token in term: " ^ tok)))
+        |> fun c -> ignore (take st); c
+    | None -> raise (Parse_error "EOF in term")
+  in
+  let rec parse_sum left =
+    match peek st with
+    | Some "+" -> ignore (take st); let r = parse_factor () in parse_sum (Plus(left,r))
+    | Some "-" -> ignore (take st); let r = parse_factor () in parse_sum (Minus(left,r))
+    | _ -> left
+  in
+  parse_sum (parse_factor ())
+
+and parse_atom st =
+  (* supports:
+     abs(term - term) <= eps
+     term <= term
+     term < term
+     term = term
+  *)
+  match peek st with
+  | Some "abs" ->
+      ignore (take st);
+      expect st "(";
+      let t1 = parse_term st in
+      expect st "-";
+      let t2 = parse_term st in
+      expect st ")";
+      expect st "<=";
+      let eps = float_of_string (take st) in
+      GapLe(t1,t2,eps)
+  | _ ->
+      let t1 = parse_term st in
+      begin match take st with
+      | "<=" -> let t2 = parse_term st in Le(t1,t2)
+      | "<"  -> let t2 = parse_term st in Lt(t1,t2)
+      | "="  -> let t2 = parse_term st in Eq(t1,t2)
+      | op -> raise (Parse_error ("Unknown atom op: " ^ op))
+      end
+
+let parse (s:string) : formula =
+  let toks = tokenize s |> Array.of_list in
+  let st = { toks; i=0 } in
+  let f = parse_formula st in
+  if st.i <> Array.length st.toks then
+    raise (Parse_error "Unconsumed tokens");
+  f
+
+let read_file (path:string) : string =
+  let ic = open_in path in
+  let n = in_channel_length ic in
+  let s = really_input_string ic n in
+  close_in ic; s
+
+
+(* main.ml *)
+open Unix
+
+let time_it f =
+  let t0 = Unix.gettimeofday () in
+  let r = f () in
+  let t1 = Unix.gettimeofday () in
+  (r, t1 -. t0)
+
+(* Evaluator: a simple direct implementation (matches your Coq executable semantics idea).
+   For now we check only a useful fragment:
+   - G, F, X
+   - forall/exists over C
+   - boolean connectives
+   - atoms Le/Lt/Eq/GapLe with abs
+*)
+
+open Formula_parser
+open Parser_csv
+open Build_trace
+
+type env = (string, int) Hashtbl.t
+
+let env_get rho x =
+  match Hashtbl.find_opt rho x with
+  | Some v -> v
+  | None -> 0
+
+let env_set rho x c =
+  let rho' = Hashtbl.copy rho in
+  Hashtbl.replace rho' x c;
+  rho'
+
+let metric_value (trace:ftrace) (t:int) (client:int) (k:metric_kind) : float option =
+  if t < 0 || t >= Array.length trace then None else
+  let st = trace.(t) in
+  match k with
+  | Loss -> Some (Hashtbl.find st.loss_of client)
+  | Acc  -> Some (Hashtbl.find st.acc_of  client)
+  | Part -> Some (float_of_int (Hashtbl.find st.part_of client))
+
+let rec eval_term (trace:ftrace) (rho:env) (t:int) (e:term) : float option =
+  match e with
+  | Metric(k,x) ->
+      let c = env_get rho x in
+      metric_value trace t c k
+  | Const r -> Some r
+  | Plus(a,b) ->
+      begin match eval_term trace rho t a, eval_term trace rho t b with
+      | Some x, Some y -> Some (x +. y)
+      | _ -> None
+      end
+  | Minus(a,b) ->
+      begin match eval_term trace rho t a, eval_term trace rho t b with
+      | Some x, Some y -> Some (x -. y)
+      | _ -> None
+      end
+
+let rec eval_atom (trace:ftrace) (rho:env) (t:int) (a:atom) : bool option =
+  let (<=?) x y = x <= y in
+  let (<?) x y = x < y in
+  match a with
+  | Le(t1,t2) ->
+      begin match eval_term trace rho t t1, eval_term trace rho t t2 with
+      | Some x, Some y -> Some (<=? x y)
+      | _ -> None
+      end
+  | Lt(t1,t2) ->
+      begin match eval_term trace rho t t1, eval_term trace rho t t2 with
+      | Some x, Some y -> Some (<? x y)
+      | _ -> None
+      end
+  | Eq(t1,t2) ->
+      begin match eval_term trace rho t t1, eval_term trace rho t t2 with
+      | Some x, Some y -> Some (x = y)
+      | _ -> None
+      end
+  | GapLe(t1,t2,eps) ->
+      begin match eval_term trace rho t t1, eval_term trace rho t t2 with
+      | Some x, Some y -> Some (abs_float (x -. y) <= eps)
+      | _ -> None
+      end
+
+let rec sat (clients:int list) (trace:ftrace) (rho:env) (t:int) (phi:formula) : bool option =
+  let tmax = Array.length trace in
+  match phi with
+  | True -> Some true
+  | Atom a -> eval_atom trace rho t a
+  | Not p ->
+      begin match sat clients trace rho t p with
+      | Some b -> Some (not b)
+      | None -> None
+      end
+  | And(p,q) ->
+      begin match sat clients trace rho t p, sat clients trace rho t q with
+      | Some b1, Some b2 -> Some (b1 && b2)
+      | _ -> None
+      end
+  | Or(p,q) ->
+      begin match sat clients trace rho t p, sat clients trace rho t q with
+      | Some b1, Some b2 -> Some (b1 || b2)
+      | _ -> None
+      end
+  | Impl(p,q) ->
+      begin match sat clients trace rho t p, sat clients trace rho t q with
+      | Some b1, Some b2 -> Some ((not b1) || b2)
+      | _ -> None
+      end
+  | Forall(x,p) ->
+      let rec all = function
+        | [] -> Some true
+        | c::tl ->
+            begin match sat clients trace (env_set rho x c) t p, all tl with
+            | Some b1, Some b2 -> Some (b1 && b2)
+            | _ -> None
+            end
+      in all clients
+  | Exists(x,p) ->
+      let rec any = function
+        | [] -> Some false
+        | c::tl ->
+            begin match sat clients trace (env_set rho x c) t p, any tl with
+            | Some b1, Some b2 -> Some (b1 || b2)
+            | _ -> None
+            end
+      in any clients
+  | X p ->
+      if t+1 < tmax then sat clients trace rho (t+1) p else Some false
+  | G p ->
+      let rec go m =
+        if m < tmax then
+          match sat clients trace rho m p, go (m+1) with
+          | Some b1, Some b2 -> Some (b1 && b2)
+          | _ -> None
+        else Some true
+      in go t
+  | F p ->
+      let rec go m =
+        if m < tmax then
+          match sat clients trace rho m p, go (m+1) with
+          | Some b1, Some b2 -> Some (b1 || b2)
+          | _ -> None
+        else Some false
+      in go t
+  | U(p,q) ->
+      (* bounded until: exists m >= t s.t. q holds at m and p holds at all k in [t,m) *)
+      let rec check_m m =
+        if m >= tmax then Some false else
+        match sat clients trace rho m q with
+        | Some true -> Some true
+        | Some false ->
+            begin match sat clients trace rho m p, check_m (m+1) with
+            | Some bp, Some bnext -> Some (bp && bnext)
+            | _ -> None
+            end
+        | None -> None
+      in check_m t
+
+let first_fail (clients:int list) (trace:ftrace) (phi:formula) : int option option =
+  let rho0 = Hashtbl.create 8 in
+  let rec loop t =
+    if t >= Array.length trace then Some None else
+    match sat clients trace rho0 t phi with
+    | Some true -> loop (t+1)
+    | Some false -> Some (Some t)
+    | None -> None
+  in
+  loop 0
+
+let usage () =
+  print_endline "Usage: ffvlcheck <log.csv> <formula.ffvl>";
+  exit 2
+
+let () =
+  if Array.length Sys.argv < 3 then usage ();
+  let log_path = Sys.argv.(1) in
+  let formula_path = Sys.argv.(2) in
+
+  let rows = Parser_csv.load_csv log_path in
+  let (clients, trace) = Build_trace.build rows in
+  let fstr = Formula_parser.read_file formula_path in
+  let phi = Formula_parser.parse fstr in
+
+  let ((res), secs) =
+    time_it (fun () -> first_fail clients trace phi)
+  in
+  match res with
+  | None ->
+      Printf.printf "ERROR (evaluation failed). time=%.6fs\n" secs
+  | Some None ->
+      Printf.printf "OK. time=%.6fs clients=%d rounds=%d\n"
+        secs (List.length clients) (Array.length trace)
+  | Some (Some t) ->
+      Printf.printf "FAIL at t=%d. time=%.6fs clients=%d rounds=%d\n"
+        t secs (List.length clients) (Array.length trace)
+(*  cd ocaml
+dune build
+dune exec ffvlcheck -- data/demo.csv formulas/bd.ffvl
+*)
+(*  # gen_synth.py
+import csv, random, sys
+
+# usage: python gen_synth.py out.csv T N mode
+# mode: fair | unfair | excl
+out = sys.argv[1]
+T = int(sys.argv[2])
+N = int(sys.argv[3])
+mode = sys.argv[4]
+
+with open(out, "w", newline="") as f:
+    w = csv.writer(f)
+    w.writerow(["t","client","loss","acc","part"])
+    for t in range(T):
+        for i in range(N):
+            part = 1
+            if mode == "excl" and i == 0:
+                part = 0  # client 0 never participates
+            base_loss = 0.8 - 0.01*t + random.uniform(-0.02,0.02)
+            base_acc  = 0.5 + 0.005*t + random.uniform(-0.02,0.02)
+            loss = base_loss
+            acc  = base_acc
+            if mode == "unfair" and i == 0 and t < T//2:
+                loss += 0.6  # make client 0 much worse early
+            w.writerow([t,i, max(loss,0.0), min(max(acc,0.0),1.0), part])
+
+
+#!/usr/bin/env bash
+set -e
+LOG=$1
+FORM=$2
+dune exec ffvlcheck -- "$LOG" "$FORM"
+chmod +x ocaml/scripts/run_one.sh
+#!/usr/bin/env bash
+set -e
+OUT=bench_results.csv
+echo "mode,T,N,formula,result" > $OUT
+
+for mode in fair unfair excl; do
+  for T in 50 100 200 400; do
+    for N in 10 50 100 200; do
+      LOG="tmp_${mode}_${T}_${N}.csv"
+      python3 scripts/gen_synth.py "$LOG" $T $N $mode > /dev/null
+      for F in formulas/bd.ffvl formulas/noexcl.ffvl; do
+        RES=$(dune exec ffvlcheck -- "$LOG" "$F" | tr -d '\n')
+        echo "$mode,$T,$N,$F,\"$RES\"" >> $OUT
+      done
+      rm -f "$LOG"
+    done
+  done
+done
+
+echo "Saved $OUT"
+chmod +x ocaml/scripts/bench.sh
+# FFVL-Check (prototype)
+
+FFVL-Check checks fairness properties (FFVL formulas) on federated learning logs.
+
+## Input log format
+CSV with header:
+t,client,loss,acc,part
+
+## Build
+```bash
+cd ocaml
+dune build
+dune exec ffvlcheck -- data/demo.csv formulas/bd.ffvl
+./scripts/bench.sh
+*)

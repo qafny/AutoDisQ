@@ -1,0 +1,487 @@
+==============================
+[Alg2] P_1 on mem0
+Cost = 0
+Memb 0:
+  AP(CNew(0,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CMeas(10,[])); PNil
+
+==============================
+[Alg2] P_1 on mem1
+Cost = 4
+Memb 0:
+  DP(NewCh(0,1)); PNil
+  DP(Send(0,BA(0))); PNil
+  DP(NewCh(2,1)); PNil
+  DP(Send(2,BA(10))); PNil
+Memb 1:
+  DP(Recv(0,1)); PNil
+  AP(CNew(0,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  DP(Recv(2,3)); PNil
+  AP(CMeas(10,[])); PNil
+
+==============================
+[Alg2] P_3 on mem0
+Cost = 0
+Memb 0:
+  AP(CNew(0,1)); PNil
+  AP(CNew(1,1)); PNil
+  AP(CNew(2,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(CU(0,Num(0),X(1,Num(0))))); PNil
+  AP(CAppU(CU(0,Num(0),X(2,Num(0))))); PNil
+  AP(CMeas(10,[])); PNil
+  AP(CMeas(11,[])); PNil
+  AP(CMeas(12,[])); PNil
+
+==============================
+[Alg2] P_3 on mem1
+Cost = 12
+Memb 0:
+  DP(NewCh(0,1)); PNil
+  DP(Send(0,BA(0))); PNil
+  DP(NewCh(2,1)); PNil
+  DP(Send(2,BA(1))); PNil
+  DP(NewCh(4,1)); PNil
+  DP(Send(4,BA(2))); PNil
+  DP(NewCh(6,1)); PNil
+  DP(Send(6,BA(10))); PNil
+  DP(NewCh(8,1)); PNil
+  DP(Send(8,BA(11))); PNil
+  DP(NewCh(10,1)); PNil
+  DP(Send(10,BA(12))); PNil
+Memb 1:
+  DP(Recv(0,1)); PNil
+  AP(CNew(0,1)); PNil
+  DP(Recv(2,3)); PNil
+  AP(CNew(1,1)); PNil
+  DP(Recv(4,5)); PNil
+  AP(CNew(2,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(CU(0,Num(0),X(1,Num(0))))); PNil
+  AP(CAppU(CU(0,Num(0),X(2,Num(0))))); PNil
+  DP(Recv(6,7)); PNil
+  AP(CMeas(10,[])); PNil
+  DP(Recv(8,9)); PNil
+  AP(CMeas(11,[])); PNil
+  DP(Recv(10,11)); PNil
+  AP(CMeas(12,[])); PNil
+
+==============================
+[Alg2] P_4 on mem0
+Cost = 0
+Memb 0:
+  AP(CNew(0,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(QFT(0,3))); PNil
+  AP(CAppU(RQFT(0,3))); PNil
+  AP(CMeas(10,[])); PNil
+
+==============================
+[Alg2] P_4 on mem1
+Cost = 4
+Memb 0:
+  DP(NewCh(0,1)); PNil
+  DP(Send(0,BA(0))); PNil
+  DP(NewCh(2,1)); PNil
+  DP(Send(2,BA(10))); PNil
+Memb 1:
+  DP(Recv(0,1)); PNil
+  AP(CNew(0,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(QFT(0,3))); PNil
+  AP(CAppU(RQFT(0,3))); PNil
+  DP(Recv(2,3)); PNil
+  AP(CMeas(10,[])); PNil
+
+==============================
+[Alg2] P_4 on mem5
+Cost = 4
+Memb 0:
+  DP(NewCh(0,1)); PNil
+  DP(Send(0,BA(0))); PNil
+  DP(NewCh(2,1)); PNil
+  DP(Send(2,BA(10))); PNil
+Memb 5:
+  DP(Recv(0,1)); PNil
+  AP(CNew(0,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(QFT(0,3))); PNil
+  AP(CAppU(RQFT(0,3))); PNil
+  DP(Recv(2,3)); PNil
+  AP(CMeas(10,[])); PNil
+
+==============================
+[Alg2] P_5 (Grover) on mem0
+Cost = 0
+Memb 0:
+  AP(CNew(0,1)); PNil
+  AP(CNew(1,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(CU(0,Num(0),RZ(0,1,Num(1))))); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(X(0,Num(0)))); PNil
+  AP(CAppU(X(1,Num(0)))); PNil
+  AP(CAppU(CU(0,Num(0),RZ(0,1,Num(1))))); PNil
+  AP(CAppU(X(0,Num(0)))); PNil
+  AP(CAppU(X(1,Num(0)))); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CMeas(10,[])); PNil
+  AP(CMeas(11,[])); PNil
+
+==============================
+[Alg2] P_5 (Grover) on mem5
+Cost = 8
+Memb 0:
+  DP(NewCh(0,1)); PNil
+  DP(Send(0,BA(0))); PNil
+  DP(NewCh(2,1)); PNil
+  DP(Send(2,BA(1))); PNil
+  DP(NewCh(4,1)); PNil
+  DP(Send(4,BA(10))); PNil
+  DP(NewCh(6,1)); PNil
+  DP(Send(6,BA(11))); PNil
+Memb 5:
+  DP(Recv(0,1)); PNil
+  AP(CNew(0,1)); PNil
+  DP(Recv(2,3)); PNil
+  AP(CNew(1,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(CU(0,Num(0),RZ(0,1,Num(1))))); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(X(0,Num(0)))); PNil
+  AP(CAppU(X(1,Num(0)))); PNil
+  AP(CAppU(CU(0,Num(0),RZ(0,1,Num(1))))); PNil
+  AP(CAppU(X(0,Num(0)))); PNil
+  AP(CAppU(X(1,Num(0)))); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  DP(Recv(4,5)); PNil
+  AP(CMeas(10,[])); PNil
+  DP(Recv(6,7)); PNil
+  AP(CMeas(11,[])); PNil
+
+==============================
+[Alg2] P_6 (Teleport) on mem0
+Cost = 0
+Memb 0:
+  AP(CNew(0,1)); PNil
+  AP(CNew(1,1)); PNil
+  AP(CNew(2,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(CU(1,Num(0),X(2,Num(0))))); PNil
+  AP(CAppU(CU(0,Num(0),X(1,Num(0))))); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CMeas(10,[])); PNil
+  AP(CMeas(11,[])); PNil
+  PIf(...,AP(CAppU(X(2,Num(0)))); PNil,PNil)
+  PIf(...,AP(CAppU(RZ(0,2,Num(1)))); PNil,PNil)
+
+==============================
+[Alg2] P_6 (Teleport) on mem5
+Cost = 10
+Memb 0:
+  DP(NewCh(0,1)); PNil
+  DP(Send(0,BA(0))); PNil
+  DP(NewCh(2,1)); PNil
+  DP(Send(2,BA(1))); PNil
+  DP(NewCh(4,1)); PNil
+  DP(Send(4,BA(2))); PNil
+  DP(NewCh(6,1)); PNil
+  DP(Send(6,BA(10))); PNil
+  DP(NewCh(8,1)); PNil
+  DP(Send(8,BA(11))); PNil
+Memb 5:
+  DP(Recv(0,1)); PNil
+  AP(CNew(0,1)); PNil
+  DP(Recv(2,3)); PNil
+  AP(CNew(1,1)); PNil
+  DP(Recv(4,5)); PNil
+  AP(CNew(2,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(CU(1,Num(0),X(2,Num(0))))); PNil
+  AP(CAppU(CU(0,Num(0),X(1,Num(0))))); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  DP(Recv(6,7)); PNil
+  AP(CMeas(10,[])); PNil
+  DP(Recv(8,9)); PNil
+  AP(CMeas(11,[])); PNil
+  PIf(...,AP(CAppU(X(2,Num(0)))); PNil,PNil)
+  PIf(...,AP(CAppU(RZ(0,2,Num(1)))); PNil,PNil)
+
+==============================
+[Alg2] Shor_Qprog on mem0
+Cost = 0
+Memb 0:
+  AP(CNew(0,1)); PNil
+  AP(CNew(1,1)); PNil
+  AP(CNew(2,1)); PNil
+  AP(CNew(20,1)); PNil
+  AP(CNew(21,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(H(2,Num(0)))); PNil
+  AP(CAppU(CU(0,Num(0),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0))))))); PNil
+  AP(CAppU(CU(1,Num(0),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))))))); PNil
+  AP(CAppU(CU(2,Num(0),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))))))))); PNil
+  AP(CAppU(RQFT(0,3))); PNil
+  AP(CMeas(100,[])); PNil
+  AP(CMeas(101,[])); PNil
+  AP(CMeas(102,[])); PNil
+
+==============================
+[Alg2] Shor_Qprog on mem1
+Cost = 16
+Memb 0:
+  DP(NewCh(0,1)); PNil
+  DP(Send(0,BA(0))); PNil
+  DP(NewCh(2,1)); PNil
+  DP(Send(2,BA(1))); PNil
+  DP(NewCh(4,1)); PNil
+  DP(Send(4,BA(2))); PNil
+  DP(NewCh(6,1)); PNil
+  DP(Send(6,BA(20))); PNil
+  DP(NewCh(8,1)); PNil
+  DP(Send(8,BA(21))); PNil
+  DP(NewCh(10,1)); PNil
+  DP(Send(10,BA(100))); PNil
+  DP(NewCh(12,1)); PNil
+  DP(Send(12,BA(101))); PNil
+  DP(NewCh(14,1)); PNil
+  DP(Send(14,BA(102))); PNil
+Memb 1:
+  DP(Recv(0,1)); PNil
+  AP(CNew(0,1)); PNil
+  DP(Recv(2,3)); PNil
+  AP(CNew(1,1)); PNil
+  DP(Recv(4,5)); PNil
+  AP(CNew(2,1)); PNil
+  DP(Recv(6,7)); PNil
+  AP(CNew(20,1)); PNil
+  DP(Recv(8,9)); PNil
+  AP(CNew(21,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(H(2,Num(0)))); PNil
+  AP(CAppU(CU(0,Num(0),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0))))))); PNil
+  AP(CAppU(CU(1,Num(0),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))))))); PNil
+  AP(CAppU(CU(2,Num(0),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))))))))); PNil
+  AP(CAppU(RQFT(0,3))); PNil
+  DP(Recv(10,11)); PNil
+  AP(CMeas(100,[])); PNil
+  DP(Recv(12,13)); PNil
+  AP(CMeas(101,[])); PNil
+  DP(Recv(14,15)); PNil
+  AP(CMeas(102,[])); PNil
+
+==============================
+[Alg2] Shor_Qprog on mem3
+Cost = 16
+Memb 0:
+  DP(NewCh(0,1)); PNil
+  DP(Send(0,BA(0))); PNil
+  DP(NewCh(2,1)); PNil
+  DP(Send(2,BA(1))); PNil
+  DP(NewCh(4,1)); PNil
+  DP(Send(4,BA(2))); PNil
+  DP(NewCh(6,1)); PNil
+  DP(Send(6,BA(20))); PNil
+  DP(NewCh(8,1)); PNil
+  DP(Send(8,BA(21))); PNil
+  DP(NewCh(10,1)); PNil
+  DP(Send(10,BA(100))); PNil
+  DP(NewCh(12,1)); PNil
+  DP(Send(12,BA(101))); PNil
+  DP(NewCh(14,1)); PNil
+  DP(Send(14,BA(102))); PNil
+Memb 3:
+  DP(Recv(0,1)); PNil
+  AP(CNew(0,1)); PNil
+  DP(Recv(2,3)); PNil
+  AP(CNew(1,1)); PNil
+  DP(Recv(4,5)); PNil
+  AP(CNew(2,1)); PNil
+  DP(Recv(6,7)); PNil
+  AP(CNew(20,1)); PNil
+  DP(Recv(8,9)); PNil
+  AP(CNew(21,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(H(2,Num(0)))); PNil
+  AP(CAppU(CU(0,Num(0),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0))))))); PNil
+  AP(CAppU(CU(1,Num(0),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))))))); PNil
+  AP(CAppU(CU(2,Num(0),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))))))))); PNil
+  AP(CAppU(RQFT(0,3))); PNil
+  DP(Recv(10,11)); PNil
+  AP(CMeas(100,[])); PNil
+  DP(Recv(12,13)); PNil
+  AP(CMeas(101,[])); PNil
+  DP(Recv(14,15)); PNil
+  AP(CMeas(102,[])); PNil
+
+==============================
+[Alg2] Shor_Qprog on mem5
+Cost = 16
+Memb 0:
+  DP(NewCh(0,1)); PNil
+  DP(Send(0,BA(0))); PNil
+  DP(NewCh(2,1)); PNil
+  DP(Send(2,BA(1))); PNil
+  DP(NewCh(4,1)); PNil
+  DP(Send(4,BA(2))); PNil
+  DP(NewCh(6,1)); PNil
+  DP(Send(6,BA(20))); PNil
+  DP(NewCh(8,1)); PNil
+  DP(Send(8,BA(21))); PNil
+  DP(NewCh(10,1)); PNil
+  DP(Send(10,BA(100))); PNil
+  DP(NewCh(12,1)); PNil
+  DP(Send(12,BA(101))); PNil
+  DP(NewCh(14,1)); PNil
+  DP(Send(14,BA(102))); PNil
+Memb 5:
+  DP(Recv(0,1)); PNil
+  AP(CNew(0,1)); PNil
+  DP(Recv(2,3)); PNil
+  AP(CNew(1,1)); PNil
+  DP(Recv(4,5)); PNil
+  AP(CNew(2,1)); PNil
+  DP(Recv(6,7)); PNil
+  AP(CNew(20,1)); PNil
+  DP(Recv(8,9)); PNil
+  AP(CNew(21,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(H(2,Num(0)))); PNil
+  AP(CAppU(CU(0,Num(0),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0))))))); PNil
+  AP(CAppU(CU(1,Num(0),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))))))); PNil
+  AP(CAppU(CU(2,Num(0),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))))))))); PNil
+  AP(CAppU(RQFT(0,3))); PNil
+  DP(Recv(10,11)); PNil
+  AP(CMeas(100,[])); PNil
+  DP(Recv(12,13)); PNil
+  AP(CMeas(101,[])); PNil
+  DP(Recv(14,15)); PNil
+  AP(CMeas(102,[])); PNil
+
+==============================
+[Alg1] P_1 auto_disq_alg1_paper(kseq=3,kmem=3) on cfg2
+Cost = 0
+Memb 1:
+  AP(CNew(0,1)); PNil
+  AP(CMeas(10,[])); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+
+==============================
+[Alg1] P_3 auto_disq_alg1_paper(kseq=3,kmem=3) on cfg2
+Cost = 0
+Memb 1:
+  AP(CNew(0,1)); PNil
+  AP(CNew(2,1)); PNil
+  AP(CMeas(10,[])); PNil
+  AP(CMeas(12,[])); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CMeas(11,[])); PNil
+  AP(CNew(1,1)); PNil
+  AP(CAppU(CU(0,Num(0),X(1,Num(0))))); PNil
+  AP(CAppU(CU(0,Num(0),X(2,Num(0))))); PNil
+
+==============================
+[Alg1] P_4 auto_disq_alg1_paper(kseq=3,kmem=3) on cfg2
+Cost = 0
+Memb 1:
+  AP(CNew(0,1)); PNil
+  AP(CMeas(10,[])); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(QFT(0,3))); PNil
+  AP(CAppU(RQFT(0,3))); PNil
+
+==============================
+[Alg1] P_5 auto_disq_alg1_paper(kseq=3,kmem=3) on cfg2
+Cost = 0
+Memb 1:
+  AP(CNew(0,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CMeas(11,[])); PNil
+  AP(CMeas(10,[])); PNil
+  AP(CNew(1,1)); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CAppU(CU(0,Num(0),RZ(0,1,Num(1))))); PNil
+  AP(CAppU(CU(0,Num(0),RZ(0,1,Num(1))))); PNil
+  AP(CAppU(X(0,Num(0)))); PNil
+  AP(CAppU(X(0,Num(0)))); PNil
+  AP(CAppU(X(1,Num(0)))); PNil
+  AP(CAppU(X(1,Num(0)))); PNil
+
+==============================
+[Alg1] P_6 auto_disq_alg1_paper(kseq=3,kmem=3) on cfg2
+Cost = 0
+Memb 1:
+  AP(CNew(0,1)); PNil
+  AP(CNew(2,1)); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CMeas(11,[])); PNil
+  PIf(...,AP(CAppU(RZ(0,2,Num(1)))); PNil,PNil)
+  AP(CNew(1,1)); PNil
+  AP(CMeas(10,[])); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  PIf(...,AP(CAppU(X(2,Num(0)))); PNil,PNil)
+  AP(CAppU(CU(1,Num(0),X(2,Num(0))))); PNil
+  AP(CAppU(CU(0,Num(0),X(1,Num(0))))); PNil
+
+==============================
+[Alg1] Shor_Qprog auto_disq_alg1_paper(kseq=3,kmem=3) on cfg2
+Cost = 14
+Memb 0:
+  AP(CNew(1,1)); PNil
+  AP(CNew(20,1)); PNil
+  AP(CAppU(H(1,Num(0)))); PNil
+  AP(CMeas(101,[])); PNil
+  AP(CNew(0,1)); PNil
+  AP(CNew(21,1)); PNil
+  AP(CMeas(102,[])); PNil
+  AP(CMeas(100,[])); PNil
+  AP(CAppU(H(0,Num(0)))); PNil
+  AP(CNew(2,1)); PNil
+  DP(NewCh(0,1)); PNil
+  DP(Send(0,BA(0))); PNil
+  DP(NewCh(2,1)); PNil
+  DP(Send(2,BA(20))); PNil
+  DP(NewCh(4,1)); PNil
+  DP(Send(4,BA(20))); PNil
+  DP(NewCh(6,1)); PNil
+  DP(Send(6,BA(21))); PNil
+  AP(CAppU(H(2,Num(0)))); PNil
+  DP(Recv(8,9)); PNil
+  AP(CAppU(RQFT(0,3))); PNil
+  DP(NewCh(10,1)); PNil
+  DP(Send(10,BA(1))); PNil
+  DP(NewCh(12,1)); PNil
+  DP(Send(12,BA(2))); PNil
+Memb 1:
+  DP(Recv(0,1)); PNil
+  DP(Recv(2,3)); PNil
+  DP(Recv(4,5)); PNil
+  DP(Recv(6,7)); PNil
+  AP(CAppU(CU(0,Num(0),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0))))))); PNil
+  DP(NewCh(8,1)); PNil
+  DP(Send(8,BA(0))); PNil
+  DP(Recv(10,11)); PNil
+  AP(CAppU(CU(1,Num(0),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))))))); PNil
+  DP(Recv(12,13)); PNil
+  AP(CAppU(CU(2,Num(0),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))),Seq(X(20,Num(0)),CU(20,Num(0),X(21,Num(0)))))))))); PNil
+
+

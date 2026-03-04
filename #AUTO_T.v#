@@ -1,0 +1,505 @@
+From Coq Require Import List Arith Bool Nat.
+Import ListNotations.
+Local Open Scope nat_scope.
+Local Open Scope list_scope.
+
+Require Import DisQ.BasicUtility.   (* var := nat *)
+Require Import DisQ.DisQSyntax.     (* exp, process, memb, config, ... *)
+Require Import DisQ.AUTO.
+Require Import Coq.Program.Wf.
+Require Import Coq.Arith.PeanoNat.
+Require Import Lia.
+
+(* ============================================================ *)
+(* Assumption: your project myOp is exactly this (imported)      *)
+(*   Inductive myOp : Type :=                                   *)
+(*   | OpAP (a : cexp)                                          *)
+(*   | OpIf (b : cbexp) (p q : list cexp).                      *)
+(* ============================================================ *)
+
+(* ------------------------------------------------------------ *)
+(* Small helpers for viewing results                            *)
+(* ------------------------------------------------------------ *)
+
+Definition cfg1 : config := [Memb 0 []; Memb 1 []].
+
+Definition memb_procs (m : memb) : list process :=
+  match m with
+  | Memb _ ps => ps
+  | LockMemb _ _ ps => ps
+  end.
+
+Fixpoint flatten_config (cfg : config) : list process :=
+  match cfg with
+  | [] => []
+  | m :: tl => memb_procs m ++ flatten_config tl
+  end.
+
+(* Convert a list of cexp into a sequential process AP ... AP ... PNil *)
+Fixpoint proc_of_cexps (xs : list cexp) : process :=
+  match xs with
+  | [] => PNil
+  | a :: tl => AP a (proc_of_cexps tl)
+  end.
+
+(* ------------------------------------------------------------ *)
+(* Basic sanity: Alg1 on tiny program                            *)
+(* ------------------------------------------------------------ *)
+
+Definition op1 : myOp := OpAP (CNew 0 1).
+Definition op2 : myOp := OpAP (CMeas 0 ([] : locus)).
+Definition R1  : op_list := [op1; op2].
+
+Definition P1 : distributed_prog :=
+  auto_disq_alg1_paper 2 2 R1 cfg1.
+
+Compute P1.
+Compute fit P1.
+
+(* ------------------------------------------------------------ *)
+(* insert_send_recv quick checks                                 *)
+(* ------------------------------------------------------------ *)
+
+Definition cfg_test : config := [Memb 0 []; Memb 1 []].
+
+Definition S_empty : Smap := [].
+Definition T1 := insert_send_recv cfg_test S_empty 1 0.
+Compute T1.
+
+Definition S_one : Smap := [(0, 0)].
+Definition T2 := insert_send_recv cfg_test S_one 1 0.
+Compute T2.
+Compute flatten_config (fst T2).
+
+Definition S_two : Smap := [(0,0); (1,0)].
+Definition T3 := insert_send_recv cfg_test S_two 1 0.
+Compute T3.
+
+(* ------------------------------------------------------------ *)
+(* Alg2 building blocks (if you use these in AUTO)               *)
+(* ------------------------------------------------------------ *)
+
+Definition opAP1 : myOp := OpAP (CNew 0 1).
+
+Definition moQ0 : var -> membrane_id := fun _ => 0.
+Definition moO_to_1 : myOp -> membrane_id := fun _ => 1.
+
+Definition TB :=
+  gen_prog_loop_alg2 ([opAP1] : list myOp) moQ0 moO_to_1 empty_config 0.
+
+Compute TB.
+Compute flatten_config TB.
+
+(* ------------------------------------------------------------ *)
+(* IMPORTANT FIX: OpIf branches must be list cexp, not process    *)
+(* ------------------------------------------------------------ *)
+
+Definition cond0 : cbexp := CEq (BA 0) (Num 0).
+
+
+Definition p_then : process := AP (CNew 0 1) PNil.
+Definition p_else : process := PNil.
+
+Definition opIF1 : myOp := OpIf cond0 p_then p_else.
+
+(*
+Definition then_cexps : list cexp := [CNew 0 1].
+Definition else_cexps : list cexp := [].
+Definition opIF1 : myOp :=
+  OpIf cond0
+       (proc_of_cexps then_cexps)
+       (proc_of_cexps else_cexps).
+
+*)
+Definition TC :=
+  gen_prog_loop_alg2 ([opIF1] : list myOp) moQ0 moO_to_1 empty_config 0.
+
+Compute TC.
+Compute flatten_config TC.
+
+(* ------------------------------------------------------------ *)
+(* Another small sequence                                        *)
+(* ------------------------------------------------------------ *)
+
+Definition opAP2 : myOp := OpAP (CMeas 0 ([] : locus)).
+Definition seq2 : list myOp := [opAP1; opAP2].
+
+Definition TD :=
+  gen_prog_alg2 seq2 moQ0 moO_to_1.
+
+Compute TD.
+Compute flatten_config TD.
+
+Compute diff_mem moQ0 (locus_myOp opAP1) 1.
+Compute diff_mem (mem_up_smap moQ0 (diff_mem moQ0 (locus_myOp opAP1) 1) 1)
+                (locus_myOp opAP2) 1.
+
+(* ============================================================ *)
+(* Tests for Algorithm 1 (NO OpDP anywhere)                      *)
+(* ============================================================ *)
+
+Definition cfgA : config := [Memb 0 []; Memb 1 []].
+
+Definition Aop1 : myOp := OpAP (CNew 0 1).
+Definition Aop2 : myOp := OpAP (CMeas 0 ([] : locus)).
+Definition AR1  : op_list := [Aop1; Aop2].
+
+Definition AP1 : distributed_prog :=
+  auto_disq_alg1_paper 2 2 AR1 cfgA.
+
+Compute AP1.
+Compute fit AP1.
+
+(* If you previously had OpDP(NewCh...), DELETE it.
+   Channel ops are inserted by the distributed output, not as myOp input. *)
+Definition Aop3 : myOp := OpAP (CNew 1 1).
+Definition AR2  : op_list := [Aop1; Aop3; Aop2].
+
+Definition AP2 : distributed_prog :=
+  auto_disq_alg1_paper 3 3 AR2 cfgA.
+
+Compute AP2.
+Compute fit AP2.
+
+(* ============================================================ *)
+(* Tests for Algorithm 3                                         *)
+(* ============================================================ *)
+
+Definition B1 : myOp := OpAP (CNew 0 1).
+Definition B2 : myOp := OpAP (CMeas 0 ([] : locus)).
+Definition B3 : myOp := OpAP (CNew 1 1).
+
+Definition Bops : list myOp := [B1; B2; B3].
+
+Definition hpB : hb_relation :=
+  fun a b =>
+    orb
+      (orb (andb (myOp_eqb a B1) (myOp_eqb b B2))
+           (andb (myOp_eqb a B2) (myOp_eqb b B1)))
+      (andb (myOp_eqb a B2) (myOp_eqb b B3)).
+
+Definition seqB : seq_relation :=
+  fun o =>
+    if myOp_eqb o B1 then 0
+    else if myOp_eqb o B2 then 1
+    else 2.
+
+Definition Rpar : list process :=
+  auto_parallelize_alg3 myOp_eqb Bops hpB seqB.
+
+Compute Rpar.
+
+(* ============================================================ *)
+(* Example “quantum program in op_list format”                   *)
+(* ============================================================ *)
+
+Definition q0 : var := 0.
+Definition q1 : var := 1.
+
+Definition L : locus := ([] : locus).
+
+Definition eH_q0 : exp := H q0 (Num 0).
+Definition eX_q1 : exp := X q1 (Num 0).
+Definition eCX   : exp := CU q0 (Num 0) eX_q1.
+
+Definition appH_q0 : cexp := CAppU L eH_q0.
+Definition appCX   : cexp := CAppU L eCX.
+
+Definition new_q0 : cexp := CNew q0 1.
+Definition new_q1 : cexp := CNew q1 1.
+
+Definition x0 : var := 10.
+Definition x1 : var := 11.
+
+Definition meas_q0 : cexp := CMeas x0 L.
+Definition meas_q1 : cexp := CMeas x1 L.
+
+Definition Qprog : op_list :=
+  [ OpAP new_q0;
+    OpAP new_q1;
+    OpAP appH_q0;
+    OpAP appCX;
+    OpAP meas_q0;
+    OpAP meas_q1
+  ].
+
+Definition cfg2 : config := [Memb 0 []; Memb 1 []].
+
+Definition Pbest : distributed_prog :=
+  auto_disq_alg1_paper 3 3 Qprog cfg2.
+
+Compute Pbest.
+Compute fit Pbest.
+
+
+(*
+Opaque controlled_pow.
+Opaque qpe_controlled_pows.
+*)
+(* Allocate qubits: OpAP (CNew q 1) for each q *)
+Fixpoint alloc_qubits_from (qs : list var) : op_list :=
+  match qs with
+  | [] => []
+  | q :: tl => OpAP (CNew q 1) :: alloc_qubits_from tl
+  end.
+
+(* Apply H to each phase qubit *)
+Fixpoint apply_H_all_from (qs : list var) : op_list :=
+  match qs with
+  | [] => []
+  | q :: tl => OpAP (CAppU L (H q (Num 0))) :: apply_H_all_from tl
+  end.
+
+(* Measure each classical output bit c *)
+Fixpoint meas_all_from (cs : list var) : op_list :=
+  match cs with
+  | [] => []
+  | c :: tl => OpAP (CMeas c L) :: meas_all_from tl
+  end.
+
+Definition t_phase64 : nat := 64.
+Definition phase_qubits64 : list var := List.seq 0 t_phase64.
+Definition phase_bits64  : list var := List.seq 1000 t_phase64.
+
+(* Work register (fresh ids, not in 0..63) *)
+Definition w0 : var := 100.
+Definition w1 : var := 101.
+Definition new_w0 : cexp := CNew w0 1.
+Definition new_w1 : cexp := CNew w1 1.
+
+Definition appRQFT64 : cexp := CAppU L (RQFT 0 64).
+
+Definition modmult_blackbox (_ws : list var) : exp := SKIP 0 (Num 0).
+Definition w_start : var := 20.
+Definition n_work  : nat := 16.
+Definition work_qubits : list var := List.seq w_start n_work.
+
+Definition controlled_pow (control : var) (_k : nat) : op_list :=
+  [ OpAP (CAppU L (CU control (Num 0) (modmult_blackbox work_qubits))) ].
+
+Fixpoint qpe_controlled_pows (qs : list var) (k : nat) : op_list :=
+  match qs with
+  | [] => []
+  | q :: tl => controlled_pow q k ++ qpe_controlled_pows tl (S k)
+  end.
+
+Definition Shor_Qprog_64 : op_list :=
+  alloc_qubits_from phase_qubits64 ++
+  [OpAP new_w0; OpAP new_w1] ++
+  apply_H_all_from phase_qubits64 ++
+  qpe_controlled_pows phase_qubits64 0 ++
+  [OpAP appRQFT64] ++
+  meas_all_from phase_bits64.
+
+
+
+Check Shor_Qprog_64 : op_list.
+Eval cbn in (length Shor_Qprog_64).
+
+(* Count controlled applications (CU ...) in an op_list *)
+Fixpoint count_CU (ops : op_list) : nat :=
+  match ops with
+  | [] => 0
+  | OpAP (CAppU _ (CU _ _ _)) :: tl => S (count_CU tl)
+  | _ :: tl => count_CU tl
+  end.
+
+(* Count QFT and RQFT occurrences *)
+Fixpoint count_QFT (ops : op_list) : nat :=
+  match ops with
+  | [] => 0
+  | OpAP (CAppU _ (QFT _ _)) :: tl => S (count_QFT tl)
+  | _ :: tl => count_QFT tl
+  end.
+
+Fixpoint count_RQFT (ops : op_list) : nat :=
+  match ops with
+  | [] => 0
+  | OpAP (CAppU _ (RQFT _ _)) :: tl => S (count_RQFT tl)
+  | _ :: tl => count_RQFT tl
+  end.
+
+(* ---------- 32-qubit Shor ---------- *)
+
+Definition t_phase32 : nat := 16.
+Definition n_work32  : nat := 16.
+Definition p0 : var := 0.      (* starting index of phase register *)
+
+Definition phase_qubits32 : list var :=
+  List.seq p0 t_phase32.
+
+(* work qubits: w0..w0+15 (w0 must be defined as var) *)
+Definition work_qubits32 : list var := List.seq w0 n_work32.
+
+Definition phase_bits32 : list var := List.seq 1000 t_phase32.
+
+Definition appRQFT32 : cexp := CAppU L (RQFT p0 t_phase32).
+
+Definition Shor_Qprog32 : op_list :=
+  alloc_qubits_from phase_qubits32 ++
+  alloc_qubits_from work_qubits32 ++
+  apply_H_all_from phase_qubits32 ++
+  qpe_controlled_pows phase_qubits32 0 ++
+  [OpAP appRQFT32] ++
+  meas_all_from phase_bits32.
+
+(* ---------- sanity checks ---------- *)
+Eval cbn in (length phase_qubits32).  (* 16 *)
+Eval cbn in (length work_qubits32).   (* 16 *)
+Eval cbn in (length phase_bits32).    (* 16 *)
+Eval cbn in (count_CU Shor_Qprog32).  (* should be 16 if qpe_controlled_pows makes one per phase qubit *)
+
+Definition seq0 : seq_relation := fun _ => 0.
+Definition moO0 : myOp -> membrane_id := fun _ => 0.
+
+Definition Shor32_dist0 : distributed_prog :=
+  gen_prog_paper seq0 moQ0 moO0 Shor_Qprog32.
+
+Compute fit Shor32_dist0.
+
+Definition moO5 : op_mem_assign := fun _ => 5.
+(* or, if your file doesn’t use op_mem_assign name: *)
+(* Definition moO5 : myOp -> membrane_id := fun _ => 5. *)
+Definition Shor32_dist5 : distributed_prog :=
+  gen_prog_paper seq0 moQ0 moO5 Shor_Qprog32.
+
+Compute fit Shor32_dist0.
+Compute fit Shor32_dist5.
+
+(* ============================ *)
+(* GHZ on 32 qubits             *)
+(* ============================ *)
+
+Definition ghz32_n : nat := 32.
+Definition ghz32_qs : list var := List.seq 0 ghz32_n.
+Definition ghz32_outs : list var := List.seq 200 ghz32_n.
+
+Fixpoint cnot_from (ctrl : var) (qs : list var) : op_list :=
+  match qs with
+  | [] => []
+  | q :: tl =>
+      OpAP (CAppU L (CU ctrl (Num 0) (X q (Num 0)))) :: cnot_from ctrl tl
+  end.
+
+Definition GHZ32_prog : op_list :=
+  alloc_qubits_from ghz32_qs ++
+  [OpAP (CAppU L (H 0 (Num 0)))] ++
+  cnot_from 0 (List.seq 1 (ghz32_n - 1)) ++
+  meas_all_from ghz32_outs.
+
+Example test_GHZ32_has_31_CNOTs :
+  count_CU GHZ32_prog = 31.
+Proof. cbn; reflexivity. Qed.
+
+Definition GHZ32_best : distributed_prog :=
+  auto_disq_alg1_paper 3 3 GHZ32_prog cfg2.
+
+Compute fit GHZ32_best.
+
+
+
+(* 6 membranes available *)
+Definition cfg6 : config :=
+  [ Memb 0 []; Memb 1 []; Memb 2 []; Memb 3 []; Memb 4 []; Memb 5 [] ].
+
+
+(* ---------- QFT-64 ---------- *)
+
+Definition qft64_n  : nat := 64.
+Definition qft64_q0 : var := 0.
+
+Definition qft64_qubits : list var := List.seq qft64_q0 qft64_n.
+Definition qft64_outs   : list var := List.seq 1000 qft64_n.
+
+Definition QFT64_prog : op_list :=
+  alloc_qubits_from qft64_qubits ++
+  [ OpAP (CAppU L (QFT qft64_q0 qft64_n));
+    OpAP (CAppU L (RQFT qft64_q0 qft64_n))
+  ] ++
+  meas_all_from qft64_outs.
+
+
+Example test_QFT64_counts :
+  count_QFT QFT64_prog = 1 /\ count_RQFT QFT64_prog = 1.
+Proof. cbn; auto. Qed.
+
+Definition QFT64_dist0 : distributed_prog :=
+  gen_prog_paper seq0 moQ0 moO0 QFT64_prog.
+
+Definition QFT64_dist5 : distributed_prog :=
+  gen_prog_paper seq0 moQ0 moO5 QFT64_prog.
+
+Compute fit QFT64_dist0.
+Compute fit QFT64_dist5.
+
+Eval cbn in (length qft64_qubits).  (* 64 *)
+Eval cbn in (length qft64_outs).    (* 64 *)
+
+(* ---------- QFT-32 ---------- *)
+
+Definition qft32_n  : nat := 32.
+Definition qft32_q0 : var := 0.
+
+Definition qft32_qubits : list var := List.seq qft32_q0 qft32_n.
+Definition qft32_outs   : list var := List.seq 100 qft32_n.
+
+Definition QFT32_prog : op_list :=
+  alloc_qubits_from qft32_qubits ++
+  [ OpAP (CAppU L (QFT qft32_q0 qft32_n));
+    OpAP (CAppU L (RQFT qft32_q0 qft32_n))
+  ] ++
+  meas_all_from qft32_outs.
+
+
+(* ===================================== *)
+(* Alg1 test for QFT-32 and QFT-64        *)
+(* ===================================== *)
+
+(* assumes QFT32_prog is already defined above *)
+Definition QFT32_best : distributed_prog :=
+  auto_disq_alg1_paper 1 1 QFT32_prog cfg6.
+Compute fit QFT32_best.
+
+Definition QFT64_best : distributed_prog :=
+  auto_disq_alg1_paper 1 1 QFT64_prog cfg6.
+Compute fit QFT64_best.
+
+
+
+
+(* ===================================== *)
+(* Ripple-Carry Adder (well-typed skeleton) *)
+(* ===================================== *)
+
+(* We just define a small, legal “MAJ/UMA-like” pattern on 3 qubits.
+   You can later expand to true ripple-carry with indices and loops. *)
+
+Definition a0 : var := 2000.
+Definition b0 : var := 2001.
+Definition c0 : var := 2002.
+
+Definition MAJ_1 (a b c : var) : op_list :=
+  [ OpAP (CAppU L (CU c (Num 0) (X b (Num 0))));
+    OpAP (CAppU L (CU c (Num 0) (X a (Num 0))));
+    OpAP (CAppU L (CU a (Num 0) (CU b (Num 0) (X c (Num 0)))))
+  ].
+
+Definition UMA_1 (a b c : var) : op_list :=
+  [ OpAP (CAppU L (CU a (Num 0) (CU b (Num 0) (X c (Num 0)))));
+    OpAP (CAppU L (CU c (Num 0) (X a (Num 0))));
+    OpAP (CAppU L (CU a (Num 0) (X b (Num 0))))
+  ].
+
+Definition rippleCarrySeq : op_list :=
+  (* allocate 3 qubits a0 b0 c0 *)
+  [ OpAP (CNew a0 1);
+    OpAP (CNew b0 1);
+    OpAP (CNew c0 1)
+  ] ++
+  MAJ_1 a0 b0 c0 ++
+  UMA_1 a0 b0 c0.
+
+Definition ripple_dist : distributed_prog :=
+  auto_disq_alg1_paper 2 2 rippleCarrySeq cfg6.
+
+Compute fit ripple_dist.

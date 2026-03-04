@@ -1,0 +1,16 @@
+High-Level Qafny Program
+          ↓
+     AutoDisQ
+   (Placement Phase)
+          ↓
+Distributed IR
+          ↓
+Teleportation Rewrite Pass
+          ↓
+Teleportation-Aware IR
+          ↓
+PCQC
+(Proof-Carrying Compilation)
+          ↓
+Certified Distributed Quantum Program
+

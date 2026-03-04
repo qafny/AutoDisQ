@@ -1600,6 +1600,3 @@ Definition auto_parallelize_alg3_layers
   let hp_l' := opt_hp hp_l seq_l in
   let S := layer_partition eqb hp_l' (uniq_ops eqb ops_l) in
   alg3_loop seq_l S ([] : list process).
-
-
-
