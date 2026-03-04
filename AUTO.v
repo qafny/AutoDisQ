@@ -20,8 +20,8 @@ Inductive myOp : Type :=
 | OpIf  (b : cbexp) (p q : list cexp). 
 
 Definition op_list : Type := list myOp.
-Definition hb_relation : Type := nat -> nat -> bool.
-Definition rank         : Type := nat.
+Definition hb_relation : Type := N -> N -> bool.
+Definition rank         : Type := N.
 Definition seq_relation : Type := myOp -> rank.
 Definition op_mem_assign : Type := myOp -> membrane_id.
 
@@ -251,42 +251,159 @@ Definition is_inter (x y: cexp) :=
 Definition inter_vars (xs ys : list var) : bool :=
    match set_inter Nat.eq_dec xs ys with nil => false | _ => true end.
 
-Definition gen_hb_single (x y: nat * myOp) acc :=
+Definition gen_hb_single (x y: N * myOp) acc : N -> N -> bool :=
    match snd x, snd y
-    with OpAP xa, OpAP ya => fun i j => if (i =? fst x) && (j =? fst y) then is_inter xa ya else acc i j
+    with OpAP xa, OpAP ya => fun i j => if (N.eqb i (fst x)) && (N.eqb j (fst y)) then is_inter xa ya else acc i j
        | OpAP xa, OpIf ya la ra => 
-             fun i j => if (i =? fst x) && (j =? fst y) 
-                    then intersect (get_locus xa) (get_loci (la++ra)) && inter_vars (get_vars_cexp xa) (get_vars_bexp ya) else acc i j
+             fun i j => if (N.eqb i (fst x)) && (N.eqb j (fst y)) 
+                    then intersect (get_locus xa) (get_loci (la++ra)) || inter_vars (get_vars_cexp xa) (get_vars_bexp ya) else acc i j
        | OpIf ya la ra, OpAP xa =>
-             fun i j => if (i =? fst y) && (j =? fst x)
-                    then intersect (get_locus xa) (get_loci (la++ra)) && inter_vars (get_vars_cexp xa) (get_vars_bexp ya) else acc i j
+             fun i j => if (N.eqb i (fst y)) && (N.eqb j (fst x))
+                    then intersect (get_locus xa) (get_loci (la++ra)) || inter_vars (get_vars_cexp xa) (get_vars_bexp ya) else acc i j
        | OpIf xa la ra, OpIf ya lb rb =>
-             fun i j => if (i =? fst y) && (j =? fst x)
-                    then intersect (get_loci (la++ra)) (get_loci (lb++rb)) && inter_vars (get_vars_bexp xa) (get_vars_bexp ya) else acc i j
+             fun i j => if (N.eqb i (fst y)) && (N.eqb j (fst x))
+                    then intersect (get_loci (la++ra)) (get_loci (lb++rb)) || inter_vars (get_vars_bexp xa) (get_vars_bexp ya) else acc i j
    end.
 
+Definition gen_next (n:N) (x y: N * myOp) (r:N -> N -> bool) :=
+  fun a b => if (N.eqb a (fst x)) && (N.ltb (fst y) b) && (N.ltb b n) then r (fst y) b else r a b.
+
 (* --- corrected hp --- *)
-Fixpoint opListOrder' (l : op_list) (n:nat) :=
+Fixpoint opListOrder' (l : op_list) (n:N) :=
   match l with nil => nil
              | x::xs => (n,x)::opListOrder' xs (n+1)
   end.
 Definition opListOrder l := opListOrder' l 0.
 
-Definition empty_hp := fun (x y:nat) => false.
+Definition empty_hp := fun (x y:N) => false.
 
 
-Fixpoint gen_hb' (x: nat * myOp) l (acc:hb_relation) := 
-  match l with nil => acc
-             | a::xas => gen_hb' x xas (gen_hb_single x a acc)
+(* hp relation is transitive closure. *)
+Fixpoint gen_hb' (n:N) (x: N * myOp) l := 
+  match l with nil => empty_hp
+             | a::xas => gen_next n x a (gen_hb_single x a (gen_hb' n x xas))
   end.
 
-Fixpoint gen_hb_a (R : list (nat * myOp)) acc :=
+Fixpoint gen_hb_a (n:N) (R : list (N * myOp)) acc :=
    match R with nil => acc
-             | a::xas => gen_hb_a xas (gen_hb' a xas acc)
+             | a::xas => gen_hb_a n xas (gen_hb' n a xas)
    end.
-Definition gen_hb (R : list (nat * myOp)) := gen_hb_a R empty_hp.
+Definition gen_hb (R : list (N * myOp)) := gen_hb_a (N.of_nat (length R)) R empty_hp.
 
 
+(* eq exp *)
+Fixpoint sim_exp (x y :exp) :=
+  match x,y with SKIP a b, SKIP c d => true
+               | X a b, X c d => true
+               | CU a b x1, CU c d y1 => sim_exp x1 y1
+               | RZ a b c, RZ e f g => true
+               | RRZ a b c, RRZ e f g => true
+               | SR a b, SR c d => true
+               | SRR a b, SRR c d => true
+               | QFT a b, QFT c d => true
+               | RQFT a b, RQFT c d => true
+               | H a b, H c d => true
+               | Addto a b, Addto c d => true
+               | Seq x1 x2, Seq y1 y2 => sim_exp x1 y1 && sim_exp x2 y2
+               | _, _ => false
+  end.
+
+Definition sim_cexp (x y: cexp) :=
+  match x,y with CNew a, CNew b => true
+               | CAppU l1 a, CAppU l2 b => sim_exp a b
+               | CMeas a b, CMeas c d => true
+               | Send a b c, Send e f g => true
+               | Recv a b c, Recv e f g => true
+               | _, _ => false
+  end.
+
+Definition sim_myop (x y: myOp) :=
+   match x,y with OpAP a, OpAP b => sim_cexp a b
+                | _, _ => false
+   end.
+
+Definition insert_op (a:N *myOp) acc :=
+  match acc with nil => [[a]]
+               | []::xl => [a]::xl
+               | ((i,OpAP b)::xl)::al => 
+         match a with (j,OpAP q) => if sim_cexp q b then ((i,OpAP b)::xl++[(j,OpAP q)])::al else [(j,OpAP q)]::(((i,OpAP b)::xl)::al)
+                    | (i,OpIf c d e) => [(i,OpIf c d e)]::(((i,OpAP b)::xl)::al)
+         end
+               | ((i,OpIf c d e)::xl)::al => [a]::((i,OpIf c d e)::xl)::al
+  end.
+
+Fixpoint partition_op' (l:list (N * myOp)) acc :=
+  match l with nil => acc
+                | x::xl => partition_op' xl (insert_op x acc)
+  end.
+Definition partition_op l := rev (partition_op' l []).
+
+
+Fixpoint insert_all (x : N * myOp) (xs : list (N * myOp)) : list (list (N * myOp)) :=
+  match xs with
+  | [] => [[x]]
+  | y :: tl =>
+      (x :: y :: tl) :: map (fun zs => y :: zs) (insert_all x tl)
+  end.
+
+Fixpoint permutations (xs : list (N * myOp)) : list (list (N * myOp)) :=
+  match xs with
+  | [] => [[]]
+  | x :: tl => concat (map (insert_all x) (permutations tl))
+  end.
+
+Fixpoint car_concat' (x:list (N * myOp)) (y : list (list (N * myOp))) := 
+  match y with nil => nil
+            | a::ys => (x++a)::(car_concat' x ys)
+  end.
+
+Fixpoint car_concat (x y:  list (list (N * myOp))) :=
+   match x with nil => nil
+              | a::xs => (car_concat' a y) ++ car_concat xs y
+   end.
+
+Fixpoint get_first (l:list (list (N * myOp))) acc := 
+   match l with nil => acc
+              | []::xs => get_first xs acc
+              | (a::xs)::ys => get_first ys (match acc with (c,d) => (c++[a],d++[xs]) end)
+   end.
+
+Fixpoint grab_related' (x: N* myOp) (l:list (N * myOp)) (re:hb_relation) acc :=
+  match l with nil => acc
+             | a::xs => if re (fst x) (fst a) then grab_related' x xs re acc else grab_related' x xs re (acc++[a])
+  end.
+Definition grab_related l re := match l with nil => nil | x::xs => grab_related' x xs re ([x]) end.
+
+Definition grab_nums (l:(list (N * myOp))) := fst (split l).
+
+Fixpoint in_list (x:N) (l:list N) :=
+  match l with nil => false | a::xs => if N.eqb x a then true else in_list x xs end.
+
+Fixpoint insert_back (x:(list (N * myOp))) (l: (list (list (N * myOp)))) (re:list N) :=
+   match x with nil => nil
+             | a::xs =>
+           match l with nil => nil
+                     | la::ls => if in_list (fst a) re then la::(insert_back xs ls re) else (a::la)::(insert_back xs ls re)
+           end
+   end.
+
+Fixpoint assign_each (n:nat) (l:list (list (N * myOp))) (re:hb_relation) acc :=
+  match n with 0 => acc
+             | S m =>
+      match get_first l (nil,nil) with (nil,nil) => acc
+                           | (a,b) => let good := (grab_related a re) in
+                         assign_each m (insert_back a b (fst (split good))) re (car_concat acc (permutations good))
+      end
+  end.
+
+Definition gen_seq (l:list (N * myOp)) (re: hb_relation) := 
+   let can := partition_op l in
+   match can with nil => nil
+                | x::xs => assign_each (length l - length x) xs re [x]
+   end.
+
+
+(* maintain the following. *)
 (* ------------------------------------------------------------------------- *)
 (* Basic list helpers                                                        *)
 (* ------------------------------------------------------------------------- *)
@@ -312,6 +429,8 @@ Fixpoint intersect (xs ys : list var) : list var :=
   | x :: tl => if mem_var x ys then x :: intersect tl ys else intersect tl ys
   end.
 *)
+
+
 
 
 (* ------------------------------------------------------------------------- *)
