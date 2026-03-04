@@ -17,3 +17,21 @@
 # Extraction
 extracted/
 *.crashcoqide
+# Coq compiled files
+*.vo
+*.vos
+*.vok
+*.glob
+
+# OCaml compiled files
+*.cmi
+*.cmo
+*.cmx
+*.o
+
+# CoqIDE crash files
+*.crashcoqide
+
+# temporary files
+*.aux
+#*#
