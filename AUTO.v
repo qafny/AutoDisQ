@@ -628,7 +628,7 @@ Fixpoint turn_new (l:list (N * myOp * membrane_id)) acc :=
 end.
 
 Definition gen_mem (news: list (N * myOp)) (l:list (list (N * myOp))) (ids:list membrane_id) (hb: hb_relation) := 
-  assign_mem_more (turn_new (gen_mem_new news ids) nil) hb l nil.
+  map (fun a => (gen_mem_new news ids)++a) (assign_mem_more (turn_new (gen_mem_new news ids) nil) hb l nil).
 
 
 (* maintain the following. *)
