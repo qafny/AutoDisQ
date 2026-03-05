@@ -4,6 +4,7 @@ Require Import Coq.Sorting.Mergesort.
 Require Import Coq.Structures.Orders.
 Require Import Coq.Lists.List.
 Require Import Coq.Lists.ListSet.
+Require Import QArith.
 Local Open Scope nat_scope.
 Local Open Scope list_scope.
 
@@ -192,14 +193,14 @@ End RangeOrder.
 Module SortRange := Sort(RangeOrder).
 
 
-Check SortRange.sort.
-
 (*
 Define intersect of two locus.
 *)
 Definition nat_range_inter (x y : (nat * nat)) :=
       ((fst x <=? fst y) && (fst y <? snd x))
   ||  ((fst y <? fst x) && (fst x <? snd y)).
+
+Definition nat_range_sub (x y : (nat * nat)) := ((fst y <=? fst x) && (snd x <? snd y)).
 
 Definition range_intersect (x y : range) := ((fst x) =? (fst y)) && nat_range_inter (snd x) (snd y).
 
@@ -289,6 +290,13 @@ Fixpoint gen_hb_a (n:N) (R : list (N * myOp)) acc :=
              | a::xas => gen_hb_a n xas (gen_hb' n a xas)
    end.
 Definition gen_hb (R : list (N * myOp)) := gen_hb_a (N.of_nat (length R)) R empty_hp.
+
+
+
+(* ------------------------------------------------------------------------- *)
+(* gen_seq                                                            *)
+(* ------------------------------------------------------------------------- *)
+
 
 
 (* eq exp *)
@@ -398,9 +406,229 @@ Fixpoint assign_each (n:nat) (l:list (list (N * myOp))) (re:hb_relation) acc :=
 
 Definition gen_seq (l:list (N * myOp)) (re: hb_relation) := 
    let can := partition_op l in
-   match can with nil => nil
-                | x::xs => assign_each (length l - length x) xs re [x]
+   match can with nil => (nil,nil)
+                | x::xs => (x,assign_each (length l - length x) xs re [nil])
    end.
+
+(* ------------------------------------------------------------------------- *)
+(* gen_mem                                                           *)
+(* ------------------------------------------------------------------------- *)
+
+Fixpoint count_a (t:nat) (new: list (N * myOp)) (a:membrane_id) acc :=
+  match t with 0 => (acc,new)
+            | S m => 
+   match new with nil => (acc,nil)
+               | x::xs => count_a m xs a (acc ++[(x,a)]) 
+   end
+  end.
+
+Fixpoint gen_mem_new' (size:nat) (news: list (N * myOp)) (l:list membrane_id) (t:nat) acc :=
+  match size with 0 => acc
+               | S m =>
+    match l with nil => acc | x::xs => 
+       let (re,next) := (count_a t news x []) in
+         gen_mem_new' m next xs t (acc++re)
+    end
+  end.
+Definition gen_mem_new (news: list (N * myOp)) (l:list membrane_id) :=
+  let v := ((length news) / (length l)) + 1 in gen_mem_new' (length news) news l v [].
+
+Fixpoint get_locus_in_op (l: list (N * myOp)) := 
+   match l with nil => nil
+             | (x,OpAP y)::la => match get_locus y with nil => get_locus_in_op la | re => re ++ get_locus_in_op la end
+             | (x,OpIf a b c)::la => get_locus_in_op la
+   end.
+
+Fixpoint sub_locus' (x y: locus) :=
+  match x with nil => true
+            | (na,(la,ra))::xs =>
+     match y with nil => false
+               | (nb,(lb,rb))::ys =>
+                 (na =? nb) && (la <=? lb) && (rb <=? ra) && sub_locus' xs ys
+     end
+  end.
+Definition sub_locus x y := sub_locus' (SortRange.sort x) (SortRange.sort y).
+
+Definition split_nat_range (x y: (nat * nat)) :=
+   if fst x =? fst y then [(snd x, snd y)]
+   else if snd x =? snd y then [(fst y, fst x)] else (fst y, fst x):: (snd x, snd y)::[].
+
+Fixpoint assemble_range (l:list (nat * nat)) (x:var) :=
+  match l with nil => nil
+            | a::xs => (x,a)::(assemble_range xs x)
+  end.
+
+Fixpoint sublist_posi (l r : list posi) :=
+  match l with nil => true | x::xs => set_mem posi_eq_dec x r && sublist_posi xs r end.
+
+Fixpoint up_qubits (x:var) (i:nat) (n:nat) acc :=
+  match n with 0 => acc
+           | S m => up_qubits x i m (acc++[(x,i+m)])
+  end.
+
+Fixpoint cutToQubits' (l:list range) :=
+  match l with nil => nil
+            | (x,(l,r))::xs => (up_qubits x l (r -l) []) ++ cutToQubits' xs
+  end.
+Definition cutToQubits l := cutToQubits' (SortRange.sort l).
+
+Fixpoint det_first (l:list (N * myOp)) (r:list posi) :=
+  match l with nil => nil
+            | (i,OpAP y)::xs => 
+         match r with nil => nil | _::_ =>
+           let v := (cutToQubits (get_locus y)) in
+                if sublist_posi v r then 
+                       ((i,OpAP y),v):: det_first xs (set_diff posi_eq_dec r v)
+                else det_first xs r
+         end
+            | (i,_)::xs => det_first xs r
+  end.
+
+Fixpoint insert_mem  (a: posi * membrane_id * list nat)  (l:list (list posi * membrane_id * list nat)) :=
+  match l with nil => [([fst (fst a)], snd (fst a),snd a)]
+            | (x,y, ids)::xs => if snd (fst a) =? y then ((fst (fst a))::x,y,snd a ++ ids)::xs else (x,y, ids) :: insert_mem a xs
+  end.
+
+Fixpoint set_inter (x y : (list posi)) :=
+  match  x with nil => nil
+              | a::xs => if set_mem posi_eq_dec a y then a::set_inter xs y else set_inter xs y
+  end.
+
+Fixpoint sub_locus_i (x: posi) (l:locus) :=
+  match l with nil => false
+   | (y,b)::xs => if ((fst x) =? y) && (fst b <=? snd x) && (snd x <? snd b)
+                  then true else sub_locus_i x xs
+  end.
+
+Fixpoint det_qubits_i (new:list (posi * membrane_id * bool * nat)) (l: locus) acc := 
+  match new with nil => acc
+              | (x,y, true, i)::xs =>
+       if sub_locus_i x l then det_qubits_i xs l (insert_mem (x,y,[i]) acc) else det_qubits_i xs l acc
+              | (x,y,false, i)::xs => det_qubits_i xs l acc
+  end.
+
+
+Fixpoint search_hb (x:list posi) (n:N) (hb:hb_relation) (l : (list (N * myOp * membrane_id))) :=
+  match l with nil => None
+            | a::xs => 
+          if hb n (fst (fst a)) then
+          match set_inter x (cutToQubits (get_locus_in_op ([fst a])))
+          with nil => search_hb x n hb xs
+             | next => Some (snd a, next)
+          end
+          else search_hb x n hb xs
+  end.
+
+Fixpoint search_mem (new:list (membrane_id * list (posi * bool))) (x:list posi) acc :=
+  match new with nil => acc
+              | (i,y)::ys =>
+   match set_inter x (fst (split y)) 
+    with nil => search_mem ys x acc
+       | next => search_mem ys x ((i,next)::acc)
+   end
+  end.
+
+
+Fixpoint max_one (new:list (membrane_id * list posi)) a acc :=
+  match new with nil => acc
+             | x::xs => 
+         if length (snd a) <? length  (snd x) then max_one xs x ([fst x])
+         else if length (snd a) =? length (snd x) then max_one xs a (fst x::acc)
+         else max_one xs a acc
+  end.
+
+Definition search_good_mem (new:list (membrane_id * list (posi * bool))) (x:list posi) :=
+  match search_mem new x nil
+    with nil => nil
+      | y::ys => max_one ys y ([fst y])
+  end.
+
+Fixpoint find_least_q' (new:list (membrane_id * list (posi * bool))) a :=
+  match new with nil => a 
+    | x::xs => 
+     if length (snd x) <? length (snd a) then find_least_q' xs x else find_least_q' xs a 
+  end.
+Definition find_least_q (new :list (membrane_id * list (posi * bool))) :=
+  match new with nil => None | x::xs => Some (find_least_q' xs x) end.
+
+
+Fixpoint subtract_aux (x: posi) (l:list (posi * bool)) (acc : list (posi * bool)) :=
+  match l with nil => acc | y::ys => if posi_eq x (fst y) then subtract_aux x ys acc else subtract_aux x ys (y::acc) end.
+
+Fixpoint subtract_posi (x: list posi) (l:list (posi * bool)) acc :=
+  match x with nil => acc | y::ys => subtract_posi ys l (subtract_aux y l acc) end.
+
+Fixpoint subtract_all (x: list posi) (new :list (membrane_id * list (posi * bool))) acc :=
+    match new with nil => acc | (i,y)::ys =>  subtract_all x ys ((i,subtract_posi x y nil)::acc) end.
+
+Fixpoint add_posi_true' (i:membrane_id) (x: list (posi*bool)) (new :list (membrane_id * list (posi * bool))) :=
+   match new with nil => nil | (j,y)::ys => if i =? j then (j,x++y)::ys else (j,y)::add_posi_true' i x ys end.
+
+Fixpoint add_true (x:list posi) := match x with nil => nil | y::ys => (y,true)::add_true ys end.
+
+Definition add_posi_true i (x:list posi) new := add_posi_true' i (add_true x) new.
+
+Definition turn_true_aux (x:list posi) (y:list (posi * bool)) :=
+  let v := subtract_posi x y nil in add_true x++v.
+
+Fixpoint turn_true i (x:list posi) (new :list (membrane_id * list (posi * bool))) :=
+  match new with nil => nil | (j,y)::ys => if i =? j then (j, turn_true_aux x y)::ys else (j,y)::turn_true i x ys end.
+
+Fixpoint find_all_in (l: list posi) (new:list (membrane_id * list (posi * bool))) :=
+  match new with nil => None
+              | (i,la)::xs => 
+          if sublist_posi l (fst (split la)) then Some (i,la) else find_all_in l xs
+  end.
+(*basd on the above, it is enough. also find the prior instruction that has a hb relation for this one,
+   if they have similar qubits, then put in the same place, 
+   otherwise, the instruction can be placed same as initial qubit places or an least qubit membrane. *)
+
+Definition assign_mem_s (new:list (membrane_id * list (posi * bool))) (hb:hb_relation)
+          (x:(N * myOp)) (l : (list (N * myOp * membrane_id))) := 
+  let xset := (cutToQubits (get_locus_in_op ([x]))) in
+  match find_all_in xset new
+    with None => 
+     match search_hb xset (fst x) hb (rev l)
+        with None => 
+         match search_good_mem new xset
+           with nil => [] (* error *)
+              | next => map (fun a => (l++[(x,a)], add_posi_true a xset (subtract_all xset new nil))) next
+         end
+           | Some (i, re) => 
+           if 5 <? ((length re) * 10) / (length xset)
+           then [(l++[(x,i)], add_posi_true i xset (subtract_all xset new nil))]
+           else 
+      match search_good_mem new xset
+        with nil => [] (* error *)
+           | next => 
+        match find_least_q new
+              with None => [] (* error *)
+                 | Some na => map (fun a => (l++[(x,a)], add_posi_true a xset (subtract_all xset new nil))) (fst na :: next)
+        end
+      end
+     end
+       | Some (i,la) => [(l++[(x,i)], turn_true i xset new)]
+  end.
+
+Fixpoint assign_mem' (hb:hb_relation) (l : (list (N * myOp))) acc :=
+   match l with nil => acc
+                | x::xs =>
+   assign_mem' hb xs (fold_left (fun a b => a ++ assign_mem_s (snd b) hb x (fst b)) acc nil)
+   end.
+Fixpoint assign_mem_more (new:list (membrane_id * list (posi * bool))) (hb: hb_relation) (l : list (list (N * myOp))) acc :=
+   match l with nil => acc 
+            | x::xs => assign_mem_more new hb xs (fst (split (assign_mem' hb x [([],new)]))++acc)
+   end.
+
+Check assign_mem_more.
+
+Fixpoint turn_new (l:list (N * myOp * membrane_id)) acc :=
+  match l with nil => acc
+             | (x,y)::xs => turn_new xs ((y,add_true (cutToQubits (get_locus_in_op ([x]))))::acc)
+end.
+
+Definition gen_mem (news: list (N * myOp)) (l:list (list (N * myOp))) (ids:list membrane_id) (hb: hb_relation) := 
+  assign_mem_more (turn_new (gen_mem_new news ids) nil) hb l nil.
 
 
 (* maintain the following. *)
