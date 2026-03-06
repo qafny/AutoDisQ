@@ -1,0 +1,302 @@
+DIGEST 3f071f35548b117d8c5973ba315dc618
+FDisQ.DisQSyntax
+R15:19 Coq.Reals.Reals <> <> lib
+R37:41 Coq.micromega.Psatz <> <> lib
+R59:67 SQIR.SQIR <> <> lib
+R85:107 QuantumLib.VectorStates <> <> lib
+R125:139 SQIR.UnitaryOps <> <> lib
+R157:173 Coq.btauto.Btauto <> <> lib
+R175:189 Coq.NArith.Nnat <> <> lib
+R208:219 DisQ.BasicUtility <> <> lib
+R237:250 Coq.Logic.Classical_Prop <> <> lib
+R268:275 DisQ.MathSpec <> <> lib
+R395:412 Coq.FSets.FMapList <> <> lib
+R430:448 Coq.FSets.FMapFacts <> <> lib
+R466:493 Coq.Structures.OrderedTypeEx <> <> lib
+ind 627:631 <> ktype
+constr 636:637 <> CT
+constr 641:642 <> QT
+constr 662:663 <> QC
+R647:649 DisQ.BasicUtility <> var def
+binder 645:645 <> l:3
+R655:657 Coq.Init.Datatypes <> nat ind
+binder 653:653 <> n:4
+R669:671 DisQ.BasicUtility <> var def
+binder 666:667 <> l1:5
+R678:680 DisQ.BasicUtility <> var def
+binder 675:676 <> l2:6
+R686:688 Coq.Init.Datatypes <> nat ind
+binder 684:684 <> n:7
+ind 703:711 <> ktypeName
+constr 716:718 <> QTN
+constr 722:724 <> QCN
+ind 738:742 <> qtype
+constr 747:748 <> EN
+ind 762:766 <> bound
+constr 771:774 <> BVar
+constr 794:797 <> BNum
+R779:781 DisQ.BasicUtility <> var def
+binder 777:777 <> v:14
+R787:789 Coq.Init.Datatypes <> nat ind
+binder 785:785 <> n:15
+R802:804 Coq.Init.Datatypes <> nat ind
+binder 800:800 <> n:16
+def 820:831 <> simple_bound
+R836:840 DisQ.DisQSyntax <> bound ind
+binder 834:834 <> b:17
+R855:855 DisQ.DisQSyntax <> b:17 var
+R862:865 DisQ.DisQSyntax <> BNum constr
+R872:875 Coq.Init.Logic <> True ind
+R879:882 DisQ.DisQSyntax <> BVar constr
+R891:895 Coq.Init.Logic <> False ind
+def 914:918 <> range
+R932:935 Coq.Init.Datatypes <> ::type_scope:x_'*'_x not
+R945:945 Coq.Init.Datatypes <> ::type_scope:x_'*'_x not
+R929:931 DisQ.BasicUtility <> var def
+R939:941 Coq.Init.Datatypes <> ::type_scope:x_'*'_x not
+R936:938 Coq.Init.Datatypes <> nat ind
+R942:944 Coq.Init.Datatypes <> nat ind
+def 960:964 <> locus
+R976:979 Coq.Init.Datatypes <> list ind
+R981:985 DisQ.DisQSyntax <> range def
+def 999:1004 <> glocus
+R1016:1019 Coq.Init.Datatypes <> list ind
+R1027:1029 Coq.Init.Datatypes <> ::type_scope:x_'*'_x not
+R1022:1026 DisQ.DisQSyntax <> range def
+R1030:1032 DisQ.BasicUtility <> var def
+ind 1073:1076 <> aexp
+constr 1081:1082 <> BA
+constr 1094:1096 <> Num
+constr 1117:1121 <> APlus
+constr 1145:1149 <> AMult
+constr 1173:1180 <> AModMult
+R1087:1089 DisQ.BasicUtility <> var def
+binder 1085:1085 <> x:21
+R1101:1103 Coq.Init.Datatypes <> nat ind
+binder 1099:1099 <> n:22
+R1127:1130 DisQ.DisQSyntax <> aexp:19 ind
+binder 1124:1125 <> e1:23
+R1137:1140 DisQ.DisQSyntax <> aexp:19 ind
+binder 1134:1135 <> e2:24
+R1155:1158 DisQ.DisQSyntax <> aexp:19 ind
+binder 1152:1153 <> e1:25
+R1165:1168 DisQ.DisQSyntax <> aexp:19 ind
+binder 1162:1163 <> e2:26
+R1186:1189 DisQ.DisQSyntax <> aexp:19 ind
+binder 1183:1184 <> e1:27
+R1196:1199 DisQ.DisQSyntax <> aexp:19 ind
+binder 1193:1194 <> e2:28
+R1206:1209 DisQ.DisQSyntax <> aexp:19 ind
+binder 1203:1204 <> e3:29
+R1214:1239 DisQ.DisQSyntax <> BA constr
+R1243:1268 DisQ.DisQSyntax <> Num constr
+R1297:1301 DisQ.DisQSyntax <> APlus constr
+not 1281:1281 <> ::cexp_scope:x_'[+]'_x
+R1363:1367 DisQ.DisQSyntax <> AMult constr
+not 1347:1347 <> ::cexp_scope:x_'[*]'_x
+ind 1415:1419 <> varia
+constr 1424:1427 <> AExp
+constr 1440:1444 <> Index
+R1432:1435 DisQ.DisQSyntax <> aexp ind
+binder 1430:1430 <> x:32
+R1449:1451 DisQ.BasicUtility <> var def
+binder 1447:1447 <> x:33
+R1457:1460 DisQ.DisQSyntax <> aexp ind
+binder 1455:1455 <> v:34
+R1465:1494 DisQ.DisQSyntax <> AExp constr
+R1523:1527 DisQ.DisQSyntax <> Index constr
+not 1507:1507 <> ::cexp_scope:x_'['_x_']'
+ind 1575:1584 <> singleGate
+constr 1589:1594 <> H_gate
+constr 1598:1603 <> X_gate
+constr 1607:1613 <> RZ_gate
+R1618:1620 Coq.Init.Datatypes <> nat ind
+binder 1616:1616 <> f:37
+ind 1675:1679 <> cbexp
+constr 1684:1686 <> CEq
+constr 1708:1710 <> CLt
+R1691:1694 DisQ.DisQSyntax <> aexp ind
+binder 1689:1689 <> x:40
+R1700:1703 DisQ.DisQSyntax <> aexp ind
+binder 1698:1698 <> y:41
+R1715:1718 DisQ.DisQSyntax <> aexp ind
+binder 1713:1713 <> x:42
+R1724:1727 DisQ.DisQSyntax <> aexp ind
+binder 1722:1722 <> y:43
+ind 1780:1783 <> bexp
+constr 1789:1790 <> CB
+constr 1822:1824 <> BEq
+constr 1965:1967 <> BLt
+constr 2109:2113 <> BTest
+constr 2172:2175 <> BNeg
+R1795:1799 DisQ.DisQSyntax <> cbexp ind
+binder 1793:1793 <> c:46
+R1829:1833 DisQ.DisQSyntax <> varia ind
+binder 1827:1827 <> x:47
+R1839:1843 DisQ.DisQSyntax <> varia ind
+binder 1837:1837 <> y:48
+R1849:1851 DisQ.BasicUtility <> var def
+binder 1847:1847 <> i:49
+R1857:1860 DisQ.DisQSyntax <> aexp ind
+binder 1855:1855 <> a:50
+R1972:1976 DisQ.DisQSyntax <> varia ind
+binder 1970:1970 <> x:51
+R1982:1986 DisQ.DisQSyntax <> varia ind
+binder 1980:1980 <> y:52
+R1992:1994 DisQ.BasicUtility <> var def
+binder 1990:1990 <> i:53
+R2000:2003 DisQ.DisQSyntax <> aexp ind
+binder 1998:1998 <> a:54
+R2118:2120 DisQ.BasicUtility <> var def
+binder 2116:2116 <> i:55
+R2126:2129 DisQ.DisQSyntax <> aexp ind
+binder 2124:2124 <> a:56
+R2180:2183 DisQ.DisQSyntax <> bexp:44 ind
+binder 2178:2178 <> b:57
+R2225:2227 DisQ.DisQSyntax <> BEq constr
+not 2197:2197 <> ::cexp_scope:x_'[=]'_x_'@'_x_'['_x_']'
+R2308:2310 DisQ.DisQSyntax <> BLt constr
+not 2280:2280 <> ::cexp_scope:x_'[<]'_x_'@'_x_'['_x_']'
+R2381:2385 DisQ.DisQSyntax <> BTest constr
+not 2363:2363 <> ::cexp_scope:'*'_x_'['_x_']'
+ind 2433:2437 <> maexp
+constr 2442:2443 <> AE
+constr 2456:2459 <> Meas
+R2448:2451 DisQ.DisQSyntax <> aexp ind
+binder 2446:2446 <> n:60
+R2464:2466 DisQ.BasicUtility <> var def
+binder 2462:2462 <> x:61
+R2471:2498 DisQ.DisQSyntax <> AE constr
+ind 2566:2568 <> exp
+constr 2573:2576 <> SKIP
+constr 2597:2597 <> X
+constr 2626:2627 <> CU
+constr 2664:2665 <> RZ
+constr 2726:2728 <> RRZ
+constr 2767:2768 <> SR
+constr 2854:2856 <> SRR
+constr 2984:2986 <> QFT
+constr 3071:3074 <> RQFT
+constr 3102:3102 <> H
+constr 3131:3135 <> Addto
+constr 3173:3175 <> Seq
+R2581:2583 DisQ.BasicUtility <> var def
+binder 2579:2579 <> x:64
+R2589:2592 DisQ.DisQSyntax <> aexp ind
+binder 2587:2587 <> a:65
+R2602:2604 DisQ.BasicUtility <> var def
+binder 2600:2600 <> x:66
+R2610:2613 DisQ.DisQSyntax <> aexp ind
+binder 2608:2608 <> a:67
+R2632:2634 DisQ.BasicUtility <> var def
+binder 2630:2630 <> x:68
+R2640:2643 DisQ.DisQSyntax <> aexp ind
+binder 2638:2638 <> a:69
+R2649:2651 DisQ.DisQSyntax <> exp:62 ind
+binder 2647:2647 <> e:70
+R2670:2672 Coq.Init.Datatypes <> nat ind
+binder 2668:2668 <> q:71
+R2678:2680 DisQ.BasicUtility <> var def
+binder 2676:2676 <> x:72
+R2686:2689 DisQ.DisQSyntax <> aexp ind
+binder 2684:2684 <> a:73
+R2733:2735 Coq.Init.Datatypes <> nat ind
+binder 2731:2731 <> q:74
+R2741:2743 DisQ.BasicUtility <> var def
+binder 2739:2739 <> x:75
+R2749:2752 DisQ.DisQSyntax <> aexp ind
+binder 2747:2747 <> a:76
+R2773:2775 Coq.Init.Datatypes <> nat ind
+binder 2771:2771 <> q:77
+R2781:2783 DisQ.BasicUtility <> var def
+binder 2779:2779 <> x:78
+R2861:2863 Coq.Init.Datatypes <> nat ind
+binder 2859:2859 <> q:79
+R2869:2871 DisQ.BasicUtility <> var def
+binder 2867:2867 <> x:80
+R2991:2993 DisQ.BasicUtility <> var def
+binder 2989:2989 <> x:81
+R2999:3001 Coq.Init.Datatypes <> nat ind
+binder 2997:2997 <> b:82
+R3079:3081 DisQ.BasicUtility <> var def
+binder 3077:3077 <> x:83
+R3087:3089 Coq.Init.Datatypes <> nat ind
+binder 3085:3085 <> b:84
+R3107:3109 DisQ.BasicUtility <> var def
+binder 3105:3105 <> x:85
+R3115:3118 DisQ.DisQSyntax <> aexp ind
+binder 3113:3113 <> a:86
+R3141:3143 DisQ.BasicUtility <> var def
+binder 3138:3138 <> x:87
+R3150:3152 DisQ.BasicUtility <> var def
+binder 3147:3147 <> q:88
+R3181:3183 DisQ.DisQSyntax <> exp:62 ind
+binder 3178:3179 <> s1:89
+R3190:3192 DisQ.DisQSyntax <> exp:62 ind
+binder 3187:3188 <> s2:90
+ind 3207:3210 <> type
+constr 3215:3217 <> Phi
+constr 3229:3231 <> Nor
+R3222:3224 Coq.Init.Datatypes <> nat ind
+binder 3220:3220 <> b:93
+ind 3245:3252 <> single_u
+constr 3257:3258 <> RH
+constr 3272:3275 <> SQFT
+constr 3287:3291 <> SRQFT
+R3263:3267 DisQ.DisQSyntax <> varia ind
+binder 3261:3261 <> p:96
+R3280:3282 DisQ.BasicUtility <> var def
+binder 3278:3278 <> x:97
+R3296:3298 DisQ.BasicUtility <> var def
+binder 3294:3294 <> x:98
+ind 3378:3381 <> cexp
+constr 3386:3389 <> CNew
+constr 3416:3420 <> CAppU
+constr 3457:3461 <> CMeas
+constr 3498:3501 <> Send
+constr 3563:3566 <> Recv
+R3394:3398 DisQ.DisQSyntax <> range def
+binder 3392:3392 <> x:101
+R3426:3430 DisQ.DisQSyntax <> locus def
+binder 3423:3423 <> l:102
+R3437:3439 DisQ.DisQSyntax <> exp ind
+binder 3434:3434 <> e:103
+R3467:3469 DisQ.BasicUtility <> var def
+binder 3464:3464 <> x:104
+R3476:3480 DisQ.DisQSyntax <> locus def
+binder 3473:3473 <> k:105
+R3507:3509 DisQ.BasicUtility <> var def
+binder 3504:3504 <> c:106
+R3515:3517 DisQ.BasicUtility <> var def
+binder 3513:3513 <> x:107
+R3524:3526 Coq.Init.Datatypes <> nat ind
+binder 3521:3521 <> a:108
+R3572:3574 DisQ.BasicUtility <> var def
+binder 3569:3569 <> c:109
+R3580:3582 DisQ.BasicUtility <> var def
+binder 3578:3578 <> x:110
+R3588:3590 Coq.Init.Datatypes <> nat ind
+binder 3586:3586 <> y:111
+ind 3640:3646 <> process
+constr 3651:3654 <> PNil
+constr 3674:3675 <> AP
+constr 3718:3720 <> PIf
+R3681:3684 DisQ.DisQSyntax <> cexp ind
+binder 3678:3678 <> a:114
+R3691:3697 DisQ.DisQSyntax <> process:112 ind
+binder 3688:3688 <> p:115
+R3726:3730 DisQ.DisQSyntax <> cbexp ind
+binder 3723:3723 <> b:116
+R3737:3743 DisQ.DisQSyntax <> process:112 ind
+binder 3734:3734 <> p:117
+R3750:3756 DisQ.DisQSyntax <> process:112 ind
+binder 3747:3747 <> q:118
+ind 3788:3791 <> memb
+constr 3796:3799 <> Memb
+R3805:3807 DisQ.BasicUtility <> var def
+binder 3802:3802 <> l:121
+R3815:3821 DisQ.DisQSyntax <> process ind
+binder 3811:3812 <> lp:122
+def 3859:3864 <> config
+R3876:3879 Coq.Init.Datatypes <> list ind
+R3881:3884 DisQ.DisQSyntax <> memb ind

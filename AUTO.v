@@ -1,3 +1,4 @@
+
 From Coq Require Import List Arith Bool Nat.
 Import ListNotations.
 Require Import Coq.Sorting.Mergesort.
@@ -1302,6 +1303,135 @@ Fixpoint gen_prog (l:list (list (myOpAux * list posi * membrane_id))) os :=
 
 
 
+
+(* ------------------------------------------------------------------------- *)
+(* fitness / best candidate                                                  *)
+(* ------------------------------------------------------------------------- *)
+Fixpoint count_send_in_process (p:process) : nat :=
+  match p with
+  | PNil => 0
+  | AP a p' =>
+      match a with
+      | Send _ _ _ => S (count_send_in_process p')
+      | Recv _ _ _ => S (count_send_in_process p')
+      | _ => count_send_in_process p'
+      end
+  | PIf _ p1 p2 =>
+      count_send_in_process p1 + count_send_in_process p2
+  end.
+Definition count_send_in_memb (m:memb) : nat :=
+  match m with
+  | Memb _ p => count_send_in_process p
+  end.
+Print memb.
+
+Fixpoint count_comm_ops (cfg:config) : nat :=
+  match cfg with
+  | nil => 0
+  | m::xs => count_send_in_memb m + count_comm_ops xs
+  end.
+Fixpoint process_size (p:process) : nat :=
+  match p with
+  | PNil => 0
+  | AP _ p' => S (process_size p')
+  | PIf _ p1 p2 => process_size p1 + process_size p2
+  end.
+
+Definition memb_load (m:memb) : nat :=
+  match m with
+  | Memb _ p => process_size p
+  end.
+Fixpoint max_load (cfg:config) : nat :=
+  match cfg with
+  | nil => 0
+  | m::xs => Nat.max (memb_load m) (max_load xs)
+  end.
+(* Weight for communication cost *)
+Definition alpha : nat := 10.
+
+(* Fitness function: minimize communication and load imbalance *)
+Definition fit (cfg : config) : fitness_value :=
+  (alpha * count_comm_ops cfg) + max_load cfg.
+
+Fixpoint best_prog_aux
+  (best:config)
+  (bestv:nat)
+  (xs:list config)
+  : config :=
+  match xs with
+  | nil => best
+  | x::tl =>
+      let vx := fit x in
+      if vx <? bestv
+      then best_prog_aux x vx tl
+      else best_prog_aux best bestv tl
+  end.
+
+Definition best_prog (xs:list config) : option config :=
+  match xs with
+  | nil => None
+  | x::tl => Some (best_prog_aux x (fit x) tl)
+  end.
+
+(* ------------------------------------------------------------------------- *)
+(*                          ALGO1                                            *)
+(* ------------------------------------------------------------------------- *)
+
+Definition autodisq_all
+  (ops : op_list)
+  (mids : list membrane_id)
+  : list config :=
+  let os := opListOrder ops in
+  let hb := gen_hb os in
+  let sq := gen_seq os hb in
+  let mem := gen_mem (fst sq) (snd sq) mids hb in
+  gen_prog mem os.
+
+Definition autodisq_best
+  (ops : op_list)
+  (mids : list membrane_id)
+  : option config :=
+  best_prog (autodisq_all ops mids).
+
+(* ------------------------------------------------------------------------- *)
+(*                SAME   :      ALGO1                                        *)
+(* ------------------------------------------------------------------------- *)
+
+
+
+Fixpoint auto_disq_loop
+  (best : option config)
+  (cands : list config)
+  : option config :=
+  match cands with
+  | [] => best
+  | P :: xs =>
+      match best with
+      | None => auto_disq_loop (Some P) xs
+      | Some B =>
+          if fit P <? fit B
+          then auto_disq_loop (Some P) xs
+          else auto_disq_loop best xs
+      end
+  end.
+
+Definition autodisq_best_1
+  (ops : op_list)
+  (mids : list membrane_id)
+  : option config :=
+  auto_disq_loop None (autodisq_all ops mids).
+
+
+
+
+
+
+
+
+
+
+
+(*
 (* ------------------------------------------------------------------------- *)
 (* fit: relocation-aware cost                                         *)
 (* ------------------------------------------------------------------------- *)
@@ -1811,3 +1941,11 @@ Definition auto_parallelize_alg3_layers
 
 
 
+
+
+
+
+
+
+
+*)
