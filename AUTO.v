@@ -1290,7 +1290,8 @@ Fixpoint to_prog (l:list (nat * list (myOpAux * list posi))) os :=
   end.
 
 
-(* you might need the following functions to wirte the final algorithm. *)
+(* you might need the following functions to wirte the final algorithm. 
+   os is generted from opListOrder. *)
 Check opListOrder.
 Check gen_hb.
 Check gen_seq.
