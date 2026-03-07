@@ -350,6 +350,104 @@ Compute autodisq_best GHZ32_prog [0;1].
 Compute autodisq_best_1 GHZ32_prog [0;1].*)
 
 
+(* ============================================================ *)
+(* Grover-style benchmarks                                      *)
+(* ============================================================ *)
+
+
+Fixpoint apply_X_all_from (qs : list var) : op_list :=
+  match qs with
+  | [] => []
+  | q :: tl =>
+      OpAP (CAppU L (X q (Num 0))) :: apply_X_all_from tl
+  end.
+
+(* A simple “oracle-like” multi-control chain skeleton:
+   control q0 onto q1, then q1 onto q2, etc. *)
+Fixpoint grover_oracle_chain (qs : list var) : op_list :=
+  match qs with
+  | q1 :: q2 :: tl =>
+      OpAP (CAppU L (CU q1 (Num 0) (X q2 (Num 0)))) ::
+      grover_oracle_chain tl
+  | _ => []
+  end.
+
+(* A simple diffusion-style skeleton:
+   H^n ; X^n ; chain ; X^n ; H^n *)
+Definition grover_diffusion (qs : list var) : op_list :=
+  apply_H_all_from qs ++
+  apply_X_all_from qs ++
+  grover_oracle_chain qs ++
+  apply_X_all_from qs ++
+  apply_H_all_from qs.
+
+(* One Grover iteration = oracle + diffusion *)
+Definition grover_iter (qs : list var) : op_list :=
+  grover_oracle_chain qs ++ grover_diffusion qs.
+
+(* Repeat a Grover iteration k times *)
+Fixpoint repeat_grover (k : nat) (qs : list var) : op_list :=
+  match k with
+  | 0 => []
+  | S k' => grover_iter qs ++ repeat_grover k' qs
+  end.
+
+(* ============================================================ *)
+(* Grover-8                                                     *)
+(* ============================================================ *)
+
+Definition grover8_n : nat := 8.
+Definition grover8_qs : list var := List.seq 0 grover8_n.
+Definition grover8_outs : list var := List.seq 1000 grover8_n.
+
+(* 2 iterations as a small benchmark *)
+Definition GROVER8_prog : op_list :=
+  alloc_qubits_from grover8_qs ++
+  apply_H_all_from grover8_qs ++
+  repeat_grover 2 grover8_qs ++
+  meas_all_from grover8_outs.
+
+Compute autodisq_best GROVER8_prog [0;1].
+Compute autodisq_best_1 GROVER8_prog [0;1].
+
+(* ============================================================ *)
+(* Grover-16                                                    *)
+(* ============================================================ *)
+
+Definition grover16_n : nat := 16.
+Definition grover16_qs : list var := List.seq 0 grover16_n.
+Definition grover16_outs : list var := List.seq 1100 grover16_n.
+
+(* 3 iterations *)
+Definition GROVER16_prog : op_list :=
+  alloc_qubits_from grover16_qs ++
+  apply_H_all_from grover16_qs ++
+  repeat_grover 3 grover16_qs ++
+  meas_all_from grover16_outs.
+
+Compute autodisq_best GROVER16_prog [0;1].
+Compute autodisq_best_1 GROVER16_prog [0;1].
+
+(* ============================================================ *)
+(* Grover-32                                                    *)
+(* ============================================================ *)
+
+Definition grover32_n : nat := 32.
+Definition grover32_qs : list var := List.seq 0 grover32_n.
+Definition grover32_outs : list var := List.seq 1200 grover32_n.
+
+(* Keep this small to avoid heavy Compute *)
+Definition GROVER32_prog : op_list :=
+  alloc_qubits_from grover32_qs ++
+  apply_H_all_from grover32_qs ++
+  repeat_grover 2 grover32_qs ++
+  meas_all_from grover32_outs.
+
+(* You can comment these out if make becomes heavy *)
+Compute autodisq_best GROVER32_prog [0;1].
+Compute autodisq_best_1 GROVER32_prog [0;1].
+
+
 
 (*
 

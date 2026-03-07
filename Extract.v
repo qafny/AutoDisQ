@@ -99,6 +99,7 @@ Extract Constant inject_Z => "Zarith.Q.of_bigint".
 
 Extraction
   "autodisq_extract.ml"
+
     list_eqb
   aexp_eqb
   cbexp_eqb
@@ -213,17 +214,7 @@ Extraction
   QFTAdder16_prog
   QFT32_prog
   QFTAdder32_prog
-  GHZ32_prog
-  best_GHZ8
-  best_GHZ16
-  best_SHOR8
-  best_QFT8
-  best_QFT16
-  best_QFTAdder8
-  best_QFTAdder16
-  best_QFT32
-  best_QFTAdder32
-  best_GHZ32.
+  GHZ32_prog.
 .
 
 
