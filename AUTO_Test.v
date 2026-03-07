@@ -3,6 +3,411 @@ Import ListNotations.
 Local Open Scope nat_scope.
 Local Open Scope list_scope.
 
+From Coq Require Import NArith.BinNat.
+
+Require Import DisQ.BasicUtility.
+Require Import DisQ.DisQSyntax.
+Require Import DisQ.AUTO.
+
+(* ============================================================ *)
+(* Small safe test file                                         *)
+(* ============================================================ *)
+
+Definition mids_small : list membrane_id := [0;1].
+
+(* ============================================================ *)
+(* SMALL PROGRAM TEST                                           *)
+(* ============================================================ *)
+
+Definition opA : myOp := OpAP (CNew (0,(0,1))).
+Definition opB : myOp := OpAP (CMeas 0 ([] : locus)).
+Definition opC : myOp := OpAP (CNew (1,(0,1))).
+
+Definition small_prog1 : op_list := [opA; opB].
+Definition small_prog2 : op_list := [opA; opC; opB].
+
+Compute autodisq_best small_prog1 mids_small.
+Compute autodisq_best small_prog2 mids_small.
+
+(* ============================================================ *)
+(* Helpers for building GHZ programs                            *)
+(* ============================================================ *)
+
+Definition one_qubit_range (q : var) : range := (q,(0,1)).
+Definition L : locus := ([] : locus).
+
+Fixpoint alloc_qubits_from (qs : list var) : op_list :=
+  match qs with
+  | [] => []
+  | q :: tl =>
+      OpAP (CNew (one_qubit_range q)) ::
+      alloc_qubits_from tl
+  end.
+
+Fixpoint cnot_from (ctrl : var) (qs : list var) : op_list :=
+  match qs with
+  | [] => []
+  | q :: tl =>
+      OpAP (CAppU L (CU ctrl (Num 0) (X q (Num 0)))) ::
+      cnot_from ctrl tl
+  end.
+
+Fixpoint meas_all_from (cs : list var) : op_list :=
+  match cs with
+  | [] => []
+  | c :: tl =>
+      OpAP (CMeas c L) ::
+      meas_all_from tl
+  end.
+
+(* ============================================================ *)
+(* GHZ-8 benchmark                                              *)
+(* ============================================================ *)
+
+Definition ghz8_n : nat := 8.
+
+Definition ghz8_qs : list var :=
+  List.seq 0 ghz8_n.
+
+Definition ghz8_outs : list var :=
+  List.seq 100 ghz8_n.
+
+Definition GHZ8_prog : op_list :=
+  alloc_qubits_from ghz8_qs ++
+  [OpAP (CAppU L (H 0 (Num 0)))] ++
+  cnot_from 0 (List.seq 1 (ghz8_n - 1)) ++
+  meas_all_from ghz8_outs.
+
+Compute autodisq_best GHZ8_prog [0;1].
+Compute autodisq_best_1 GHZ8_prog [0;1].
+
+(* ============================================================ *)
+(* GHZ-16 benchmark                                             *)
+(* ============================================================ *)
+
+Definition ghz16_n : nat := 16.
+
+Definition ghz16_qs : list var :=
+  List.seq 0 ghz16_n.
+
+Definition ghz16_outs : list var :=
+  List.seq 200 ghz16_n.
+
+Definition GHZ16_prog : op_list :=
+  alloc_qubits_from ghz16_qs ++
+  [OpAP (CAppU L (H 0 (Num 0)))] ++
+  cnot_from 0 (List.seq 1 (ghz16_n - 1)) ++
+  meas_all_from ghz16_outs.
+
+Compute autodisq_best GHZ16_prog [0;1].
+Compute autodisq_best_1 GHZ16_prog [0;1].
+
+
+
+(* ============================================================ *)
+(* Helper builders for programs                                 *)
+(* ============================================================ *)
+
+
+Fixpoint apply_H_all_from (qs : list var) : op_list :=
+  match qs with
+  | [] => []
+  | q :: tl =>
+      OpAP (CAppU L (H q (Num 0))) ::
+      apply_H_all_from tl
+  end.
+
+
+
+Fixpoint controlled_x_chain_from (ctrls tgts : list var) : op_list :=
+  match ctrls, tgts with
+  | c :: ctrls', t :: tgts' =>
+      OpAP (CAppU L (CU c (Num 0) (X t (Num 0)))) ::
+      controlled_x_chain_from ctrls' tgts'
+  | _, _ => []
+  end.
+
+
+Definition shor8_qs : list var := List.seq 0 8.
+Definition shor8_ctrls : list var := List.seq 0 4.
+Definition shor8_tgts  : list var := List.seq 4 4.
+Definition shor8_outs  : list var := List.seq 300 8.
+
+Definition SHOR8_prog : op_list :=
+  alloc_qubits_from shor8_qs ++
+  apply_H_all_from shor8_ctrls ++
+  controlled_x_chain_from shor8_ctrls shor8_tgts ++
+  [OpAP (CAppU L (QFT 0 4))] ++
+  meas_all_from shor8_outs.
+
+Compute autodisq_best SHOR8_prog [0;1].
+Compute autodisq_best_1 SHOR8_prog [0;1].
+
+
+
+Definition shor16_qs : list var := List.seq 0 16.
+Definition shor16_ctrls : list var := List.seq 0 8.
+Definition shor16_tgts  : list var := List.seq 8 8.
+Definition shor16_outs  : list var := List.seq 400 16.
+
+Definition SHOR16_prog : op_list :=
+  alloc_qubits_from shor16_qs ++
+  apply_H_all_from shor16_ctrls ++
+  controlled_x_chain_from shor16_ctrls shor16_tgts ++
+  [OpAP (CAppU L (QFT 0 8))] ++
+  meas_all_from shor16_outs.
+(*
+Compute autodisq_best SHOR16_prog [0;1].
+Compute autodisq_best_1 SHOR16_prog  [0;1].
+
+*)
+
+
+(* ============================================================ *)
+(* QFT-8                                                        *)
+(* ============================================================ *)
+
+Definition qft8_n  : nat := 8.
+Definition qft8_q0 : var := 0.
+Definition qft8_qubits : list var := List.seq qft8_q0 qft8_n.
+Definition qft8_outs   : list var := List.seq 600 qft8_n.
+
+Definition QFT8_prog : op_list :=
+  alloc_qubits_from qft8_qubits ++
+  [ OpAP (CAppU L (QFT qft8_q0 qft8_n));
+    OpAP (CAppU L (RQFT qft8_q0 qft8_n))
+  ] ++
+  meas_all_from qft8_outs.
+
+Compute autodisq_best QFT8_prog [0;1].
+Compute autodisq_best_1 QFT8_prog [0;1].
+
+(* ============================================================ *)
+(* QFT-16                                                       *)
+(* ============================================================ *)
+
+Definition qft16_n  : nat := 16.
+Definition qft16_q0 : var := 0.
+Definition qft16_qubits : list var := List.seq qft16_q0 qft16_n.
+Definition qft16_outs   : list var := List.seq 700 qft16_n.
+
+Definition QFT16_prog : op_list :=
+  alloc_qubits_from qft16_qubits ++
+  [ OpAP (CAppU L (QFT qft16_q0 qft16_n));
+    OpAP (CAppU L (RQFT qft16_q0 qft16_n))
+  ] ++
+  meas_all_from qft16_outs.
+
+Compute autodisq_best QFT16_prog [0;1].
+Compute autodisq_best_1 QFT16_prog [0;1].
+
+(* ============================================================ *)
+(* QFT Adder-8                                                  *)
+
+(* ============================================================ *)
+
+Definition qadd8_n      : nat := 8.
+Definition qadd8_q0     : var := 0.
+Definition qadd8_qubits : list var := List.seq qadd8_q0 qadd8_n.
+Definition qadd8_outs   : list var := List.seq 800 qadd8_n.
+Definition qadd8_x      : var := 100.
+
+Definition QFTAdder8_prog : op_list :=
+  alloc_qubits_from qadd8_qubits ++
+  [ OpAP (CAppU L (QFT qadd8_q0 4));
+    OpAP (CAppU L (Addto qadd8_x qadd8_q0));
+    OpAP (CAppU L (RQFT qadd8_q0 4))
+  ] ++
+  meas_all_from qadd8_outs.
+
+Compute autodisq_best QFTAdder8_prog [0;1].
+Compute autodisq_best_1 QFTAdder8_prog [0;1].
+
+(* ============================================================ *)
+(* QFT Adder-16                                                 *)
+
+(* ============================================================ *)
+
+Definition qadd16_n      : nat := 16.
+Definition qadd16_q0     : var := 0.
+Definition qadd16_qubits : list var := List.seq qadd16_q0 qadd16_n.
+Definition qadd16_outs   : list var := List.seq 900 qadd16_n.
+Definition qadd16_x      : var := 101.
+
+Definition QFTAdder16_prog : op_list :=
+  alloc_qubits_from qadd16_qubits ++
+  [ OpAP (CAppU L (QFT qadd16_q0 8));
+    OpAP (CAppU L (Addto qadd16_x qadd16_q0));
+    OpAP (CAppU L (RQFT qadd16_q0 8))
+  ] ++
+  meas_all_from qadd16_outs.
+
+Compute autodisq_best QFTAdder16_prog [0;1].
+Compute autodisq_best_1 QFTAdder16_prog [0;1].
+
+
+(* ============================================================ *)
+(* QFT-32                                                       *)
+(* ============================================================ *)
+
+Definition qft32_n  : nat := 32.
+Definition qft32_q0 : var := 0.
+Definition qft32_qubits : list var := List.seq qft32_q0 qft32_n.
+Definition qft32_outs   : list var := List.seq 1000 qft32_n.
+
+Definition QFT32_prog : op_list :=
+  alloc_qubits_from qft32_qubits ++
+  [ OpAP (CAppU L (QFT qft32_q0 qft32_n));
+    OpAP (CAppU L (RQFT qft32_q0 qft32_n))
+  ] ++
+  meas_all_from qft32_outs.
+
+(* ============================================================ *)
+(* QFT Adder-32                                                 *)
+(* ============================================================ *)
+
+Definition qadd32_n      : nat := 32.
+Definition qadd32_q0     : var := 0.
+Definition qadd32_qubits : list var := List.seq qadd32_q0 qadd32_n.
+Definition qadd32_outs   : list var := List.seq 1100 qadd32_n.
+Definition qadd32_x      : var := 102.
+
+Definition QFTAdder32_prog : op_list :=
+  alloc_qubits_from qadd32_qubits ++
+  [ OpAP (CAppU L (QFT qadd32_q0 16));
+    OpAP (CAppU L (Addto qadd32_x qadd32_q0));
+    OpAP (CAppU L (RQFT qadd32_q0 16))
+  ] ++
+  meas_all_from qadd32_outs.
+
+Fixpoint count_QFT (ops : op_list) : nat :=
+  match ops with
+  | [] => 0
+  | OpAP (CAppU _ (QFT _ _)) :: tl => S (count_QFT tl)
+  | _ :: tl => count_QFT tl
+  end.
+
+Fixpoint count_RQFT (ops : op_list) : nat :=
+  match ops with
+  | [] => 0
+  | OpAP (CAppU _ (RQFT _ _)) :: tl => S (count_RQFT tl)
+  | _ :: tl => count_RQFT tl
+  end.
+
+Fixpoint count_Addto (ops : op_list) : nat :=
+  match ops with
+  | [] => 0
+  | OpAP (CAppU _ (Addto _ _)) :: tl => S (count_Addto tl)
+  | _ :: tl => count_Addto tl
+  end.
+
+Example test_QFT32_counts :
+  count_QFT QFT32_prog = 1 /\ count_RQFT QFT32_prog = 1.
+Proof. cbn; auto. Qed.
+
+Example test_QFTAdder32_counts :
+  count_QFT QFTAdder32_prog = 1 /\
+  count_Addto QFTAdder32_prog = 1 /\
+  count_RQFT QFTAdder32_prog = 1.
+Proof. cbn; auto. Qed.
+
+
+Compute count_QFT QFT32_prog.
+Compute count_RQFT QFT32_prog.
+Compute count_Addto QFTAdder32_prog.
+
+Compute autodisq_best QFT32_prog [0;1].
+Compute autodisq_best QFTAdder32_prog [0;1].
+
+(* ============================================================ *)
+(* GHZ-32                                                       *)
+(* ============================================================ *)
+
+Definition ghz32_n : nat := 32.
+Definition ghz32_qs : list var := List.seq 0 ghz32_n.
+Definition ghz32_outs : list var := List.seq 300 ghz32_n.
+
+Definition GHZ32_prog : op_list :=
+  alloc_qubits_from ghz32_qs ++
+  [OpAP (CAppU L (H 0 (Num 0)))] ++
+  cnot_from 0 (List.seq 1 (ghz32_n - 1)) ++
+  meas_all_from ghz32_outs.
+
+Fixpoint count_CU (ops : op_list) : nat :=
+  match ops with
+  | [] => 0
+  | OpAP (CAppU _ (CU _ _ _)) :: tl => S (count_CU tl)
+  | _ :: tl => count_CU tl
+  end.
+
+Example test_GHZ32_has_31_CNOTs :
+  count_CU GHZ32_prog = 31.
+Proof. cbn; reflexivity. Qed.
+
+Compute count_CU GHZ32_prog.
+(*
+Compute autodisq_best GHZ32_prog [0;1].
+Compute autodisq_best_1 GHZ32_prog [0;1].*)
+
+
+
+(*
+
+
+(* ============================================================ *)
+(* Shor-style order-finding skeleton: 32 qubits                 *)
+(* ============================================================ *)
+
+Definition shor32_n : nat := 32.
+Definition shor32_qs : list var := List.seq 0 shor32_n.
+Definition shor32_outs : list var := List.seq 500 shor32_n.
+
+Definition shor32_ctrls : list var := List.seq 0 16.
+Definition shor32_tgts  : list var := List.seq 16 16.
+
+Definition SHOR32_prog : op_list :=
+  alloc_qubits_from shor32_qs ++
+  apply_H_all_from shor32_ctrls ++
+  controlled_x_chain_from shor32_ctrls shor32_tgts ++
+  [OpAP (CAppU L (QFT 0 16))] ++
+  meas_all_from shor32_outs.
+
+Compute autodisq_best SHOR32_prog [0;1].
+Compute autodisq_best_1 SHOR32_prog [0;1].
+
+
+
+
+
+
+
+*)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(*
+From Coq Require Import List Arith Bool Nat.
+Import ListNotations.
+Local Open Scope nat_scope.
+Local Open Scope list_scope.
+
 Require Import DisQ.BasicUtility.   (* var := nat *)
 Require Import DisQ.DisQSyntax.     (* exp, process, memb, config, ... *)
 Require Import DisQ.AUTO.
@@ -1125,7 +1530,7 @@ Definition dist : distributed_prog :=
 Compute dist.
 
 
-
+*)
 
 
 

@@ -1,6 +1,4 @@
 
-val negb : bool -> bool
-
 val fst : ('a1 * 'a2) -> 'a1
 
 val snd : ('a1 * 'a2) -> 'a2
@@ -9,41 +7,10 @@ val length : 'a1 list -> int
 
 val app : 'a1 list -> 'a1 list -> 'a1 list
 
-type uint =
-| Nil
-| D0 of uint
-| D1 of uint
-| D2 of uint
-| D3 of uint
-| D4 of uint
-| D5 of uint
-| D6 of uint
-| D7 of uint
-| D8 of uint
-| D9 of uint
-
-type uint0 =
-| Nil0
-| D10 of uint0
-| D11 of uint0
-| D12 of uint0
-| D13 of uint0
-| D14 of uint0
-| D15 of uint0
-| D16 of uint0
-| D17 of uint0
-| D18 of uint0
-| D19 of uint0
-| Da of uint0
-| Db of uint0
-| Dc of uint0
-| Dd of uint0
-| De of uint0
-| Df of uint0
-
-type uint1 =
-| UIntDecimal of uint
-| UIntHexadecimal of uint0
+type comparison =
+| Eq
+| Lt
+| Gt
 
 val add : int -> int -> int
 
@@ -51,48 +18,61 @@ val mul : int -> int -> int
 
 val sub : int -> int -> int
 
-val tail_add : int -> int -> int
+type reflect =
+| ReflectT
+| ReflectF
 
-val tail_addmul : int -> int -> int -> int
+module type TotalLeBool' =
+ sig
+  type t
 
-val tail_mul : int -> int -> int
-
-val of_uint_acc : uint -> int -> int
-
-val of_uint : uint -> int
-
-val of_hex_uint_acc : uint0 -> int -> int
-
-val of_hex_uint : uint0 -> int
-
-val of_num_uint : uint1 -> int
+  val leb : t -> t -> bool
+ end
 
 module Nat :
  sig
-  val add : int -> int -> int
+  val eqb : int -> int -> bool
 
-  val mul : int -> int -> int
-
-  val sub : int -> int -> int
+  val leb : int -> int -> bool
 
   val ltb : int -> int -> bool
 
   val max : int -> int -> int
 
-  val even : int -> bool
-
-  val pow : int -> int -> int
-
   val divmod : int -> int -> int -> int -> int * int
 
   val div : int -> int -> int
-
-  val modulo : int -> int -> int
-
-  val gcd : int -> int -> int
  end
 
-val nth_error : 'a1 list -> int -> 'a1 option
+module Pos :
+ sig
+  val succ : int -> int
+
+  val add : int -> int -> int
+
+  val add_carry : int -> int -> int
+
+  val compare_cont : comparison -> int -> int -> comparison
+
+  val compare : int -> int -> comparison
+
+  val eqb : int -> int -> bool
+
+  val of_succ_nat : int -> int
+ end
+
+module N :
+ sig
+  val add : int -> int -> int
+
+  val compare : int -> int -> comparison
+
+  val eqb : int -> int -> bool
+
+  val ltb : int -> int -> bool
+
+  val of_nat : int -> int
+ end
 
 val rev : 'a1 list -> 'a1 list
 
@@ -100,23 +80,23 @@ val concat : 'a1 list list -> 'a1 list
 
 val map : ('a1 -> 'a2) -> 'a1 list -> 'a2 list
 
-val fold_right : ('a2 -> 'a1 -> 'a1) -> 'a1 -> 'a2 list -> 'a1
+val fold_left : ('a1 -> 'a2 -> 'a1) -> 'a2 list -> 'a1 -> 'a1
 
-val existsb : ('a1 -> bool) -> 'a1 list -> bool
-
-val forallb : ('a1 -> bool) -> 'a1 list -> bool
-
-val filter : ('a1 -> bool) -> 'a1 list -> 'a1 list
+val split : ('a1 * 'a2) list -> 'a1 list * 'a2 list
 
 val seq : int -> int -> int list
 
 type var = int
 
-type bound =
-| BVar of var * int
-| BNum of int
+type posi = var * int
 
-type range = (var * bound) * bound
+val posi_eq : posi -> posi -> bool
+
+val posi_eq_reflect : posi -> posi -> reflect
+
+val posi_eq_dec : posi -> posi -> bool
+
+type range = var * (int * int)
 
 type locus = range list
 
@@ -125,6 +105,7 @@ type aexp =
 | Num of int
 | APlus of aexp * aexp
 | AMult of aexp * aexp
+| AModMult of aexp * aexp * aexp
 
 type cbexp =
 | CEq of aexp * aexp
@@ -145,43 +126,58 @@ type exp =
 | Seq of exp * exp
 
 type cexp =
-| CNew of var * int
+| CNew of range
 | CAppU of locus * exp
 | CMeas of var * locus
-
-type cdexp =
-| NewCh of var * int
-| Send of var * aexp
-| Recv of var * var
+| Send of var * var * int
+| Recv of var * var * int
 
 type process =
 | PNil
 | AP of cexp * process
-| DP of cdexp * process
 | PIf of cbexp * process * process
 
 type memb =
-| Memb of var * process list
-| LockMemb of var * process * process list
+| Memb of var * process
 
 type config = memb list
+
+module Sort :
+ functor (X:TotalLeBool') ->
+ sig
+  val merge : X.t list -> X.t list -> X.t list
+
+  val merge_list_to_stack :
+    X.t list option list -> X.t list -> X.t list option list
+
+  val merge_stack : X.t list option list -> X.t list
+
+  val iter_merge : X.t list option list -> X.t list -> X.t list
+
+  val sort : X.t list -> X.t list
+
+  val flatten_stack : X.t list option list -> X.t list
+ end
+
+type 'a set = 'a list
+
+val set_mem : ('a1 -> 'a1 -> bool) -> 'a1 -> 'a1 set -> bool
+
+val set_inter : ('a1 -> 'a1 -> bool) -> 'a1 set -> 'a1 set -> 'a1 set
 
 type membrane_id = var
 
 type myOp =
 | OpAP of cexp
-| OpDP of cdexp
-| OpIf of cbexp * process * process
+| OpIf of cbexp * cexp list * cexp list
 
 type op_list = myOp list
 
-type hb_relation = myOp -> myOp -> bool
+type hb_relation = int -> int -> bool
 
-type rank = int
-
-type seq_relation = myOp -> rank
-
-type op_mem_assign = myOp -> membrane_id
+type myOpAux =
+| OpNum of int
+| OpExp of cexp
 
 val list_eqb : ('a1 -> 'a1 -> bool) -> 'a1 list -> 'a1 list -> bool
 
@@ -189,438 +185,428 @@ val aexp_eqb : aexp -> aexp -> bool
 
 val cbexp_eqb : cbexp -> cbexp -> bool
 
-val bound_eqb : bound -> bound -> bool
-
 val range_eqb : range -> range -> bool
 
 val locus_eqb : locus -> locus -> bool
 
 val exp_eqb : exp -> exp -> bool
 
-val cexp_eqb : cexp -> cexp -> bool
-
-val cdexp_eqb : cdexp -> cdexp -> bool
-
-val process_eqb : process -> process -> bool
-
-val myOp_eqb : myOp -> myOp -> bool
-
-type qubit_mem_assign = var -> membrane_id
-
 type fitness_value = int
 
-type distributed_prog = config
+module RangeOrder :
+ sig
+  type t = range
 
-val var_eqb : var -> var -> bool
+  val leb : range -> range -> bool
+ end
 
-val mem_var : var -> var list -> bool
+module SortRange :
+ sig
+  val merge : range list -> range list -> range list
 
-val uniq : var list -> var list
+  val merge_list_to_stack :
+    range list option list -> range list -> range list option list
 
-val intersect : var list -> var list -> var list
+  val merge_stack : range list option list -> range list
 
-val vars_of_exp : exp -> var list
+  val iter_merge : range list option list -> range list -> range list
 
-val gen_os : op_list -> op_list
+  val sort : range list -> range list
 
-val vars_of_aexp : aexp -> var list
+  val flatten_stack : range list option list -> range list
+ end
 
-val vars_of_cbexp : cbexp -> var list
+val nat_range_inter : (int * int) -> (int * int) -> bool
 
-val vars_of_myOp : myOp -> var list
+val nat_range_sub : (int * int) -> (int * int) -> bool
 
-val qubits_of_range : ((int * bound) * bound) -> int
+val range_intersect : range -> range -> bool
 
-val qubits_of_locus : locus -> int list
+val same_name : range -> range -> bool
 
-val qubits_of_exp : exp -> int list
+val intersect' : range -> locus -> bool
 
-val qubits_of_cexp : cexp -> int list
+val intersect : locus -> locus -> bool
 
-val qubits_of_cdexp : cdexp -> int list
+val get_locus : cexp -> range list
 
-val qubits_of_myOp : myOp -> int list
+val get_loci : cexp list -> range list
 
-val qubits_of_ops : op_list -> int list
+val get_vars_cexp : cexp -> var list
 
-val shares_any_qubit : myOp -> myOp -> bool
+val get_vars_aexp : aexp -> var list
 
-val is_empty_meas : myOp -> bool
+val get_vars_bexp : cbexp -> var list
 
-val touches_program_qubit : int list -> myOp -> bool
+val is_inter : cexp -> cexp -> bool
 
-val index_of_myOp : myOp -> myOp list -> int
+val inter_vars : var list -> var list -> bool
 
-val gen_hp : op_list -> hb_relation
+val gen_hb_single :
+  (int * myOp) -> (int * myOp) -> (int -> int -> bool) -> int -> int -> bool
 
-val remove_one : (myOp -> myOp -> bool) -> myOp -> myOp list -> myOp list
+val gen_next :
+  int -> (int * myOp) -> (int * myOp) -> (int -> int -> bool) -> int -> int
+  -> bool
 
-val has_incoming_from_nodes : hb_relation -> myOp list -> myOp -> bool
+val opListOrder' : op_list -> int -> (int * myOp) list
 
-val available_nodes : hb_relation -> myOp list -> myOp list
+val opListOrder : op_list -> (int * myOp) list
 
-val nth_default_myOp : myOp -> myOp list -> int -> myOp
+val empty_hp : int -> int -> bool
 
-val topo_kahn_fuel :
-  hb_relation -> int -> myOp list -> int -> myOp list -> myOp list option
+val gen_hb' : int -> (int * myOp) -> (int * myOp) list -> int -> int -> bool
 
-val topo_kahn : hb_relation -> int -> myOp list -> myOp list option
+val gen_hb_a :
+  int -> (int * myOp) list -> (int -> int -> bool) -> int -> int -> bool
 
-val seq_from_order : myOp list -> seq_relation
+val gen_hb : (int * myOp) list -> int -> int -> bool
 
-val gen_seq_many : int -> int -> hb_relation -> op_list -> seq_relation
+val sim_exp : exp -> exp -> bool
 
-val default_mid : membrane_id
+val sim_cexp : cexp -> cexp -> bool
 
-val first_mid : config -> membrane_id
+val sim_myop : myOp -> myOp -> bool
 
-val mem_count : config -> int
+val insert_op :
+  (int * myOp) -> (int * myOp) list list -> (int * myOp) list list
 
-val sum_vars : var list -> int
+val partition_op' :
+  (int * myOp) list -> (int * myOp) list list -> (int * myOp) list list
 
-val myOp_tag : myOp -> int
+val partition_op : (int * myOp) list -> (int * myOp) list list
 
-val myOp_hash : myOp -> int
+val insert_all :
+  (myOpAux * posi list) -> (myOpAux * posi list) list -> (myOpAux * posi
+  list) list list
 
-val subset_vars : var list -> var list -> bool
+val permutations :
+  (myOpAux * posi list) list -> (myOpAux * posi list) list list
 
-val overlap_big : var list -> var list -> bool
+val car_concat' :
+  (myOpAux * posi list) list -> (myOpAux * posi list) list list ->
+  (myOpAux * posi list) list list
 
-val insert_by_seq : seq_relation -> myOp -> myOp list -> myOp list
+val car_concat :
+  (myOpAux * posi list) list list -> (myOpAux * posi list) list list ->
+  (myOpAux * posi list) list list
 
-val sort_by_seq : seq_relation -> myOp list -> myOp list
+val get_first :
+  (int * myOp) list list -> ((int * myOp) list * (int * myOp) list list) ->
+  (int * myOp) list * (int * myOp) list list
 
-val order_by_seq : seq_relation -> op_list -> op_list
+val grab_related' :
+  (int * myOp) -> (int * myOp) list -> hb_relation -> (int * myOp) list ->
+  (int * myOp) list
 
-val build_moO :
-  config -> int -> myOp list -> (myOp * membrane_id) option ->
-  (int * membrane_id) list -> (int * membrane_id) list
+val grab_related : (int * myOp) list -> hb_relation -> (int * myOp) list
 
-val lookup_mid : int -> (int * membrane_id) list -> membrane_id
+val grab_nums : (int * myOp) list -> int list
 
-val moO_of_tbl : (int * membrane_id) list -> op_mem_assign
+val in_list' : int -> int list -> bool
 
-val first_use_mid : myOp list -> op_mem_assign -> var -> membrane_id
+val in_list : myOpAux -> int list -> bool
 
-val gen_mem_seed :
-  int -> config -> seq_relation -> op_list -> op_mem_assign * qubit_mem_assign
+val up_qubits : var -> int -> int -> (var * int) list -> (var * int) list
 
-val mk_reloc : membrane_id -> membrane_id -> exp
+val cutToQubits' : range list -> (var * int) list
 
-val myOp_to_process : myOp -> process
+val cutToQubits : range list -> (var * int) list
 
-val reloc_process : membrane_id -> membrane_id -> process
+val get_locus_in_op : (int * myOp) list -> range list
 
-val place_operation : config -> membrane_id -> myOp -> config
+val get_nlocus : (int * myOp) list -> (myOpAux * (var * int) list) list
 
-val place_reloc :
-  config -> membrane_id -> membrane_id -> membrane_id -> config
+val insert_back :
+  (int * myOp) list -> (int * myOp) list list -> int list -> (int * myOp)
+  list list
 
-val count_comm_proc : process -> int
+val assign_each :
+  int -> (int * myOp) list list -> hb_relation -> (myOpAux * posi list) list
+  list -> (myOpAux * posi list) list list
 
-val count_comm_cfg : config -> int
+val gen_seq :
+  (int * myOp) list -> hb_relation -> (myOpAux * (var * int) list)
+  list * (myOpAux * posi list) list list
 
-val fit : distributed_prog -> fitness_value
+val count_a :
+  int -> (myOpAux * posi list) list -> membrane_id -> ((myOpAux * posi
+  list) * membrane_id) list -> ((myOpAux * posi list) * membrane_id)
+  list * (myOpAux * posi list) list
 
-val iNF_SCORE : fitness_value
+val gen_mem_new' :
+  int -> (myOpAux * posi list) list -> membrane_id list -> int ->
+  ((myOpAux * posi list) * membrane_id) list -> ((myOpAux * posi
+  list) * membrane_id) list
 
-type case = int * int
+val gen_mem_new :
+  (myOpAux * posi list) list -> membrane_id list -> ((myOpAux * posi
+  list) * membrane_id) list
 
-val case_eqb : case -> case -> bool
+val sub_locus' : locus -> locus -> bool
 
-val mem_case : case -> case list -> bool
+val sub_locus : range list -> range list -> bool
 
-val range_from : int -> int -> int list
+val split_nat_range : (int * int) -> (int * int) -> (int * int) list
 
-val mk_cases : int -> int -> case list
+val assemble_range : (int * int) list -> var -> (var * (int * int)) list
 
-val filter_fresh : case list -> case list -> case list
+val sublist_posi : posi list -> posi list -> bool
 
-type candidate = case * (seq_relation * (op_mem_assign * qubit_mem_assign))
+val insert_mem :
+  ((posi * membrane_id) * int list) -> ((posi list * membrane_id) * int list)
+  list -> ((posi list * membrane_id) * int list) list
 
-val seen_cases : candidate list -> case list
+val set_inter0 : posi list -> posi list -> posi list
 
-val are_still_cases_cases : case list -> case list -> bool
+val sub_locus_i : posi -> locus -> bool
 
-val pick_case : case list -> case list -> case option
+val isSend : cexp -> bool
+
+val no_send_check :
+  membrane_id -> ((myOpAux * posi list) * membrane_id) list -> bool
+
+val search_hb :
+  posi list -> int -> hb_relation -> ((myOpAux * posi list) * membrane_id)
+  list -> ((myOpAux * posi list) * membrane_id) list -> (membrane_id * posi
+  list) option
+
+val search_mem :
+  (membrane_id * (posi * bool) list) list -> posi list -> (membrane_id * posi
+  list) list -> (membrane_id * posi list) list
+
+val max_one :
+  (membrane_id * posi list) list -> (membrane_id * posi list) -> membrane_id
+  list -> membrane_id list
+
+val search_good_mem :
+  (membrane_id * (posi * bool) list) list -> posi list -> membrane_id list
+
+val find_least_q' :
+  (membrane_id * (posi * bool) list) list -> (membrane_id * (posi * bool)
+  list) -> membrane_id * (posi * bool) list
+
+val find_least_q :
+  (membrane_id * (posi * bool) list) list -> (membrane_id * (posi * bool)
+  list) option
+
+val subtract_aux :
+  posi -> (posi * bool) list -> (posi * bool) list -> (posi * bool) list
+
+val subtract_posi :
+  posi list -> (posi * bool) list -> (posi * bool) list -> (posi * bool) list
+
+val subtract_all :
+  posi list -> (membrane_id * (posi * bool) list) list ->
+  (membrane_id * (posi * bool) list) list -> (membrane_id * (posi * bool)
+  list) list
+
+val add_posi_true' :
+  membrane_id -> (posi * bool) list -> (membrane_id * (posi * bool) list)
+  list -> (membrane_id * (posi * bool) list) list
+
+val add_true : posi list -> (posi * bool) list
+
+val add_posi_true :
+  membrane_id -> posi list -> (membrane_id * (posi * bool) list) list ->
+  (membrane_id * (posi * bool) list) list
+
+val turn_true_aux : posi list -> (posi * bool) list -> (posi * bool) list
+
+val turn_true :
+  int -> posi list -> (membrane_id * (posi * bool) list) list ->
+  (membrane_id * (posi * bool) list) list
+
+val find_all_in :
+  posi list -> (membrane_id * (posi * bool) list) list ->
+  (membrane_id * (posi * bool) list) option
+
+val search_all_mem :
+  membrane_id -> posi list -> (membrane_id * (posi * bool) list) list ->
+  (membrane_id * posi list) list
+
+val gen_comm' :
+  membrane_id -> posi list -> var -> ((myOpAux * posi list) * membrane_id)
+  list
+
+val gen_comm :
+  (membrane_id * posi list) list -> var -> ((myOpAux * posi
+  list) * membrane_id) list -> var * ((myOpAux * posi list) * membrane_id)
+  list
+
+val assign_mem_s :
+  (membrane_id * (posi * bool) list) list -> hb_relation -> (int * posi list)
+  -> ((myOpAux * posi list) * membrane_id) list -> var ->
+  var * (((myOpAux * posi list) * membrane_id)
+  list * (membrane_id * (posi * bool) list) list) list
+
+val channel : int
+
+val assign_mem' :
+  hb_relation -> (myOpAux * posi list) list -> (var * (((myOpAux * posi
+  list) * membrane_id) list * (membrane_id * (posi * bool) list) list) list)
+  -> var * (((myOpAux * posi list) * membrane_id)
+  list * (membrane_id * (posi * bool) list) list) list
+
+val assign_mem_more :
+  (membrane_id * (posi * bool) list) list -> hb_relation -> (myOpAux * posi
+  list) list list -> ((myOpAux * posi list) * membrane_id) list list ->
+  ((myOpAux * posi list) * membrane_id) list list
+
+val turn_new :
+  ((myOpAux * posi list) * membrane_id) list -> (membrane_id * (posi * bool)
+  list) list -> (membrane_id * (posi * bool) list) list
 
 val gen_mem :
-  config -> seq_relation -> op_list -> case ->
-  op_mem_assign * qubit_mem_assign
+  (myOpAux * posi list) list -> (myOpAux * posi list) list list ->
+  membrane_id list -> hb_relation -> ((myOpAux * posi list) * membrane_id)
+  list list
 
-type smap = (var * membrane_id) list
+val insert_mem_id :
+  membrane_id -> (myOpAux * posi list) -> (int * (myOpAux * posi list) list)
+  list -> (membrane_id * (myOpAux * posi list) list) list
 
-val locus_myOp : myOp -> var list
+val distribute_op :
+  ((myOpAux * posi list) * membrane_id) list -> (int * (myOpAux * posi list)
+  list) list -> (int * (myOpAux * posi list) list) list
 
-val diff_mem : (var -> membrane_id) -> var list -> membrane_id -> smap
+val get_op : (int * myOp) list -> int -> myOp option
 
-val mem_up_smap :
-  (var -> membrane_id) -> smap -> membrane_id -> var -> membrane_id
+val turn_cexp_to_proc : cexp list -> process -> process
 
-val insert_send_recv : config -> smap -> membrane_id -> int -> config * int
+val turn_op_to_proc : myOp -> process -> process
 
-val gen_prog_loop_alg2 :
-  myOp list -> (var -> membrane_id) -> (myOp -> membrane_id) -> config -> int
-  -> config
+val to_process :
+  (myOpAux * posi list) list -> (int * myOp) list -> process option
 
-val empty_config : config
+val to_prog :
+  (int * (myOpAux * posi list) list) list -> (int * myOp) list -> memb list
 
-val gen_prog_alg2 :
-  myOp list -> (var -> membrane_id) -> (myOp -> membrane_id) -> config
+val gen_prog :
+  ((myOpAux * posi list) * membrane_id) list list -> (int * myOp) list ->
+  memb list list
 
-val gen_prog_paper :
-  seq_relation -> qubit_mem_assign -> op_mem_assign -> op_list ->
-  distributed_prog
+val count_send_in_process : process -> int
 
-val auto_disq_loop :
-  int -> hb_relation -> op_list -> config -> case list -> candidate list ->
-  distributed_prog -> fitness_value -> int -> distributed_prog
+val count_send_in_memb : memb -> int
 
-val auto_disq_alg1_paper : int -> int -> op_list -> config -> distributed_prog
+val count_comm_ops : config -> int
 
-val succs : hb_relation -> myOp list -> myOp -> myOp list
+val process_size : process -> int
 
-val mem_op : (myOp -> myOp -> bool) -> myOp -> myOp list -> bool
+val memb_load : memb -> int
 
-val uniq_ops : (myOp -> myOp -> bool) -> myOp list -> myOp list
+val max_load : config -> int
 
-val remove_ops : (myOp -> myOp -> bool) -> myOp list -> myOp list -> myOp list
+val alpha : int
 
-val opt_hp : hb_relation -> seq_relation -> hb_relation
+val fit : config -> fitness_value
 
-val reachable_fuel :
-  (myOp -> myOp -> bool) -> hb_relation -> myOp list -> int -> myOp list ->
-  myOp -> myOp -> bool
+val best_prog_aux : config -> int -> config list -> config
 
-val reachable :
-  (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp -> myOp -> bool
+val best_prog : config list -> config option
 
-val scc_of :
-  (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp -> myOp list
+val autodisq_all : op_list -> membrane_id list -> config list
 
-val has_pred :
-  (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp -> bool
+val autodisq_best : op_list -> membrane_id list -> config option
 
-val ready : (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp -> bool
+val auto_disq_loop : config option -> config list -> config option
 
-val pick_ready :
-  (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp list
+val autodisq_best_1 : op_list -> membrane_id list -> config option
 
-val layer_partition_fuel :
-  int -> (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp list list
-
-val layer_partition :
-  (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp list list
-
-val scc_partition_fuel :
-  int -> (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp list list
-
-val scc_partition :
-  (myOp -> myOp -> bool) -> hb_relation -> myOp list -> myOp list list
-
-val gen_ops : seq_relation -> myOp list -> process list
-
-val alg3_loop_fold : seq_relation -> myOp list list -> process list
-
-val alg3_loop : seq_relation -> myOp list list -> process list -> process list
-
-val auto_parallelize_alg3 :
-  (myOp -> myOp -> bool) -> myOp list -> hb_relation -> seq_relation ->
-  process list
-
-val auto_parallelize_alg3_layers :
-  (myOp -> myOp -> bool) -> myOp list -> hb_relation -> seq_relation ->
-  process list
+val one_qubit_range : var -> range
 
 val l : locus
 
-val cfg2 : config
-
-val p1_q : var
-
-val p1_x : var
-
-val p_1 : op_list
-
-val p_3_q0 : var
-
-val p_3_q1 : var
-
-val p_3_q2 : var
-
-val p_3_x0 : var
-
-val p_3_x1 : var
-
-val p_3_x2 : var
-
-val cX_01 : exp
-
-val cX_02 : exp
-
-val p_3 : op_list
-
-val p_4_q : var
-
-val p_4_n : int
-
-val p_4_x : var
-
-val p_4 : op_list
-
-val p_5_q0 : var
-
-val p_5_q1 : var
-
-val p_5_x0 : var
-
-val p_5_x1 : var
-
-val theta_pi : int
-
-val oRACLE_01 : exp
-
-val p_5 : op_list
-
-val p_6_qs : var
-
-val p_6_qa : var
-
-val p_6_qb : var
-
-val p_6_m1 : var
-
-val p_6_m2 : var
-
-val cNOT_a_b : exp
-
-val cNOT_s_a : exp
-
-val zcorr_qb : exp
-
-val xcorr_qb : exp
-
-val proc_Xcorr : process
-
-val proc_Zcorr : process
-
-val p_6 : op_list
-
-val w0 : var
-
-val w1 : var
-
-val alloc_qubits : var list -> op_list
-
-val apply_H_all : var list -> op_list
-
-val meas_all : var list -> op_list
-
-val iNC_mod4 : exp
-
-val repeat_exp : int -> exp -> exp
-
-val pow2 : int -> int
-
-val controlled_pow : var -> int -> op_list
-
-val qpe_controlled_pows : var list -> int -> op_list
-
-val pow_mod : int -> int -> int -> int
-
-val two_pow : int -> int
-
-val find_period_exact_from : int -> int -> int -> int -> int
-
-val find_period_exact : int -> int -> int -> int
-
-val shor_factors_from_r : int -> int -> int -> int * int
-
-val p0 : var
-
-val p1 : var
-
-val p2 : var
-
-val m0 : var
-
-val m1 : var
-
-val m2 : var
-
-val new_p0 : cexp
-
-val new_p1 : cexp
-
-val new_p2 : cexp
-
-val new_w0 : cexp
-
-val new_w1 : cexp
-
-val appH_p0 : cexp
-
-val appH_p1 : cexp
-
-val appH_p2 : cexp
-
-val cU_p0 : cexp
-
-val cU_p1 : cexp
-
-val cU_p2 : cexp
-
-val appRQFT : cexp
-
-val meas_p0 : cexp
-
-val meas_p1 : cexp
-
-val meas_p2 : cexp
-
-val shor_Qprog : op_list
-
 val alloc_qubits_from : var list -> op_list
-
-val apply_H_all_from : var list -> op_list
-
-val meas_all_from : var list -> op_list
-
-val t_phase64 : int
-
-val phase_qubits64 : var list
-
-val phase_bits64 : var list
-
-val appRQFT64 : cexp
-
-val shor_Qprog_64 : op_list
-
-val t_phase32 : int
-
-val n_work32 : int
-
-val phase_qubits32 : var list
-
-val work_qubits32 : var list
-
-val phase_bits32 : var list
-
-val appRQFT32 : cexp
-
-val shor_Qprog32 : op_list
-
-val ghz32_n : int
-
-val ghz32_qs : var list
-
-val ghz32_outs : var list
 
 val cnot_from : var -> var list -> op_list
 
-val gHZ32_prog : op_list
+val meas_all_from : var list -> op_list
 
-val gHZ32_best : distributed_prog
+val ghz8_n : int
+
+val ghz8_qs : var list
+
+val ghz8_outs : var list
+
+val gHZ8_prog : op_list
+
+val ghz16_n : int
+
+val ghz16_qs : var list
+
+val ghz16_outs : var list
+
+val gHZ16_prog : op_list
+
+val apply_H_all_from : var list -> op_list
+
+val controlled_x_chain_from : var list -> var list -> op_list
+
+val shor8_qs : var list
+
+val shor8_ctrls : var list
+
+val shor8_tgts : var list
+
+val shor8_outs : var list
+
+val sHOR8_prog : op_list
+
+val shor16_qs : var list
+
+val shor16_ctrls : var list
+
+val shor16_tgts : var list
+
+val shor16_outs : var list
+
+val sHOR16_prog : op_list
+
+val qft8_n : int
+
+val qft8_q0 : var
+
+val qft8_qubits : var list
+
+val qft8_outs : var list
+
+val qFT8_prog : op_list
+
+val qft16_n : int
+
+val qft16_q0 : var
+
+val qft16_qubits : var list
+
+val qft16_outs : var list
+
+val qFT16_prog : op_list
+
+val qadd8_n : int
+
+val qadd8_q0 : var
+
+val qadd8_qubits : var list
+
+val qadd8_outs : var list
+
+val qadd8_x : var
+
+val qFTAdder8_prog : op_list
+
+val qadd16_n : int
+
+val qadd16_q0 : var
+
+val qadd16_qubits : var list
+
+val qadd16_outs : var list
+
+val qadd16_x : var
+
+val qFTAdder16_prog : op_list
 
 val qft32_n : int
 
@@ -632,14 +618,22 @@ val qft32_outs : var list
 
 val qFT32_prog : op_list
 
-val qFT32_dist0 : distributed_prog
+val qadd32_n : int
 
-val qft64_n : int
+val qadd32_q0 : var
 
-val qft64_q0 : var
+val qadd32_qubits : var list
 
-val qft64_qubits : var list
+val qadd32_outs : var list
 
-val qft64_outs : var list
+val qadd32_x : var
 
-val qFT64_prog : op_list
+val qFTAdder32_prog : op_list
+
+val ghz32_n : int
+
+val ghz32_qs : var list
+
+val ghz32_outs : var list
+
+val gHZ32_prog : op_list
