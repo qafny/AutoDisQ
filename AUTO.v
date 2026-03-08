@@ -595,14 +595,14 @@ Fixpoint search_all_mem (i:membrane_id) (x:list posi) (new :list (membrane_id * 
        end
   end.
 
-Fixpoint gen_comm' (i:membrane_id) (l: list posi) (chan:var) :=
+Fixpoint gen_comm' (i:membrane_id) (j:membrane_id) (l: list posi) (chan:var) :=
   match l with nil => nil
-            | x::xs => (OpExp (Send chan (fst x) (snd x)),[x],i)::(OpExp (Recv chan (fst x) (snd x)),[x], i)::gen_comm' i xs (S chan)
+            | x::xs => (OpExp (Send chan (fst x) (snd x)),[x],i)::(OpExp (Recv chan (fst x) (snd x)),[x], j)::gen_comm' i j xs (S chan)
   end.
 
-Fixpoint gen_comm l (chan : var) acc :=
+Fixpoint gen_comm j l (chan : var) acc :=
   match l with nil => (chan,acc)
-            | (i,x)::xs => gen_comm xs (chan + length x) (gen_comm' i x chan++acc)
+            | (i,x)::xs => gen_comm j xs (chan + length x) (gen_comm' j i x chan++acc)
   end.
 
 Definition assign_mem_s (new:list (membrane_id * list (posi * bool))) (hb:hb_relation)
@@ -614,13 +614,13 @@ Definition assign_mem_s (new:list (membrane_id * list (posi * bool))) (hb:hb_rel
         with None => 
          match search_good_mem new xset
            with nil => (chan,[]) (* error *)
-              | next => fold_left (fun a b => let mid := gen_comm (search_all_mem b (snd x) new) (fst a) nil in
-               (fst mid,(l++(snd mid)++[(OpNum (fst x),snd x,b)], add_posi_true b xset (subtract_all xset new nil))::snd a)) next (chan,nil)
+              | next => fold_left (fun a b => let mid := gen_comm b (search_all_mem b (snd x) new) (fst a) nil in
+               (fst mid,(l++(OpNum (fst x),snd x,b)::(snd mid), add_posi_true b xset (subtract_all xset new nil))::snd a)) next (chan,nil)
          end
            | Some (i, re) => 
            if 5 <? ((length re) * 10) / (length xset)
-           then let mid := gen_comm (search_all_mem i (snd x) new) chan nil in
-            (fst mid, [(l++(snd mid)++[(OpNum (fst x),snd x,i)], add_posi_true i xset (subtract_all xset new nil))])
+           then let mid := gen_comm i (search_all_mem i (snd x) new) chan nil in
+            (fst mid, [(l++(OpNum (fst x),snd x,i)::(snd mid), add_posi_true i xset (subtract_all xset new nil))])
            else 
       match search_good_mem new xset
         with nil => (chan,[]) (* error *)
@@ -628,8 +628,8 @@ Definition assign_mem_s (new:list (membrane_id * list (posi * bool))) (hb:hb_rel
         match find_least_q new
               with None => (chan,[]) (* error *)
                  | Some na =>
-      fold_left (fun a b => let mid := gen_comm (search_all_mem b (snd x) new) (fst a) nil in
-               (fst mid,(l++(snd mid)++[(OpNum (fst x),snd x,b)], add_posi_true b xset (subtract_all xset new nil))::snd a))
+      fold_left (fun a b => let mid := gen_comm b (search_all_mem b (snd x) new) (fst a) nil in
+               (fst mid,(l++(OpNum (fst x),snd x,b)::(snd mid), add_posi_true b xset (subtract_all xset new nil))::snd a))
                    (fst na :: next) (chan,nil)
         end
       end
