@@ -78,8 +78,10 @@ Definition GHZ8_prog : op_list :=
   cnot_from 0 (List.seq 1 (ghz8_n - 1)) ++
   meas_all_from ghz8_outs.
 
+(*
 Compute autodisq_best GHZ8_prog [0;1].
 Compute autodisq_best_1 GHZ8_prog [0;1].
+*)
 
 (* ============================================================ *)
 (* GHZ-16 benchmark                                             *)
@@ -99,9 +101,10 @@ Definition GHZ16_prog : op_list :=
   cnot_from 0 (List.seq 1 (ghz16_n - 1)) ++
   meas_all_from ghz16_outs.
 
+(*
 Compute autodisq_best GHZ16_prog [0;1].
 Compute autodisq_best_1 GHZ16_prog [0;1].
-
+*)
 
 
 (* ============================================================ *)
@@ -140,9 +143,10 @@ Definition SHOR8_prog : op_list :=
   [OpAP (CAppU L (QFT 0 4))] ++
   meas_all_from shor8_outs.
 
+(*
 Compute autodisq_best SHOR8_prog [0;1].
 Compute autodisq_best_1 SHOR8_prog [0;1].
-
+*)
 
 
 Definition shor16_qs : list var := List.seq 0 16.
@@ -179,9 +183,10 @@ Definition QFT8_prog : op_list :=
   ] ++
   meas_all_from qft8_outs.
 
+(*
 Compute autodisq_best QFT8_prog [0;1].
 Compute autodisq_best_1 QFT8_prog [0;1].
-
+*)
 (* ============================================================ *)
 (* QFT-16                                                       *)
 (* ============================================================ *)
@@ -198,8 +203,10 @@ Definition QFT16_prog : op_list :=
   ] ++
   meas_all_from qft16_outs.
 
+(*
 Compute autodisq_best QFT16_prog [0;1].
 Compute autodisq_best_1 QFT16_prog [0;1].
+*)
 
 (* ============================================================ *)
 (* QFT Adder-8                                                  *)
@@ -220,9 +227,10 @@ Definition QFTAdder8_prog : op_list :=
   ] ++
   meas_all_from qadd8_outs.
 
+(*
 Compute autodisq_best QFTAdder8_prog [0;1].
 Compute autodisq_best_1 QFTAdder8_prog [0;1].
-
+*)
 (* ============================================================ *)
 (* QFT Adder-16                                                 *)
 
@@ -242,9 +250,10 @@ Definition QFTAdder16_prog : op_list :=
   ] ++
   meas_all_from qadd16_outs.
 
+(*
 Compute autodisq_best QFTAdder16_prog [0;1].
 Compute autodisq_best_1 QFTAdder16_prog [0;1].
-
+*)
 
 (* ============================================================ *)
 (* QFT-32                                                       *)
@@ -311,14 +320,14 @@ Example test_QFTAdder32_counts :
   count_RQFT QFTAdder32_prog = 1.
 Proof. cbn; auto. Qed.
 
-
+(*
 Compute count_QFT QFT32_prog.
 Compute count_RQFT QFT32_prog.
 Compute count_Addto QFTAdder32_prog.
 
 Compute autodisq_best QFT32_prog [0;1].
 Compute autodisq_best QFTAdder32_prog [0;1].
-
+*)
 (* ============================================================ *)
 (* GHZ-32                                                       *)
 (* ============================================================ *)
@@ -344,8 +353,9 @@ Example test_GHZ32_has_31_CNOTs :
   count_CU GHZ32_prog = 31.
 Proof. cbn; reflexivity. Qed.
 
-Compute count_CU GHZ32_prog.
+
 (*
+Compute count_CU GHZ32_prog.
 Compute autodisq_best GHZ32_prog [0;1].
 Compute autodisq_best_1 GHZ32_prog [0;1].*)
 
@@ -407,9 +417,10 @@ Definition GROVER8_prog : op_list :=
   repeat_grover 2 grover8_qs ++
   meas_all_from grover8_outs.
 
+(*
 Compute autodisq_best GROVER8_prog [0;1].
 Compute autodisq_best_1 GROVER8_prog [0;1].
-
+*)
 (* ============================================================ *)
 (* Grover-16                                                    *)
 (* ============================================================ *)
@@ -425,9 +436,10 @@ Definition GROVER16_prog : op_list :=
   repeat_grover 3 grover16_qs ++
   meas_all_from grover16_outs.
 
+(*
 Compute autodisq_best GROVER16_prog [0;1].
 Compute autodisq_best_1 GROVER16_prog [0;1].
-
+*)
 (* ============================================================ *)
 (* Grover-32                                                    *)
 (* ============================================================ *)
@@ -443,10 +455,10 @@ Definition GROVER32_prog : op_list :=
   repeat_grover 2 grover32_qs ++
   meas_all_from grover32_outs.
 
-(* You can comment these out if make becomes heavy *)
+(* You can comment these out if make becomes heavy 
 Compute autodisq_best GROVER32_prog [0;1].
 Compute autodisq_best_1 GROVER32_prog [0;1].
-
+*)
 
 
 (*
@@ -1677,7 +1689,7 @@ Definition qftSeq: op_list := [OpAP (CNew (x, (0*n)))] ++ (qft x n).
 Definition distQFT : distributed_prog :=
   auto_disq_alg1_paper 2 2 qftSeq cfg1.
 Compute distQFT.
-
+*)
 
 
 
