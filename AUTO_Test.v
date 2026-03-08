@@ -1617,30 +1617,66 @@ Fixpoint UMAseq' n t y x : op_list :=
   end.
 Definition UMAseq n t y x := UMAseq' (n - 1) t y x.
 
-
+(*size of arguments*)
 Definition n : var := 2.
 
 Definition rippleCarrySeq : op_list := [OpAP (CNew (t, (0*n))); OpAP (CNew (y, (0*n))); OpAP (CNew (x (0*2)))] 
   ++ (MAJseq n t y x) ++ (UMAseq n t y x).
 
-Definition dist : distributed_prog :=
-  auto_disq_alg1_paper 2 2 ops cfg1.
-Compute dist.
+Definition distRippleCarry : distributed_prog :=
+  auto_disq_alg1_paper 2 2 rippleCarrySeq cfg1.
+Compute distRippleCarry.
+
+(* ===================================== *)
+(* QFT-based Adder *)
+(* ===================================== *)
+(* Implementing x + y addition for fixedp values. *)
+Fixpoint rz_full_adder' (x:var) (n:nat) (size:nat) (y:var): op_list :=
+  match n with
+  | 0 => [OpAp (CAppU [x[0]] (SKIP x (Num 0)))]
+  | S m => [OpAp (CAppU [y[m], x[0,size-n]] (CU y (Num m) (SR (size - n) x)))] ++ (rz_full_adder' x m size y)
+  end.
+Definition rz_full_adder (x:var) (n:nat) (y:var) := rz_full_adder' x n n y.
 
 
-*)
+(*size of arguments*)
+Definition n : var := 2.
+(*qubits of y require reversal before and after*)
+Definition qftAdder: op_list := [OpAP (CNew (x, (0*n))); OpAP (CNew (y, (0*n)));
+ OpAP (CAppU [y[0,n-1]] (QFT y n))] ++ (rz_full_adder y n x) ++ [OpAP (CAppU [y[0,n-1]] (RQFT y n))].
+
+Definition distQFTAdder : distributed_prog :=
+  auto_disq_alg1_paper 2 2 qftAdder cfg1.
+Compute distQFTAdder.
 
 
+(* ===================================== *)
+(* QFT *)
+(* ===================================== *)
 
+(*Performs sequence of RZ gates on x[n], k shoud initialy be size(x)-n*)
+Fixpoint qft_rotations (x:var) (n:nat) (k:nat): op_list
+  match k with
+  | 1 => [OpAP (CAppU [x[n]] (SKIP x (Num n)))]
+  | S k' => [OpAP (CAppU [x[n],x[k'+n]] (CU x (Num k'+n) (RZ k x (Num n))))] ++ (qft_rotations x n k')
+  end.
 
+Fixpoint qft' (x:var) (size:nat) (n:nat) : op_list :=
+  match n with
+  | 0 => [OpAP (CAppU [x[n]] (SKIP x (Num 0)))]
+  | S n' => [OpAP (CAppU [x[n']] (H x (Num n')))] ++ (qft_rotations x n' (size-n')) ++ (qft' x size n')
+  end.
 
+Definition qft (x:var) (size:nat) := qft' x size size.
 
+(*size of arguments*)
+Definition n : var := 2.
 
+Definition qftSeq: op_list := [OpAP (CNew (x, (0*n)))] ++ (qft x n).
 
-
-
-
-
+Definition distQFT : distributed_prog :=
+  auto_disq_alg1_paper 2 2 qftSeq cfg1.
+Compute distQFT.
 
 
 
