@@ -1689,9 +1689,28 @@ Definition qftSeq: op_list := [OpAP (CNew (x, (0*n)))] ++ (qft x n).
 Definition distQFT : distributed_prog :=
   auto_disq_alg1_paper 2 2 qftSeq cfg1.
 Compute distQFT.
+
+
+(* ===================================== *)
+(*  Amplitude Estimation *)
+(* ===================================== *)
+
+Definition Q := SKIP y[0].
+
+Fixpoint control_Qs (x:var) (y:var) (n:int) : op_list :=
+  match n with
+  0   => [OpAP (CAppU [] SKIP Q)]
+  S n'=> [OpAP (CAppU [x[n'],y[0,n-1]] CU x (Num n') Q)] ++ (control_Qs x y n')
+  end.
+
+(*size of arguments*)
+Definition n : var := 2.
+
+Definition qftSeq: op_list := [OpAP (CNew (x, (0*n))); OpAP (CNew (y, (0*n)));
+ OpAP (CAppU [x[0,n-1]] (H x ?)); OpAP (CAppU [y[0,n-1]] (H y ?))] ++ (control_Qs x y n)
+ ++ [OpAP (CAppU x[0,n-1] (RQFT x ?))].
+
 *)
-
-
 
 
 
