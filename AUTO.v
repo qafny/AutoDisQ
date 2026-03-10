@@ -642,7 +642,7 @@ Definition assign_mem_s (new:list (membrane_id * list (posi * bool))) (hb:hb_rel
               with None => (chan,[]) (* error *)
                  | Some na =>
       let reduces := subtract_all xset new nil in 
-      fold_left (fun a b => let mid := gen_comm b (search_all_mem b (snd x) new) (fst a) nil in
+      fold_left (fun a b => let mid := gen_comm b (search_all_mem b xset new) (fst a) nil in
                (fst mid,(l++(OpNum (fst x),snd x,b)::(snd mid), add_posi_true b xset (reduces))::snd a))
                    (fst na :: next) (chan,nil)
         end
