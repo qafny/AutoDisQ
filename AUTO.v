@@ -611,7 +611,7 @@ Fixpoint gen_comm j l (chan : var) acc :=
   end.
 
 Fixpoint place_mid chan xnum xset old (new:list (membrane_id * list (posi * bool))) reduces l acc :=
-  match l with nil => acc
+  match l with nil => (chan,acc)
             | y::ys => let mid := gen_comm y (search_all_mem y xset new) chan nil in
                        place_mid (fst mid) xnum xset old new reduces ys 
                            ((old++(OpNum xnum,xset,y)::(snd mid), add_posi_true y xset reduces)::acc)
@@ -627,8 +627,7 @@ Definition assign_mem_s (new:list (membrane_id * list (posi * bool))) (hb:hb_rel
          match search_good_mem new xset
            with nil => (chan,[]) (* error *)
               | next => let reduces := subtract_all xset new nil in
-               fold_left (fun a b => let mid := gen_comm b (search_all_mem b xset new) (fst a) nil in
-               (fst mid,(l++(OpNum (fst x),snd x,b)::(snd mid), add_posi_true b xset reduces)::snd a)) next (chan,nil)
+               place_mid chan (fst x) xset l new reduces next nil 
          end
            | Some (i, re) => 
            if 5 <? ((length re) * 10) / (length xset)
@@ -642,9 +641,7 @@ Definition assign_mem_s (new:list (membrane_id * list (posi * bool))) (hb:hb_rel
               with None => (chan,[]) (* error *)
                  | Some na =>
       let reduces := subtract_all xset new nil in 
-      fold_left (fun a b => let mid := gen_comm b (search_all_mem b xset new) (fst a) nil in
-               (fst mid,(l++(OpNum (fst x),snd x,b)::(snd mid), add_posi_true b xset (reduces))::snd a))
-                   (fst na :: next) (chan,nil)
+          place_mid chan (fst x) xset l new reduces (fst na :: next) nil
         end
       end
      end
