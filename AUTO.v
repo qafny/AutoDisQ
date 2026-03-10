@@ -640,7 +640,10 @@ Definition assign_mem_s (new:list (membrane_id * list (posi * bool))) (hb:hb_rel
            | y::ys => 
         match find_least_q new
               with None => (chan,[]) (* error *)
-                 | Some na => (chan, nil)
+                 | Some na =>
+               let reduces := subtract_all xset new nil in
+               let mid := gen_comm y (search_all_mem y xset new) chan nil in
+                          (fst mid,[(l++ (OpNum (fst x),xset,y)::(snd mid), add_posi_true y xset reduces)])
         end
       end
      end
