@@ -1703,19 +1703,43 @@ Fixpoint control_Qs (x:var) (y:var) (n:int) : op_list :=
   S n'=> [OpAP (CAppU [x[n'],y[0,n-1]] CU x (Num n') Q)] ++ (control_Qs x y n')
   end.
 
+Fixpoint applyH (x:var) (n:int) : op_list :=
+  match n with
+  0    => [OpAP (CAppU [] SKIP x[0])]
+  S n' => [OpAP (CAppU [x[n']] (H x (Num n')))] ++ applyH x n'
+  end.
+
 (*size of arguments*)
 Definition n : var := 2.
 
-Definition qftSeq: op_list := [OpAP (CNew (x, (0*n))); OpAP (CNew (y, (0*n)));
- OpAP (CAppU [x[0,n-1]] (H x ?)); OpAP (CAppU [y[0,n-1]] (H y ?))] ++ (control_Qs x y n)
- ++ [OpAP (CAppU x[0,n-1] (RQFT x ?))].
-
-*)
+Definition qftSeq: op_list := [OpAP (CNew (x, (0*n))); OpAP (CNew (y, (0*n)))]
+ ++ (applyH x n) ++ (applyH y n) ++ (control_Qs x y n) ++ [OpAP (CAppU x[0,n-1] (RQFT x ?))].
 
 
+(* ===================================== *)
+(*  Discrete Log *)
+(* ===================================== *)
 
+Fixpoint control_ops (x:var) (y:var) (n:int) : op_list :=
+  match n with
+  0   => [OpAP (CAppU [] SKIP y[0])]
+  S n'=> [OpAP (CAppU [x[n'],y[0,n-1]] CU x (Num n') SKIP y[0])] ++ (control_Qs x y n')
+  end.
 
+Fixpoint applyH (x:var) (n:int) : op_list :=
+  match n with
+  0    => [OpAP (CAppU [] SKIP x[0])]
+  S n' => [OpAP (CAppU [x[n']] (H x (Num n')))] ++ applyH x n'
+  end.
 
+(*size of arguments*)
+Definition n : var := 2.
+
+Definition qftSeq: op_list := [OpAP (CNew (x, (0*n)));
+ OpAP (CNew (y, (0*n))); OpAP (CNew (z, (0*n)))] ++ (applyH x n) ++ (applyH y n) ++ (control_ops x z n) ++ (control_ops y z n) ++ 
+ [OpAP (CAppU [x[0,n-1]] (QFT x n)); OpAP (CAppU [y[0,n-1]] (QFT y n))].
+
+ *)
 
 
 
