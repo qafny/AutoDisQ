@@ -155,7 +155,6 @@ Extraction
   split_nat_range
   assemble_range
   sublist_posi
-  insert_mem
   set_inter
   sub_locus_i
   isSend

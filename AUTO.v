@@ -569,12 +569,14 @@ Fixpoint add_true (x:list posi) := match x with nil => nil | y::ys => (y,true)::
 
 Definition add_posi_true i (x:list posi) new := add_posi_true' i (add_true x) new nil.
 
-Definition turn_true_aux (x:list posi) (y:list (posi * bool)) :=
-  let v := subtract_posi x y nil in add_true x++v.
+Fixpoint turn_true_aux x y acc :=
+  match y with nil => acc | (a,b)::ys => 
+   if set_mem posi_eq_dec a x then turn_true_aux x ys ((a,true)::acc) else turn_true_aux x ys ((a,b)::acc)
+  end.
 
 Fixpoint turn_true' i (x:list posi) (new :list (membrane_id * list (posi * bool))) acc :=
   match new with nil => acc 
-               | (j,y)::ys => if i =? j then acc++((j, turn_true_aux x y)::ys) else turn_true' i x ys ((j,y)::acc) end.
+               | (j,y)::ys => if i =? j then ((j, turn_true_aux x y nil)::ys++acc) else turn_true' i x ys ((j,y)::acc) end.
 Definition turn_true i x new := turn_true' i x new nil.
 
 Fixpoint find_all_in (l: list posi) (new:list (membrane_id * list (posi * bool))) :=
@@ -618,7 +620,11 @@ Fixpoint place_mid chan xnum xset old (new:list (membrane_id * list (posi * bool
   end.
 
 Definition assign_mem_s (new:list (membrane_id * list (posi * bool))) (hb:hb_relation)
-          (x:(N * list posi)) (l : (list (myOpAux * list posi * membrane_id))) (chan:var) := 
+          (x:(N * list posi)) (l : (list (myOpAux * list posi * membrane_id))) (chan:var)
+   :var *
+       list
+         (list (myOpAux * list posi * membrane_id) *
+          list (membrane_id * list (posi * bool))) := 
   let xset := snd x in
   match find_all_in xset new
     with None => 
