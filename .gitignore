@@ -1,0 +1,16 @@
+.*.aux
+*.vo
+*.vok
+*.vos
+*.glob
+.lia.cache
+.Makefile.d
+.nia.cache
+.vscode/settings.json
+*.o
+*.cmi
+*.cmo
+*cmx
+auto_test
+auto_test_byte
+Makefile.conf
