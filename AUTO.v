@@ -642,7 +642,7 @@ Definition assign_mem_s (new:list (membrane_id * list (posi * bool))) (hb:hb_rel
        | Some (i,la) => (chan,[(l++[(OpNum (fst x),snd x,i)], turn_true i xset new)])
   end.
 
-Definition channel := 1000.
+Definition channel := 6.
 
 Fixpoint assign_mem' (hb:hb_relation) (l : (list (myOpAux * list posi))) acc :=
    match l with nil => acc
