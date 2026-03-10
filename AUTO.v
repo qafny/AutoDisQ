@@ -336,7 +336,7 @@ Definition insert_op (a:N *myOp) acc :=
   match acc with nil => [[a]]
                | []::xl => [a]::xl
                | ((i,OpAP b)::xl)::al => 
-         match a with (j,OpAP q) => if sim_cexp q b then ((i,OpAP b)::xl++[(j,OpAP q)])::al else [(j,OpAP q)]::(((i,OpAP b)::xl)::al)
+         match a with (j,OpAP q) => if sim_cexp q b then ((i,OpAP b)::xl++[(j,OpAP q)])::al else [(j,OpAP q)]::acc
                     | (i,OpIf c d e) => [(i,OpIf c d e)]::(((i,OpAP b)::xl)::al)
          end
                | ((i,OpIf c d e)::xl)::al => [a]::((i,OpIf c d e)::xl)::al
@@ -481,11 +481,12 @@ Fixpoint assemble_range (l:list (nat * nat)) (x:var) :=
 Fixpoint sublist_posi (l r : list posi) :=
   match l with nil => true | x::xs => set_mem posi_eq_dec x r && sublist_posi xs r end.
 
-
+(*
 Fixpoint insert_mem  (a: posi * membrane_id * list nat)  (l:list (list posi * membrane_id * list nat)) :=
   match l with nil => [([fst (fst a)], snd (fst a),snd a)]
             | (x,y, ids)::xs => if snd (fst a) =? y then ((fst (fst a))::x,y,snd a ++ ids)::xs else (x,y, ids) :: insert_mem a xs
   end.
+*)
 
 Fixpoint set_inter (x y : (list posi)) :=
   match  x with nil => nil
@@ -561,18 +562,20 @@ Fixpoint subtract_posi (x: list posi) (l:list (posi * bool)) acc :=
 Fixpoint subtract_all (x: list posi) (new :list (membrane_id * list (posi * bool))) acc :=
     match new with nil => acc | (i,y)::ys =>  subtract_all x ys ((i,subtract_posi x y nil)::acc) end.
 
-Fixpoint add_posi_true' (i:membrane_id) (x: list (posi*bool)) (new :list (membrane_id * list (posi * bool))) :=
-   match new with nil => nil | (j,y)::ys => if i =? j then (j,x++y)::ys else (j,y)::add_posi_true' i x ys end.
+Fixpoint add_posi_true' (i:membrane_id) (x: list (posi*bool)) (new :list (membrane_id * list (posi * bool))) acc :=
+   match new with nil => acc | (j,y)::ys => if i =? j then acc++((j,x++y)::ys) else add_posi_true' i x ys ((j,y)::acc) end.
 
 Fixpoint add_true (x:list posi) := match x with nil => nil | y::ys => (y,true)::add_true ys end.
 
-Definition add_posi_true i (x:list posi) new := add_posi_true' i (add_true x) new.
+Definition add_posi_true i (x:list posi) new := add_posi_true' i (add_true x) new nil.
 
 Definition turn_true_aux (x:list posi) (y:list (posi * bool)) :=
   let v := subtract_posi x y nil in add_true x++v.
 
-Fixpoint turn_true i (x:list posi) (new :list (membrane_id * list (posi * bool))) :=
-  match new with nil => nil | (j,y)::ys => if i =? j then (j, turn_true_aux x y)::ys else (j,y)::turn_true i x ys end.
+Fixpoint turn_true' i (x:list posi) (new :list (membrane_id * list (posi * bool))) acc :=
+  match new with nil => acc 
+               | (j,y)::ys => if i =? j then acc++((j, turn_true_aux x y)::ys) else turn_true' i x ys ((j,y)::acc) end.
+Definition turn_true i x new := turn_true' i x new nil.
 
 Fixpoint find_all_in (l: list posi) (new:list (membrane_id * list (posi * bool))) :=
   match new with nil => None
@@ -583,17 +586,19 @@ Fixpoint find_all_in (l: list posi) (new:list (membrane_id * list (posi * bool))
    if they have similar qubits, then put in the same place, 
    otherwise, the instruction can be placed same as initial qubit places or an least qubit membrane. *)
 
-Fixpoint search_all_mem (i:membrane_id) (x:list posi) (new :list (membrane_id * list (posi * bool))) :=
-  match new with nil => nil
-              | (a,b)::xs =>
+Fixpoint search_all_mem' (i:membrane_id) (x:list posi) (new :list (membrane_id * list (posi * bool))) acc :=
+  match new with nil => acc
+    | (a,b)::xs =>
         if i =? a
-        then search_all_mem i x xs
+        then search_all_mem' i x xs acc
         else
        match set_inter x (fst (split b))
-          with nil => search_all_mem i x xs
-             | next => (a,next)::search_all_mem i x xs
+          with nil => search_all_mem' i x xs acc
+             | next => search_all_mem' i x xs ((a,next)::acc)
        end
   end.
+
+Definition search_all_mem i x new := search_all_mem' i x new nil.
 
 Fixpoint gen_comm' (i:membrane_id) (j:membrane_id) (l: list posi) (chan:var) :=
   match l with nil => nil
@@ -657,7 +662,7 @@ Fixpoint turn_new (l:list (myOpAux * list posi * membrane_id)) acc :=
 end.
 
 Definition gen_mem (news: list (myOpAux * list posi)) (l:list (list (myOpAux * list posi))) (ids:list membrane_id) (hb: hb_relation) := 
-  map (fun a => (gen_mem_new news ids)++a) (assign_mem_more (turn_new (gen_mem_new news ids) nil) hb l nil).
+  let v:= (gen_mem_new news ids) in map (fun a => v++a) (assign_mem_more (turn_new v nil) hb l nil).
 
 (* maintain the following. *)
 (* ------------------------------------------------------------------------- *)
