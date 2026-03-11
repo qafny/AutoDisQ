@@ -212,7 +212,7 @@ Definition same_name (x y:range) := fst x =? fst y.
 
 Fixpoint intersect' (x:range) (y:locus) :=
    match y with nil => false
-              | a::yas => if same_name x a then (if nat_range_inter (snd x) (snd a) then true else intersect' x yas) else false
+              | a::yas => if (same_name x a) && (nat_range_inter (snd x) (snd a)) then true else intersect' x yas
    end.
 
 Fixpoint intersect (x y:locus) :=
@@ -284,16 +284,25 @@ Definition empty_hp := fun (x y:N) => false.
 
 
 (* hp relation is transitive closure. *)
-Fixpoint gen_hb' (n:N) (x: N * myOp) l := 
-  match l with nil => empty_hp
-             | a::xas => gen_next n x a (gen_hb_single x a (gen_hb' n x xas))
+Fixpoint gen_hb' (x: N * myOp) l acc := 
+  match l with nil => acc
+             | a::xas => (gen_hb_single x a (gen_hb' x xas acc))
   end.
 
-Fixpoint gen_hb_a (n:N) (R : list (N * myOp)) acc :=
+Fixpoint gen_hb_a (R : list (N * myOp)) acc :=
    match R with nil => acc
-             | a::xas => gen_hb_a n xas (gen_hb' n a xas)
+             | a::xas => gen_hb_a xas (gen_hb' a xas acc)
    end.
-Definition gen_hb (R : list (N * myOp)) := gen_hb_a (N.of_nat (length R)) R empty_hp.
+
+
+Definition trans_closure (n:N) (x:N) acc :=
+  fun a b => if (N.ltb a x) && (N.ltb x b) && (N.ltb b n) 
+             && acc a x && acc x b then true else acc a b.
+
+Fixpoint gen_hb_trans size n acc :=
+  match n with 0 => acc | S m => gen_hb_trans size m (trans_closure size (N.of_nat m) acc) end.
+
+Definition gen_hb (R : list (N * myOp)) := gen_hb_trans (N.of_nat (length R)) (length R) (gen_hb_a R empty_hp).
 
 
 
@@ -372,11 +381,20 @@ Fixpoint car_concat (x y:  list (list (myOpAux * list posi))) :=
               | a::xs => (car_concat' a y) ++ car_concat xs y
    end.
 
-Fixpoint get_first (l:list (list (N * myOp))) acc := 
-   match l with nil => acc
-              | []::xs => get_first xs acc
-              | (a::xs)::ys => get_first ys (match acc with (c,d) => (c++[a],d++[xs]) end)
+Fixpoint get_first (l:list (list (N * myOp))) := 
+   match l with nil => nil
+              | []::xs => get_first xs
+              | (a::xs)::ys => a::get_first ys
    end.
+
+Fixpoint in_list_a (x: (N * myOp)) (l:list (N * myOp)) :=
+  match l with nil => false | a::xs => if N.eqb (fst x) (fst a) then true else in_list_a x xs end.
+
+Fixpoint remove_first (l:list (list (N * myOp))) (x:(list (N * myOp))) :=
+  match l with nil => nil
+             | []::xs => []::remove_first xs x
+             | (a::xs)::ys => if in_list_a a x then xs::remove_first ys x else (a::xs)::remove_first ys x
+  end.
 
 Fixpoint grab_related' (x: N* myOp) (l:list (N * myOp)) (re:hb_relation) acc :=
   match l with nil => acc
@@ -423,10 +441,9 @@ Fixpoint insert_back (x:(list (N * myOp))) (l: (list (list (N * myOp)))) (re:lis
 Fixpoint assign_each (n:nat) (l:list (list (N * myOp))) (re:hb_relation) acc :=
   match n with 0 => acc
              | S m =>
-      match get_first l (nil,nil) with (nil,nil) => acc
-                           | (a,b) => let good := (grab_related a re) in
-                         assign_each m (insert_back a b
-                               (fst (split good))) re (car_concat acc (permutations (get_nlocus good)))
+      match get_first l with nil => acc
+                           | a => let good := (grab_related a re) in
+                         assign_each m (remove_first l good) re (car_concat acc (permutations (get_nlocus good)))
       end
   end.
 
@@ -435,6 +452,8 @@ Definition gen_seq (l:list (N * myOp)) (re: hb_relation) :=
    match can with nil => (nil,nil)
                 | x::xs => (get_nlocus x,assign_each (length l - length x) xs re [nil])
    end.
+
+Check gen_hb.
 
 (* ------------------------------------------------------------------------- *)
 (* gen_mem                                                           *)
@@ -656,6 +675,7 @@ Definition assign_mem_s (new:list (membrane_id * list (posi * bool))) (hb:hb_rel
      end
        | Some (i,la) => (chan,[(l++[(OpNum (fst x),snd x,i)], turn_true i xset new)])
   end.
+
 
 Definition channel := 6.
 
