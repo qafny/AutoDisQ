@@ -1,0 +1,5 @@
+ocamlc -w -3 -c autodisq_extract.mli
+ocamlc -w -3 -c autodisq_extract.ml
+ocamlc -c main.ml
+ocamlc -o test autodisq_extract.cmo main.cmo
+./test
