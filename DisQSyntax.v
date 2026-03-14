@@ -111,4 +111,3 @@ Inductive memb := Memb (l: var) (lp: process).
 
 (** Configuration **)
 Definition config : Type := list memb.
-

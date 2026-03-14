@@ -2,14 +2,7 @@
 
 BasicUtility.v
 MathSpec.v
-OQASM.v
-OQASMProof.v
-CLArith.v
-RZArith.v
 DisQSyntax.v
-DisQDef.v
-DisQKind.v
-DisQSem.v
 AUTO.v
 AUTO_Test.v
 
