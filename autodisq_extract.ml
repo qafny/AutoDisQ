@@ -17,8 +17,8 @@ let rec length = function
 
 (** val app : 'a1 list -> 'a1 list -> 'a1 list **)
 
-let rec app l0 m =
-  match l0 with
+let rec app l m =
+  match l with
   | [] -> m
   | a :: l1 -> a :: (app l1 m)
 
@@ -27,9 +27,10 @@ type comparison =
 | Lt
 | Gt
 
-(** val add : int -> int -> int **)
-
-let rec add = (+)
+module Coq__1 = struct
+ (** val add : int -> int -> int **)let rec add = (+)
+end
+include Coq__1
 
 (** val mul : int -> int -> int **)
 
@@ -38,10 +39,6 @@ let rec mul = ( * )
 (** val sub : int -> int -> int **)
 
 let rec sub = fun n m -> Stdlib.max 0 (n-m)
-
-type reflect =
-| ReflectT
-| ReflectF
 
 module type TotalLeBool' =
  sig
@@ -95,6 +92,14 @@ module Nat =
 
 module Pos =
  struct
+  type mask =
+  | IsNul
+  | IsPos of int
+  | IsNeg
+ end
+
+module Coq_Pos =
+ struct
   (** val succ : int -> int **)
 
   let rec succ = Pervasives.succ
@@ -130,6 +135,98 @@ module Pos =
         (fun _ -> (fun p->1+2*p) 1)
         y)
       x
+
+  (** val pred_double : int -> int **)
+
+  let rec pred_double x =
+    (fun f2p1 f2p f1 p ->
+  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
+      (fun p -> (fun p->1+2*p) ((fun p->2*p) p))
+      (fun p -> (fun p->1+2*p) (pred_double p))
+      (fun _ -> 1)
+      x
+
+  type mask = Pos.mask =
+  | IsNul
+  | IsPos of int
+  | IsNeg
+
+  (** val succ_double_mask : mask -> mask **)
+
+  let succ_double_mask = function
+  | IsNul -> IsPos 1
+  | IsPos p -> IsPos ((fun p->1+2*p) p)
+  | IsNeg -> IsNeg
+
+  (** val double_mask : mask -> mask **)
+
+  let double_mask = function
+  | IsPos p -> IsPos ((fun p->2*p) p)
+  | x0 -> x0
+
+  (** val double_pred_mask : int -> mask **)
+
+  let double_pred_mask x =
+    (fun f2p1 f2p f1 p ->
+  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
+      (fun p -> IsPos ((fun p->2*p) ((fun p->2*p) p)))
+      (fun p -> IsPos ((fun p->2*p) (pred_double p)))
+      (fun _ -> IsNul)
+      x
+
+  (** val sub_mask : int -> int -> mask **)
+
+  let rec sub_mask x y =
+    (fun f2p1 f2p f1 p ->
+  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
+      (fun p ->
+      (fun f2p1 f2p f1 p ->
+  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
+        (fun q -> double_mask (sub_mask p q))
+        (fun q -> succ_double_mask (sub_mask p q))
+        (fun _ -> IsPos ((fun p->2*p) p))
+        y)
+      (fun p ->
+      (fun f2p1 f2p f1 p ->
+  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
+        (fun q -> succ_double_mask (sub_mask_carry p q))
+        (fun q -> double_mask (sub_mask p q))
+        (fun _ -> IsPos (pred_double p))
+        y)
+      (fun _ ->
+      (fun f2p1 f2p f1 p ->
+  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
+        (fun _ -> IsNeg)
+        (fun _ -> IsNeg)
+        (fun _ -> IsNul)
+        y)
+      x
+
+  (** val sub_mask_carry : int -> int -> mask **)
+
+  and sub_mask_carry x y =
+    (fun f2p1 f2p f1 p ->
+  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
+      (fun p ->
+      (fun f2p1 f2p f1 p ->
+  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
+        (fun q -> succ_double_mask (sub_mask_carry p q))
+        (fun q -> double_mask (sub_mask p q))
+        (fun _ -> IsPos (pred_double p))
+        y)
+      (fun p ->
+      (fun f2p1 f2p f1 p ->
+  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
+        (fun q -> double_mask (sub_mask_carry p q))
+        (fun q -> succ_double_mask (sub_mask_carry p q))
+        (fun _ -> double_pred_mask p)
+        y)
+      (fun _ -> IsNeg)
+      x
+
+  (** val mul : int -> int -> int **)
+
+  let rec mul = ( * )
 
   (** val compare_cont : comparison -> int -> int -> comparison **)
 
@@ -167,6 +264,21 @@ module Pos =
         q)
       p
 
+  (** val iter_op : ('a1 -> 'a1 -> 'a1) -> int -> 'a1 -> 'a1 **)
+
+  let rec iter_op op p a =
+    (fun f2p1 f2p f1 p ->
+  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
+      (fun p0 -> op a (iter_op op p0 (op a a)))
+      (fun p0 -> iter_op op p0 (op a a))
+      (fun _ -> a)
+      p
+
+  (** val to_nat : int -> int **)
+
+  let to_nat x =
+    iter_op Coq__1.add x (Stdlib.succ 0)
+
   (** val of_succ_nat : int -> int **)
 
   let rec of_succ_nat n0 =
@@ -178,9 +290,47 @@ module Pos =
 
 module N =
  struct
+  (** val zero : int **)
+
+  let zero =
+    0
+
+  (** val one : int **)
+
+  let one =
+    1
+
+  (** val succ_double : int -> int **)
+
+  let succ_double x =
+    (fun f0 fp n -> if n=0 then f0 () else fp n)
+      (fun _ -> 1)
+      (fun p -> ((fun p->1+2*p) p))
+      x
+
+  (** val double : int -> int **)
+
+  let double n0 =
+    (fun f0 fp n -> if n=0 then f0 () else fp n)
+      (fun _ -> 0)
+      (fun p -> ((fun p->2*p) p))
+      n0
+
+  (** val succ : int -> int **)
+
+  let succ = Pervasives.succ
+
   (** val add : int -> int -> int **)
 
   let add = (+)
+
+  (** val sub : int -> int -> int **)
+
+  let sub = fun n m -> Pervasives.max 0 (n-m)
+
+  (** val mul : int -> int -> int **)
+
+  let mul = ( * )
 
   (** val compare : int -> int -> comparison **)
 
@@ -198,9 +348,16 @@ module N =
       (fun p ->
       (fun f0 fp n -> if n=0 then f0 () else fp n)
         (fun _ -> false)
-        (fun q -> Pos.eqb p q)
+        (fun q -> Coq_Pos.eqb p q)
         m)
       n0
+
+  (** val leb : int -> int -> bool **)
+
+  let leb x y =
+    match compare x y with
+    | Gt -> false
+    | _ -> true
 
   (** val ltb : int -> int -> bool **)
 
@@ -209,12 +366,62 @@ module N =
     | Lt -> true
     | _ -> false
 
+  (** val pos_div_eucl : int -> int -> int * int **)
+
+  let rec pos_div_eucl a b =
+    (fun f2p1 f2p f1 p ->
+  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
+      (fun a' ->
+      let (q, r) = pos_div_eucl a' b in
+      let r' = succ_double r in
+      if leb b r' then ((succ_double q), (sub r' b)) else ((double q), r'))
+      (fun a' ->
+      let (q, r) = pos_div_eucl a' b in
+      let r' = double r in
+      if leb b r' then ((succ_double q), (sub r' b)) else ((double q), r'))
+      (fun _ ->
+      (fun f0 fp n -> if n=0 then f0 () else fp n)
+        (fun _ -> (0, 1))
+        (fun p ->
+        (fun f2p1 f2p f1 p ->
+  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
+          (fun _ -> (0, 1))
+          (fun _ -> (0, 1))
+          (fun _ -> (1, 0))
+          p)
+        b)
+      a
+
+  (** val div_eucl : int -> int -> int * int **)
+
+  let div_eucl a b =
+    (fun f0 fp n -> if n=0 then f0 () else fp n)
+      (fun _ -> (0, 0))
+      (fun na ->
+      (fun f0 fp n -> if n=0 then f0 () else fp n)
+        (fun _ -> (0, a))
+        (fun _ -> pos_div_eucl na b)
+        b)
+      a
+
+  (** val div : int -> int -> int **)
+
+  let div = fun a b -> if b=0 then 0 else a/b
+
+  (** val to_nat : int -> int **)
+
+  let to_nat a =
+    (fun f0 fp n -> if n=0 then f0 () else fp n)
+      (fun _ -> 0)
+      (fun p -> Coq_Pos.to_nat p)
+      a
+
   (** val of_nat : int -> int **)
 
   let of_nat n0 =
     (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
       (fun _ -> 0)
-      (fun n' -> (Pos.of_succ_nat n'))
+      (fun n' -> (Coq_Pos.of_succ_nat n'))
       n0
  end
 
@@ -228,7 +435,7 @@ let rec rev = function
 
 let rec concat = function
 | [] -> []
-| x :: l1 -> app x (concat l1)
+| x :: l0 -> app x (concat l0)
 
 (** val map : ('a1 -> 'a2) -> 'a1 list -> 'a2 list **)
 
@@ -238,8 +445,8 @@ let rec map f = function
 
 (** val fold_left : ('a1 -> 'a2 -> 'a1) -> 'a2 list -> 'a1 -> 'a1 **)
 
-let rec fold_left f l0 a0 =
-  match l0 with
+let rec fold_left f l a0 =
+  match l with
   | [] -> a0
   | b :: t0 -> fold_left f t0 (f a0 b)
 
@@ -251,36 +458,7 @@ let rec split = function
   let (x, y) = p in
   let (left, right) = split tl in ((x :: left), (y :: right))
 
-(** val seq : int -> int -> int list **)
-
-let rec seq start len =
-  (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
-    (fun _ -> [])
-    (fun len0 -> start :: (seq (Stdlib.succ start) len0))
-    len
-
 type var = int
-
-type posi = var * int
-
-(** val posi_eq : posi -> posi -> bool **)
-
-let posi_eq r1 r2 =
-  let (x1, y1) = r1 in
-  let (x2, y2) = r2 in (&&) (Nat.eqb x1 x2) (Nat.eqb y1 y2)
-
-(** val posi_eq_reflect : posi -> posi -> reflect **)
-
-let posi_eq_reflect r1 r2 =
-  let b = posi_eq r1 r2 in if b then ReflectT else ReflectF
-
-(** val posi_eq_dec : posi -> posi -> bool **)
-
-let posi_eq_dec x y =
-  let h = posi_eq_reflect x y in
-  (match h with
-   | ReflectT -> true
-   | ReflectF -> false)
 
 type range = var * (int * int)
 
@@ -347,13 +525,13 @@ module Sort =
   (** val merge_list_to_stack :
       X.t list option list -> X.t list -> X.t list option list **)
 
-  let rec merge_list_to_stack stack l0 =
+  let rec merge_list_to_stack stack l =
     match stack with
-    | [] -> (Some l0) :: []
+    | [] -> (Some l) :: []
     | y :: stack' ->
       (match y with
-       | Some l' -> None :: (merge_list_to_stack stack' (merge l' l0))
-       | None -> (Some l0) :: stack')
+       | Some l' -> None :: (merge_list_to_stack stack' (merge l' l))
+       | None -> (Some l) :: stack')
 
   (** val merge_stack : X.t list option list -> X.t list **)
 
@@ -361,7 +539,7 @@ module Sort =
   | [] -> []
   | y :: stack' ->
     (match y with
-     | Some l0 -> merge l0 (merge_stack stack')
+     | Some l -> merge l (merge_stack stack')
      | None -> merge_stack stack')
 
   (** val iter_merge : X.t list option list -> X.t list -> X.t list **)
@@ -381,7 +559,7 @@ module Sort =
   | [] -> []
   | o :: stack' ->
     (match o with
-     | Some l0 -> app l0 (flatten_stack stack')
+     | Some l -> app l (flatten_stack stack')
      | None -> flatten_stack stack')
  end
 
@@ -417,121 +595,6 @@ type myOpAux =
 | OpNum of int
 | OpExp of cexp
 
-(** val list_eqb : ('a1 -> 'a1 -> bool) -> 'a1 list -> 'a1 list -> bool **)
-
-let rec list_eqb beq xs ys =
-  match xs with
-  | [] -> (match ys with
-           | [] -> true
-           | _ :: _ -> false)
-  | x :: xs' ->
-    (match ys with
-     | [] -> false
-     | y :: ys' -> (&&) (beq x y) (list_eqb beq xs' ys'))
-
-(** val aexp_eqb : aexp -> aexp -> bool **)
-
-let rec aexp_eqb e1 e2 =
-  match e1 with
-  | BA x1 -> (match e2 with
-              | BA x2 -> Nat.eqb x1 x2
-              | _ -> false)
-  | Num n1 -> (match e2 with
-               | Num n2 -> Nat.eqb n1 n2
-               | _ -> false)
-  | APlus (a1, b1) ->
-    (match e2 with
-     | APlus (a2, b2) -> (&&) (aexp_eqb a1 a2) (aexp_eqb b1 b2)
-     | _ -> false)
-  | AMult (a1, b1) ->
-    (match e2 with
-     | AMult (a2, b2) -> (&&) (aexp_eqb a1 a2) (aexp_eqb b1 b2)
-     | _ -> false)
-  | AModMult (_, _, _) -> false
-
-(** val cbexp_eqb : cbexp -> cbexp -> bool **)
-
-let cbexp_eqb b1 b2 =
-  match b1 with
-  | CEq (x1, y1) ->
-    (match b2 with
-     | CEq (x2, y2) -> (&&) (aexp_eqb x1 x2) (aexp_eqb y1 y2)
-     | CLt (_, _) -> false)
-  | CLt (x1, y1) ->
-    (match b2 with
-     | CEq (_, _) -> false
-     | CLt (x2, y2) -> (&&) (aexp_eqb x1 x2) (aexp_eqb y1 y2))
-
-(** val range_eqb : range -> range -> bool **)
-
-let range_eqb r1 r2 =
-  let (x1, p) = r1 in
-  let (lo1, hi1) = p in
-  let (x2, p0) = r2 in
-  let (lo2, hi2) = p0 in
-  (&&) (Nat.eqb x1 x2) ((&&) (Nat.eqb lo1 lo2) (Nat.eqb hi1 hi2))
-
-(** val locus_eqb : locus -> locus -> bool **)
-
-let locus_eqb l1 l2 =
-  list_eqb range_eqb l1 l2
-
-(** val exp_eqb : exp -> exp -> bool **)
-
-let rec exp_eqb e1 e2 =
-  match e1 with
-  | SKIP (x1, a1) ->
-    (match e2 with
-     | SKIP (x2, a2) -> (&&) (Nat.eqb x1 x2) (aexp_eqb a1 a2)
-     | _ -> false)
-  | X (x1, a1) ->
-    (match e2 with
-     | X (x2, a2) -> (&&) (Nat.eqb x1 x2) (aexp_eqb a1 a2)
-     | _ -> false)
-  | CU (x1, a1, e1') ->
-    (match e2 with
-     | CU (x2, a2, e2') ->
-       (&&) (Nat.eqb x1 x2) ((&&) (aexp_eqb a1 a2) (exp_eqb e1' e2'))
-     | _ -> false)
-  | RZ (q1, x1, a1) ->
-    (match e2 with
-     | RZ (q2, x2, a2) ->
-       (&&) (Nat.eqb q1 q2) ((&&) (Nat.eqb x1 x2) (aexp_eqb a1 a2))
-     | _ -> false)
-  | RRZ (q1, x1, a1) ->
-    (match e2 with
-     | RRZ (q2, x2, a2) ->
-       (&&) (Nat.eqb q1 q2) ((&&) (Nat.eqb x1 x2) (aexp_eqb a1 a2))
-     | _ -> false)
-  | SR (q1, x1) ->
-    (match e2 with
-     | SR (q2, x2) -> (&&) (Nat.eqb q1 q2) (Nat.eqb x1 x2)
-     | _ -> false)
-  | SRR (q1, x1) ->
-    (match e2 with
-     | SRR (q2, x2) -> (&&) (Nat.eqb q1 q2) (Nat.eqb x1 x2)
-     | _ -> false)
-  | QFT (x1, b1) ->
-    (match e2 with
-     | QFT (x2, b2) -> (&&) (Nat.eqb x1 x2) (Nat.eqb b1 b2)
-     | _ -> false)
-  | RQFT (x1, b1) ->
-    (match e2 with
-     | RQFT (x2, b2) -> (&&) (Nat.eqb x1 x2) (Nat.eqb b1 b2)
-     | _ -> false)
-  | H (x1, a1) ->
-    (match e2 with
-     | H (x2, a2) -> (&&) (Nat.eqb x1 x2) (aexp_eqb a1 a2)
-     | _ -> false)
-  | Addto (x1, q1) ->
-    (match e2 with
-     | Addto (x2, q2) -> (&&) (Nat.eqb x1 x2) (Nat.eqb q1 q2)
-     | _ -> false)
-  | Seq (s1, t1) ->
-    (match e2 with
-     | Seq (s2, t2) -> (&&) (exp_eqb s1 s2) (exp_eqb t1 t2)
-     | _ -> false)
-
 type fitness_value = int
 
 module RangeOrder =
@@ -560,16 +623,6 @@ let nat_range_inter x y =
   (||) ((&&) (Nat.leb (fst x) (fst y)) (Nat.ltb (fst y) (snd x)))
     ((&&) (Nat.ltb (fst y) (fst x)) (Nat.ltb (fst x) (snd y)))
 
-(** val nat_range_sub : (int * int) -> (int * int) -> bool **)
-
-let nat_range_sub x y =
-  (&&) (Nat.leb (fst y) (fst x)) (Nat.ltb (snd x) (snd y))
-
-(** val range_intersect : range -> range -> bool **)
-
-let range_intersect x y =
-  (&&) (Nat.eqb (fst x) (fst y)) (nat_range_inter (snd x) (snd y))
-
 (** val same_name : range -> range -> bool **)
 
 let same_name x y =
@@ -580,9 +633,9 @@ let same_name x y =
 let rec intersect' x = function
 | [] -> false
 | a :: yas ->
-  if same_name x a
-  then if nat_range_inter (snd x) (snd a) then true else intersect' x yas
-  else false
+  if (&&) (same_name x a) (nat_range_inter (snd x) (snd a))
+  then true
+  else intersect' x yas
 
 (** val intersect : locus -> locus -> bool **)
 
@@ -595,7 +648,7 @@ let rec intersect x y =
 
 let get_locus = function
 | CNew a -> a :: []
-| CAppU (l0, _) -> l0
+| CAppU (l, _) -> l
 | CMeas (_, k) -> k
 | Send (_, x0, a) -> (x0, (a, (Stdlib.succ a))) :: []
 | Recv (_, x0, y) -> (x0, (y, (Stdlib.succ y))) :: []
@@ -668,51 +721,58 @@ let gen_hb_single x y acc i j =
               (inter_vars (get_vars_bexp xa) (get_vars_bexp ya))
        else acc i j)
 
-(** val gen_next :
-    int -> (int * myOp) -> (int * myOp) -> (int -> int -> bool) -> int -> int
-    -> bool **)
-
-let gen_next n0 x y r a b =
-  if (&&) ((&&) (N.eqb a (fst x)) (N.ltb (fst y) b)) (N.ltb b n0)
-  then r (fst y) b
-  else r a b
-
 (** val opListOrder' : op_list -> int -> (int * myOp) list **)
 
-let rec opListOrder' l0 n0 =
-  match l0 with
+let rec opListOrder' l n0 =
+  match l with
   | [] -> []
-  | x :: xs -> (n0, x) :: (opListOrder' xs (N.add n0 1))
+  | x :: xs -> (n0, x) :: (opListOrder' xs (N.succ n0))
 
 (** val opListOrder : op_list -> (int * myOp) list **)
 
-let opListOrder l0 =
-  opListOrder' l0 0
-
-(** val empty_hp : int -> int -> bool **)
-
-let empty_hp _ _ =
-  false
+let opListOrder l =
+  opListOrder' l 0
 
 (** val gen_hb' :
-    int -> (int * myOp) -> (int * myOp) list -> int -> int -> bool **)
+    (int * myOp) -> (int * myOp) list -> (int -> int -> bool) -> int -> int
+    -> bool **)
 
-let rec gen_hb' n0 x = function
-| [] -> (fun _ _ -> false)
-| a :: xas -> gen_next n0 x a (gen_hb_single x a (gen_hb' n0 x xas))
+let rec gen_hb' x l acc =
+  match l with
+  | [] -> acc
+  | a :: xas -> gen_hb_single x a (gen_hb' x xas acc)
 
 (** val gen_hb_a :
-    int -> (int * myOp) list -> (int -> int -> bool) -> int -> int -> bool **)
+    (int * myOp) list -> (int -> int -> bool) -> int -> int -> bool **)
 
-let rec gen_hb_a n0 r acc =
+let rec gen_hb_a r acc =
   match r with
   | [] -> acc
-  | a :: xas -> gen_hb_a n0 xas (gen_hb' n0 a xas)
+  | a :: xas -> gen_hb_a xas (gen_hb' a xas acc)
+
+(** val trans_closure :
+    int -> int -> (int -> int -> bool) -> int -> int -> bool **)
+
+let trans_closure n0 x acc a b =
+  if (&&) ((&&) ((&&) ((&&) (N.ltb a x) (N.ltb x b)) (N.ltb b n0)) (acc a x))
+       (acc x b)
+  then true
+  else acc a b
+
+(** val gen_hb_trans :
+    int -> int -> (int -> int -> bool) -> int -> int -> bool **)
+
+let rec gen_hb_trans size n0 acc =
+  (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
+    (fun _ -> acc)
+    (fun m -> gen_hb_trans size m (trans_closure size (N.of_nat m) acc))
+    n0
 
 (** val gen_hb : (int * myOp) list -> int -> int -> bool **)
 
 let gen_hb r =
-  gen_hb_a (N.of_nat (length r)) r (fun _ _ -> false)
+  gen_hb_trans (N.of_nat (length r)) (length r)
+    (gen_hb_a r (fun _ _ -> false))
 
 (** val sim_exp : exp -> exp -> bool **)
 
@@ -777,19 +837,10 @@ let sim_cexp x y =
                        | Recv (_, _, _) -> true
                        | _ -> false)
 
-(** val sim_myop : myOp -> myOp -> bool **)
-
-let sim_myop x y =
-  match x with
-  | OpAP a -> (match y with
-               | OpAP b -> sim_cexp a b
-               | OpIf (_, _, _) -> false)
-  | OpIf (_, _, _) -> false
-
 (** val insert_op :
     (int * myOp) -> (int * myOp) list list -> (int * myOp) list list **)
 
-let insert_op a = function
+let insert_op a acc = match acc with
 | [] -> (a :: []) :: []
 | y :: al ->
   (match y with
@@ -803,7 +854,7 @@ let insert_op a = function
          | OpAP q ->
            if sim_cexp q b
            then ((i, (OpAP b)) :: (app xl ((i0, (OpAP q)) :: []))) :: al
-           else ((i0, (OpAP q)) :: []) :: (((i, (OpAP b)) :: xl) :: al)
+           else ((i0, (OpAP q)) :: []) :: acc
          | OpIf (c, d, e) ->
            ((i0, (OpIf (c, d, e))) :: []) :: (((i0, (OpAP b)) :: xl) :: al))
       | OpIf (c, d, e) -> (a :: []) :: (((i, (OpIf (c, d, e))) :: xl) :: al)))
@@ -811,18 +862,25 @@ let insert_op a = function
 (** val partition_op' :
     (int * myOp) list -> (int * myOp) list list -> (int * myOp) list list **)
 
-let rec partition_op' l0 acc =
-  match l0 with
+let rec partition_op' l acc =
+  match l with
   | [] -> acc
   | x :: xl -> partition_op' xl (insert_op x acc)
 
 (** val partition_op : (int * myOp) list -> (int * myOp) list list **)
 
-let partition_op l0 =
-  rev (partition_op' l0 [])
+let partition_op l =
+  rev (partition_op' l [])
+
+type nposi = int * int
+
+(** val nposi_eq : nposi -> nposi -> bool **)
+
+let nposi_eq r1 r2 =
+  let (x1, y1) = r1 in let (x2, y2) = r2 in (&&) (N.eqb x1 x2) (N.eqb y1 y2)
 
 (** val insert_all :
-    (myOpAux * posi list) -> (myOpAux * posi list) list -> (myOpAux * posi
+    (myOpAux * nposi list) -> (myOpAux * nposi list) list -> (myOpAux * nposi
     list) list list **)
 
 let rec insert_all x = function
@@ -830,102 +888,93 @@ let rec insert_all x = function
 | y :: tl -> (x :: (y :: tl)) :: (map (fun zs -> y :: zs) (insert_all x tl))
 
 (** val permutations :
-    (myOpAux * posi list) list -> (myOpAux * posi list) list list **)
+    (myOpAux * nposi list) list -> (myOpAux * nposi list) list list **)
 
 let rec permutations = function
 | [] -> [] :: []
 | x :: tl -> concat (map (insert_all x) (permutations tl))
 
 (** val car_concat' :
-    (myOpAux * posi list) list -> (myOpAux * posi list) list list ->
-    (myOpAux * posi list) list list **)
+    (myOpAux * nposi list) list -> (myOpAux * nposi list) list list ->
+    (myOpAux * nposi list) list list **)
 
 let rec car_concat' x = function
 | [] -> []
 | a :: ys -> (app x a) :: (car_concat' x ys)
 
 (** val car_concat :
-    (myOpAux * posi list) list list -> (myOpAux * posi list) list list ->
-    (myOpAux * posi list) list list **)
+    (myOpAux * nposi list) list list -> (myOpAux * nposi list) list list ->
+    (myOpAux * nposi list) list list **)
 
 let rec car_concat x y =
   match x with
   | [] -> []
   | a :: xs -> app (car_concat' a y) (car_concat xs y)
 
-(** val get_first :
-    (int * myOp) list list -> ((int * myOp) list * (int * myOp) list list) ->
-    (int * myOp) list * (int * myOp) list list **)
+(** val get_first : (int * myOp) list list -> (int * myOp) list **)
 
-let rec get_first l0 acc =
-  match l0 with
-  | [] -> acc
-  | l1 :: ys ->
-    (match l1 with
-     | [] -> get_first ys acc
+let rec get_first = function
+| [] -> []
+| l0 :: ys ->
+  (match l0 with
+   | [] -> get_first ys
+   | a :: _ -> a :: (get_first ys))
+
+(** val in_list_a : (int * myOp) -> (int * myOp) list -> bool **)
+
+let rec in_list_a x = function
+| [] -> false
+| a :: xs -> if N.eqb (fst x) (fst a) then true else in_list_a x xs
+
+(** val remove_first :
+    (int * myOp) list list -> (int * myOp) list -> (int * myOp) list list **)
+
+let rec remove_first l x =
+  match l with
+  | [] -> []
+  | l0 :: ys ->
+    (match l0 with
+     | [] -> [] :: (remove_first ys x)
      | a :: xs ->
-       get_first ys
-         (let (c, d) = acc in ((app c (a :: [])), (app d (xs :: [])))))
+       if in_list_a a x
+       then xs :: (remove_first ys x)
+       else (a :: xs) :: (remove_first ys x))
 
 (** val grab_related' :
     (int * myOp) -> (int * myOp) list -> hb_relation -> (int * myOp) list ->
     (int * myOp) list **)
 
-let rec grab_related' x l0 re acc =
-  match l0 with
+let rec grab_related' x l re acc =
+  match l with
   | [] -> acc
   | a :: xs ->
     if re (fst x) (fst a)
     then grab_related' x xs re acc
     else grab_related' x xs re (app acc (a :: []))
 
-(** val grab_related :
-    (int * myOp) list -> hb_relation -> (int * myOp) list **)
-
-let grab_related l0 re =
-  match l0 with
-  | [] -> []
-  | x :: xs -> grab_related' x xs re (x :: [])
-
-(** val grab_nums : (int * myOp) list -> int list **)
-
-let grab_nums l0 =
-  fst (split l0)
-
-(** val in_list' : int -> int list -> bool **)
-
-let rec in_list' x = function
-| [] -> false
-| a :: xs -> if N.eqb x a then true else in_list' x xs
-
-(** val in_list : myOpAux -> int list -> bool **)
-
-let in_list x l0 =
-  match x with
-  | OpNum v -> in_list' v l0
-  | OpExp _ -> false
-
 (** val up_qubits :
-    var -> int -> int -> (var * int) list -> (var * int) list **)
+    var -> int -> int -> (int * int) list -> (int * int) list **)
 
 let rec up_qubits x i n0 acc =
   (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
     (fun _ -> acc)
-    (fun m -> up_qubits x i m (app acc ((x, (add i m)) :: [])))
+    (fun m ->
+    up_qubits x i m
+      (app acc (((N.of_nat x), (N.add (N.of_nat i) (N.of_nat m))) :: [])))
     n0
 
-(** val cutToQubits' : range list -> (var * int) list **)
+(** val cutToQubits' : range list -> (int * int) list **)
 
 let rec cutToQubits' = function
 | [] -> []
 | r0 :: xs ->
   let (x, p) = r0 in
-  let (l1, r) = p in app (up_qubits x l1 (sub r l1) []) (cutToQubits' xs)
+  let (l0, r) = p in app (up_qubits x l0 (sub r l0) []) (cutToQubits' xs)
 
-(** val cutToQubits : range list -> (var * int) list **)
+(** val cutToQubits : range list -> (int * int) list **)
 
-let cutToQubits l0 =
-  cutToQubits' (SortRange.sort l0)
+let cutToQubits l =
+  cutToQubits' (SortRange.sort l)
 
 (** val get_locus_in_op : (int * myOp) list -> range list **)
 
@@ -937,726 +986,670 @@ let rec get_locus_in_op = function
    | OpAP y ->
      (match get_locus y with
       | [] -> get_locus_in_op la
-      | r :: l1 -> app (r :: l1) (get_locus_in_op la))
+      | r :: l0 -> app (r :: l0) (get_locus_in_op la))
    | OpIf (_, _, _) -> get_locus_in_op la)
 
 (** val get_nlocus :
-    (int * myOp) list -> (myOpAux * (var * int) list) list **)
+    (int * myOp) list -> (myOpAux * (int * int) list) list **)
 
 let rec get_nlocus = function
 | [] -> []
 | x :: xs ->
   ((OpNum (fst x)),
     (cutToQubits (get_locus_in_op (x :: [])))) :: (get_nlocus xs)
+    
+(* ============================================================ *)
+(* Bounded permutation helper                                   *)
+(* ============================================================ *)
 
-(** val insert_back :
-    (int * myOp) list -> (int * myOp) list list -> int list -> (int * myOp)
-    list list **)
+let permutations_one (l : (myOpAux * nposi list) list)
+  : (myOpAux * nposi list) list list =
+  [l]
 
-let rec insert_back x l0 re =
-  match x with
-  | [] -> []
-  | a :: xs ->
-    (match l0 with
-     | [] -> []
-     | la :: ls ->
-       if in_list' (fst a) re
-       then la :: (insert_back xs ls re)
-       else (a :: la) :: (insert_back xs ls re))
+
 
 (** val assign_each :
-    int -> (int * myOp) list list -> hb_relation -> (myOpAux * posi list)
-    list list -> (myOpAux * posi list) list list **)
+    int -> (int * myOp) list list -> hb_relation -> (myOpAux * nposi list)
+    list list -> (myOpAux * nposi list) list list **)
 
-let rec assign_each n0 l0 re acc =
+(* ============================================================ *)
+(* Modified assign_each                                         *)
+(* ============================================================ *)
+
+let rec assign_each n0 l re acc =
   (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
     (fun _ -> acc)
     (fun m ->
-    let (a, b) = get_first l0 ([], []) in
-    (match a with
-     | [] ->
-       (match b with
-        | [] -> acc
-        | _ :: _ ->
-          let good =
-            match a with
-            | [] -> []
-            | x :: xs -> grab_related' x xs re (x :: [])
+      match get_first l with
+      | [] -> acc
+      | p :: l0 ->
+          let good = grab_related' p l0 re (p :: []) in
+          let next_acc =
+            car_concat acc (permutations_one (get_nlocus good))
           in
-          assign_each m (insert_back a b (fst (split good))) re
-            (car_concat acc (permutations (get_nlocus good))))
-     | _ :: _ ->
-       let good =
-         match a with
-         | [] -> []
-         | x :: xs -> grab_related' x xs re (x :: [])
-       in
-       assign_each m (insert_back a b (fst (split good))) re
-         (car_concat acc (permutations (get_nlocus good)))))
+          assign_each m (remove_first l good) re next_acc)
     n0
 
 (** val gen_seq :
-    (int * myOp) list -> hb_relation -> (myOpAux * (var * int) list)
-    list * (myOpAux * posi list) list list **)
+    (int * myOp) list -> hb_relation -> (myOpAux * (int * int) list)
+    list * (myOpAux * nposi list) list list **)
 
-let gen_seq l0 re =
-  let can = partition_op l0 in
+let gen_seq l re =
+  let can = partition_op l in
   (match can with
    | [] -> ([], [])
    | x :: xs ->
      ((get_nlocus x),
-       (assign_each (sub (length l0) (length x)) xs re ([] :: []))))
+       (assign_each (sub (length l) (length x)) xs re ([] :: []))))
 
 (** val count_a :
-    int -> (myOpAux * posi list) list -> membrane_id -> ((myOpAux * posi
-    list) * membrane_id) list -> ((myOpAux * posi list) * membrane_id)
-    list * (myOpAux * posi list) list **)
+    (myOpAux * nposi list) list -> membrane_id list -> ((myOpAux * nposi
+    list) * membrane_id) list -> ((myOpAux * nposi list) * membrane_id)
+    list * (myOpAux * nposi list) list **)
 
-let rec count_a t0 new0 a acc =
-  (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
-    (fun _ -> (acc, new0))
-    (fun m ->
-    match new0 with
-    | [] -> (acc, [])
-    | x :: xs -> count_a m xs a (app acc ((x, a) :: [])))
-    t0
+let rec count_a new0 l acc =
+  match l with
+  | [] -> (acc, new0)
+  | a :: ys ->
+    (match new0 with
+     | [] -> (acc, [])
+     | x :: xs -> count_a xs ys ((x, a) :: acc))
 
 (** val gen_mem_new' :
-    int -> (myOpAux * posi list) list -> membrane_id list -> int ->
-    ((myOpAux * posi list) * membrane_id) list -> ((myOpAux * posi
+    int -> (myOpAux * nposi list) list -> membrane_id list ->
+    ((myOpAux * nposi list) * membrane_id) list -> ((myOpAux * nposi
     list) * membrane_id) list **)
 
-let rec gen_mem_new' size news l0 t0 acc =
+let rec gen_mem_new' t0 news l acc =
   (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
     (fun _ -> acc)
     (fun m ->
-    match l0 with
-    | [] -> acc
-    | x :: xs ->
-      let (re, next) = count_a t0 news x [] in
-      gen_mem_new' m next xs t0 (app acc re))
-    size
+    let (re, next) = count_a news l [] in gen_mem_new' m next l (app acc re))
+    t0
 
 (** val gen_mem_new :
-    (myOpAux * posi list) list -> membrane_id list -> ((myOpAux * posi
+    (myOpAux * nposi list) list -> membrane_id list -> ((myOpAux * nposi
     list) * membrane_id) list **)
 
-let gen_mem_new news l0 =
-  let v = add (Nat.div (length news) (length l0)) (Stdlib.succ 0) in
-  gen_mem_new' (length news) news l0 v []
+let gen_mem_new news l =
+  let v = add (Nat.div (length news) (length l)) (Stdlib.succ 0) in
+  gen_mem_new' v news l []
 
-(** val sub_locus' : locus -> locus -> bool **)
+(** val insert_posis :
+    (membrane_id * nposi list) list -> membrane_id -> nposi list ->
+    (membrane_id * nposi list) list **)
 
-let rec sub_locus' x y =
-  match x with
-  | [] -> true
-  | r :: xs ->
-    let (na, p) = r in
-    let (la, ra) = p in
-    (match y with
-     | [] -> false
-     | r0 :: ys ->
-       let (nb, p0) = r0 in
-       let (lb, rb) = p0 in
-       (&&) ((&&) ((&&) (Nat.eqb na nb) (Nat.leb la lb)) (Nat.leb rb ra))
-         (sub_locus' xs ys))
-
-(** val sub_locus : range list -> range list -> bool **)
-
-let sub_locus x y =
-  sub_locus' (SortRange.sort x) (SortRange.sort y)
-
-(** val split_nat_range : (int * int) -> (int * int) -> (int * int) list **)
-
-let split_nat_range x y =
-  if Nat.eqb (fst x) (fst y)
-  then ((snd x), (snd y)) :: []
-  else if Nat.eqb (snd x) (snd y)
-       then ((fst y), (fst x)) :: []
-       else ((fst y), (fst x)) :: (((snd x), (snd y)) :: [])
-
-(** val assemble_range :
-    (int * int) list -> var -> (var * (int * int)) list **)
-
-let rec assemble_range l0 x =
-  match l0 with
+let rec insert_posis l a x =
+  match l with
   | [] -> []
-  | a :: xs -> (x, a) :: (assemble_range xs x)
+  | p :: ys ->
+    let (n0, y) = p in
+    if Nat.eqb a n0
+    then (n0, (app y x)) :: ys
+    else (n0, y) :: (insert_posis ys a x)
 
-(** val sublist_posi : posi list -> posi list -> bool **)
+(** val turn_new :
+    ((myOpAux * nposi list) * membrane_id) list -> (membrane_id * nposi list)
+    list -> (membrane_id * nposi list) list **)
 
-let rec sublist_posi l0 r =
-  match l0 with
-  | [] -> true
-  | x :: xs -> (&&) (set_mem posi_eq_dec x r) (sublist_posi xs r)
+let rec turn_new l acc =
+  match l with
+  | [] -> acc
+  | p :: xs -> let (x, y) = p in turn_new xs (insert_posis acc y (snd x))
 
-(** val insert_mem :
-    ((posi * membrane_id) * int list) -> ((posi list * membrane_id) * int
-    list) list -> ((posi list * membrane_id) * int list) list **)
+(** val posi_set_in : nposi -> nposi list -> bool **)
 
-let rec insert_mem a = function
-| [] -> ((((fst (fst a)) :: []), (snd (fst a))), (snd a)) :: []
-| p :: xs ->
-  let (p0, ids) = p in
-  let (x, y) = p0 in
-  if Nat.eqb (snd (fst a)) y
-  then ((((fst (fst a)) :: x), y), (app (snd a) ids)) :: xs
-  else ((x, y), ids) :: (insert_mem a xs)
-
-(** val set_inter0 : posi list -> posi list -> posi list **)
-
-let rec set_inter0 x y =
-  match x with
-  | [] -> []
-  | a :: xs ->
-    if set_mem posi_eq_dec a y
-    then a :: (set_inter0 xs y)
-    else set_inter0 xs y
-
-(** val sub_locus_i : posi -> locus -> bool **)
-
-let rec sub_locus_i x = function
+let rec posi_set_in a = function
 | [] -> false
-| r :: xs ->
-  let (y, b) = r in
-  if (&&) ((&&) (Nat.eqb (fst x) y) (Nat.leb (fst b) (snd x)))
-       (Nat.ltb (snd x) (snd b))
-  then true
-  else sub_locus_i x xs
+| x :: xs -> if nposi_eq a x then true else posi_set_in a xs
 
-(** val isSend : cexp -> bool **)
+(** val set_inter0 :
+    nposi list -> nposi list -> (nposi list * nposi list) -> nposi
+    list * nposi list **)
 
-let isSend = function
-| Send (_, _, _) -> true
-| _ -> false
-
-(** val no_send_check :
-    membrane_id -> ((myOpAux * posi list) * membrane_id) list -> bool **)
-
-let rec no_send_check i = function
-| [] -> true
-| a :: xs ->
-  let (p, w) = a in
-  let (m, _) = p in
-  (match m with
-   | OpNum _ -> no_send_check i xs
-   | OpExp u ->
-     if (&&) (Nat.eqb i w) (isSend u) then false else no_send_check i xs)
-
-(** val search_hb :
-    posi list -> int -> hb_relation -> ((myOpAux * posi list) * membrane_id)
-    list -> ((myOpAux * posi list) * membrane_id) list -> (membrane_id * posi
-    list) option **)
-
-let rec search_hb x n0 hb l0 checker =
-  match l0 with
-  | [] -> None
+let rec set_inter0 x y acc =
+  match x with
+  | [] -> acc
   | a :: xs ->
-    let (p, w) = a in
-    let (m, v) = p in
-    (match m with
-     | OpNum u ->
-       if (&&) (hb n0 u) (no_send_check w checker)
-       then (match set_inter0 x v with
-             | [] -> search_hb x n0 hb xs checker
-             | p0 :: l1 -> Some (w, (p0 :: l1)))
-       else search_hb x n0 hb xs checker
-     | OpExp _ -> search_hb x n0 hb xs (a :: checker))
+    if posi_set_in a y
+    then set_inter0 xs y ((a :: (fst acc)), (snd acc))
+    else set_inter0 xs y ((fst acc), (a :: (snd acc)))
+
+(** val dec_mem :
+    (nposi list * membrane_id) list -> nposi -> membrane_id option **)
+
+let rec dec_mem l x =
+  match l with
+  | [] -> None
+  | p :: ys ->
+    let (y, i) = p in if posi_set_in x y then Some i else dec_mem ys x
 
 (** val search_mem :
-    (membrane_id * (posi * bool) list) list -> posi list ->
-    (membrane_id * posi list) list -> (membrane_id * posi list) list **)
+    (membrane_id * nposi list) list -> nposi list -> (membrane_id * (nposi
+    list * nposi list)) list -> (membrane_id * (nposi list * nposi list)) list **)
 
 let rec search_mem new0 x acc =
   match new0 with
   | [] -> acc
   | p :: ys ->
-    let (i, y) = p in
-    (match set_inter0 x (fst (split y)) with
-     | [] -> search_mem ys x acc
-     | p0 :: l0 -> search_mem ys x ((i, (p0 :: l0)) :: acc))
+    let (i, y) = p in search_mem ys x ((i, (set_inter0 x y ([], []))) :: acc)
 
-(** val max_one :
-    (membrane_id * posi list) list -> (membrane_id * posi list) ->
-    membrane_id list -> membrane_id list **)
+(** val all_no_mem :
+    (membrane_id * (nposi list * nposi list)) list -> bool **)
 
-let rec max_one new0 a acc =
-  match new0 with
-  | [] -> acc
-  | x :: xs ->
-    if Nat.ltb (length (snd a)) (length (snd x))
-    then max_one xs x ((fst x) :: [])
-    else if Nat.eqb (length (snd a)) (length (snd x))
-         then max_one xs a ((fst x) :: acc)
-         else max_one xs a acc
+let rec all_no_mem = function
+| [] -> true
+| p :: ys ->
+  let (_, p0) = p in
+  let (l0, _) = p0 in (match l0 with
+                       | [] -> all_no_mem ys
+                       | _ :: _ -> false)
 
-(** val search_good_mem :
-    (membrane_id * (posi * bool) list) list -> posi list -> membrane_id list **)
+(** val is_one_mem :
+    (membrane_id * (nposi list * nposi list)) list -> bool **)
 
-let search_good_mem new0 x =
-  match search_mem new0 x [] with
-  | [] -> []
-  | y :: ys -> max_one ys y ((fst y) :: [])
+let rec is_one_mem = function
+| [] -> false
+| p :: ys ->
+  let (_, p0) = p in
+  let (l0, _) = p0 in
+  (match l0 with
+   | [] -> is_one_mem ys
+   | _ :: _ -> all_no_mem ys)
 
-(** val find_least_q' :
-    (membrane_id * (posi * bool) list) list -> (membrane_id * (posi * bool)
-    list) -> membrane_id * (posi * bool) list **)
+(** val get_one :
+    (membrane_id * (nposi list * nposi list)) list -> membrane_id option **)
 
-let rec find_least_q' new0 a =
-  match new0 with
-  | [] -> a
-  | x :: xs ->
-    if Nat.ltb (length (snd x)) (length (snd a))
-    then find_least_q' xs x
-    else find_least_q' xs a
-
-(** val find_least_q :
-    (membrane_id * (posi * bool) list) list -> (membrane_id * (posi * bool)
-    list) option **)
-
-let find_least_q = function
+let rec get_one = function
 | [] -> None
-| x :: xs -> Some (find_least_q' xs x)
+| p :: ys ->
+  let (a, b) = p in
+  let (l0, _) = b in (match l0 with
+                      | [] -> get_one ys
+                      | _ :: _ -> Some a)
 
-(** val subtract_aux :
-    posi -> (posi * bool) list -> (posi * bool) list -> (posi * bool) list **)
+(** val grab_good :
+    (membrane_id * (nposi list * nposi list)) list -> (membrane_id * (nposi
+    list * nposi list)) list -> (membrane_id * (nposi list * nposi list)) list **)
 
-let rec subtract_aux x l0 acc =
-  match l0 with
-  | [] -> acc
-  | y :: ys ->
-    if posi_eq x (fst y)
-    then subtract_aux x ys acc
-    else subtract_aux x ys (y :: acc)
-
-(** val subtract_posi :
-    posi list -> (posi * bool) list -> (posi * bool) list -> (posi * bool)
-    list **)
-
-let rec subtract_posi x l0 acc =
-  match x with
-  | [] -> acc
-  | y :: ys -> subtract_posi ys l0 (subtract_aux y l0 acc)
-
-(** val subtract_all :
-    posi list -> (membrane_id * (posi * bool) list) list ->
-    (membrane_id * (posi * bool) list) list -> (membrane_id * (posi * bool)
-    list) list **)
-
-let rec subtract_all x new0 acc =
-  match new0 with
+let rec grab_good l acc =
+  match l with
   | [] -> acc
   | p :: ys ->
-    let (i, y) = p in subtract_all x ys ((i, (subtract_posi x y [])) :: acc)
+    let (a, p0) = p in
+    let (ha, hb) = p0 in
+    (match ha with
+     | [] -> grab_good ys acc
+     | _ :: _ -> grab_good ys ((a, (ha, hb)) :: acc))
 
-(** val add_posi_true' :
-    membrane_id -> (posi * bool) list -> (membrane_id * (posi * bool) list)
-    list -> (membrane_id * (posi * bool) list) list **)
+(** val nlength : 'a1 list -> int **)
 
-let rec add_posi_true' i x = function
-| [] -> []
-| p :: ys ->
-  let (j, y) = p in
-  if Nat.eqb i j
-  then (j, (app x y)) :: ys
-  else (j, y) :: (add_posi_true' i x ys)
+let rec nlength = function
+| [] -> N.zero
+| _ :: xs -> N.add N.one (nlength xs)
 
-(** val add_true : posi list -> (posi * bool) list **)
+(** val max_one :
+    (membrane_id * (nposi list * nposi list)) list -> int ->
+    (membrane_id * (nposi list * nposi list)) -> (membrane_id * (nposi
+    list * nposi list)) list -> (membrane_id * (nposi list * nposi
+    list)) * (membrane_id * (nposi list * nposi list)) list **)
 
-let rec add_true = function
-| [] -> []
-| y :: ys -> (y, true) :: (add_true ys)
+let rec max_one l v acc accb =
+  match l with
+  | [] -> (acc, accb)
+  | p :: ys ->
+    let (i, y) = p in
+    if N.ltb v (nlength (fst y))
+    then max_one ys (nlength (fst y)) (i, y) (acc :: accb)
+    else max_one ys v acc ((i, y) :: accb)
 
-(** val add_posi_true :
-    membrane_id -> posi list -> (membrane_id * (posi * bool) list) list ->
-    (membrane_id * (posi * bool) list) list **)
+(** val max_mem_id :
+    (membrane_id * (nposi list * nposi list)) list -> int -> (nposi
+    list * nposi list) -> (int * (nposi list * nposi list)) list ->
+    (int * (nposi list * nposi list)) * (int * (nposi list * nposi list)) list **)
 
-let add_posi_true i x new0 =
-  add_posi_true' i (add_true x) new0
-
-(** val turn_true_aux :
-    posi list -> (posi * bool) list -> (posi * bool) list **)
-
-let turn_true_aux x y =
-  let v = subtract_posi x y [] in app (add_true x) v
-
-(** val turn_true :
-    int -> posi list -> (membrane_id * (posi * bool) list) list ->
-    (membrane_id * (posi * bool) list) list **)
-
-let rec turn_true i x = function
-| [] -> []
-| p :: ys ->
-  let (j, y) = p in
-  if Nat.eqb i j
-  then (j, (turn_true_aux x y)) :: ys
-  else (j, y) :: (turn_true i x ys)
-
-(** val find_all_in :
-    posi list -> (membrane_id * (posi * bool) list) list ->
-    (membrane_id * (posi * bool) list) option **)
-
-let rec find_all_in l0 = function
-| [] -> None
-| p :: xs ->
-  let (i, la) = p in
-  if sublist_posi l0 (fst (split la)) then Some (i, la) else find_all_in l0 xs
-
-(** val search_all_mem :
-    membrane_id -> posi list -> (membrane_id * (posi * bool) list) list ->
-    (membrane_id * posi list) list **)
-
-let rec search_all_mem i x = function
-| [] -> []
-| p :: xs ->
-  let (a, b) = p in
-  if Nat.eqb i a
-  then search_all_mem i x xs
-  else (match set_inter0 x (fst (split b)) with
-        | [] -> search_all_mem i x xs
-        | p0 :: l0 -> (a, (p0 :: l0)) :: (search_all_mem i x xs))
+let rec max_mem_id l v acc accb =
+  match l with
+  | [] -> ((v, acc), accb)
+  | p :: ys ->
+    let (i, y) = p in
+    if Nat.ltb v i
+    then max_mem_id ys i y ((v, acc) :: accb)
+    else max_mem_id ys v acc ((i, y) :: accb)
 
 (** val gen_comm' :
-    membrane_id -> posi list -> var -> ((myOpAux * posi list) * membrane_id)
-    list **)
+    membrane_id -> membrane_id -> nposi list -> var -> ((myOpAux * nposi
+    list) * membrane_id) list -> ((myOpAux * nposi list) * membrane_id) list **)
 
-let rec gen_comm' i l0 chan =
-  match l0 with
-  | [] -> []
+let rec gen_comm' i j l chan acc =
+  match l with
+  | [] -> acc
   | x :: xs ->
-    (((OpExp (Send (chan, (fst x), (snd x)))), (x :: [])), i) :: ((((OpExp
-      (Recv (chan, (fst x), (snd x)))), (x :: [])),
-      i) :: (gen_comm' i xs (Stdlib.succ chan)))
+    gen_comm' i j xs (Stdlib.succ chan) ((((OpExp (Recv (chan,
+      (N.to_nat (fst x)), (N.to_nat (snd x))))), (x :: [])), j) :: ((((OpExp
+      (Send (chan, (N.to_nat (fst x)), (N.to_nat (snd x))))), (x :: [])),
+      i) :: acc))
 
 (** val gen_comm :
-    (membrane_id * posi list) list -> var -> ((myOpAux * posi
-    list) * membrane_id) list -> var * ((myOpAux * posi list) * membrane_id)
-    list **)
+    membrane_id -> (membrane_id * (nposi list * nposi list)) list -> var ->
+    ((myOpAux * nposi list) * membrane_id) list -> ((myOpAux * nposi
+    list) * membrane_id) list -> var * (((myOpAux * nposi
+    list) * membrane_id) list * ((myOpAux * nposi list) * membrane_id) list) **)
 
-let rec gen_comm l0 chan acc =
-  match l0 with
+let rec gen_comm j l chan acc accb =
+  match l with
+  | [] -> (chan, (acc, accb))
+  | p :: xs ->
+    let (i, p0) = p in
+    let (x, _) = p0 in
+    gen_comm j xs (add chan (mul (Stdlib.succ (Stdlib.succ 0)) (length x)))
+      (gen_comm' j i x chan acc) (gen_comm' i j x chan accb)
+
+(** val gen_comm_insert :
+    membrane_id -> (membrane_id * (nposi list * nposi list)) list -> var ->
+    ((myOpAux * nposi list) * membrane_id) list -> ((myOpAux * nposi
+    list) * membrane_id) -> var * ((myOpAux * nposi list) * membrane_id) list **)
+
+let gen_comm_insert j l chan acc v =
+  let mid = gen_comm j l chan acc [] in
+  ((fst mid), (app (snd (snd mid)) (v :: (fst (snd mid)))))
+
+(** val gen_comm_b :
+    membrane_id -> (membrane_id * (nposi list * nposi list)) list -> var ->
+    ((myOpAux * nposi list) * membrane_id) list -> var * ((myOpAux * nposi
+    list) * membrane_id) list **)
+
+let rec gen_comm_b j l chan acc =
+  match l with
   | [] -> (chan, acc)
-  | y :: xs ->
-    let (i, x) = y in
-    gen_comm xs (add chan (length x)) (app (gen_comm' i x chan) acc)
+  | p :: xs ->
+    let (i, p0) = p in
+    let (x, _) = p0 in
+    gen_comm_b j xs (add chan (length x)) (gen_comm' j i x chan acc)
+
+(** val collect_all_posi :
+    (membrane_id * (nposi list * nposi list)) list -> nposi list -> nposi list **)
+
+let rec collect_all_posi l acc =
+  match l with
+  | [] -> acc
+  | p :: xs ->
+    let (_, p0) = p in let (x, _) = p0 in collect_all_posi xs (app x acc)
+
+(** val push_to_mem_i :
+    int -> int -> nposi list -> (membrane_id * (nposi list * nposi list))
+    list -> (int * nposi list) list -> (int * nposi list) list **)
+
+let rec push_to_mem_i i j v l acc =
+  match l with
+  | [] -> acc
+  | (k, (x, y)) :: xs ->
+      if Nat.eqb i k
+      then push_to_mem_i i j v xs ((k, app v y) :: acc)
+      else if Nat.eqb j k
+      then push_to_mem_i i j v xs ((k, app x y) :: acc)
+      else push_to_mem_i i j v xs ((k, y) :: acc)
+
+(** val post_dec :
+    membrane_id -> (membrane_id * nposi list) list -> (nposi
+    list * membrane_id) list -> int -> nposi list -> var ->
+    (membrane_id * (nposi list * nposi list)) list -> (membrane_id * (nposi
+    list * nposi list)) list -> ((myOpAux * nposi list) * membrane_id) list
+    -> var * (((myOpAux * nposi list) * membrane_id)
+    list * (membrane_id * nposi list) list) list **)
+
+let post_dec i new0 dc xnum xset chan rea input acc =
+  let v = collect_all_posi rea [] in
+  (match v with
+   | [] -> (chan, [])
+   | y :: _ ->
+     (match dec_mem dc y with
+      | Some j ->
+        let mid = gen_comm_insert i rea chan acc (((OpNum xnum), xset), i) in
+        let pre_gen = gen_comm_b i rea (fst mid) acc in
+        let post_gen =
+          gen_comm' i j v (fst pre_gen) ((((OpNum xnum), xset),
+            i) :: (snd pre_gen))
+        in
+        ((add (fst pre_gen) (length v)), ((((((OpNum xnum), xset),
+        i) :: (snd mid)), new0) :: ((post_gen,
+        (push_to_mem_i j i v input [])) :: [])))
+      | None ->
+        let pre_gen = gen_comm_insert i rea chan acc (((OpNum xnum), xset), i)
+        in
+        ((fst pre_gen), (((snd pre_gen), new0) :: []))))
+        
+let rec mem_pos p xs =
+  match xs with
+  | [] -> false
+  | y :: ys -> y = p || mem_pos p ys
+
+let rec add_nodup xs ys =
+  match xs with
+  | [] -> ys
+  | x :: tl ->
+      if mem_pos x ys then add_nodup tl ys
+      else add_nodup tl (x :: ys)
+
+let rec add_qubits_to_mem i xs new0 =
+  match new0 with
+  | [] -> []
+  | (j, ys) :: tl ->
+      if i = j
+      then (j, add_nodup xs ys) :: add_qubits_to_mem i xs tl
+      else (j, ys) :: add_qubits_to_mem i xs tl
 
 (** val assign_mem_s :
-    (membrane_id * (posi * bool) list) list -> hb_relation -> (int * posi
-    list) -> ((myOpAux * posi list) * membrane_id) list -> var ->
-    var * (((myOpAux * posi list) * membrane_id)
-    list * (membrane_id * (posi * bool) list) list) list **)
+    (membrane_id * nposi list) list -> (nposi list * membrane_id) list ->
+    (int * nposi list) -> ((myOpAux * nposi list) * membrane_id) list -> var
+    -> var * (((myOpAux * nposi list) * membrane_id)
+    list * (membrane_id * nposi list) list) list **)
+    
+(* ============================================================ *)
+(* Capacity control                                             *)
+(* ============================================================ *)
 
-let assign_mem_s new0 hb x l0 chan =
+let mem_qubit_load (new0 : (membrane_id * nposi list) list) (i : membrane_id) : int =
+  match List.assoc_opt i new0 with
+  | Some xs -> List.length xs
+  | None -> 0
+
+(* Small capacity to force distributed placement and Send/Recv *)
+let membrane_capacity = 8
+
+let mem_has_capacity (new0 : (membrane_id * nposi list) list) (i : membrane_id) (xset : nposi list) : bool =
+  let current = mem_qubit_load new0 i in
+  current + List.length xset <= membrane_capacity
+
+let rec set_inter0 x y (acc_common, acc_rest) =
+  match x with
+  | [] -> (List.rev acc_common, List.rev acc_rest)
+  | a :: xs ->
+      if List.mem a y
+      then set_inter0 xs y (a :: acc_common, acc_rest)
+      else set_inter0 xs y (acc_common, a :: acc_rest)
+
+let rec search_mem new0 x acc =
+  match new0 with
+  | [] -> acc
+  | (i, y) :: ys ->
+      let inter = set_inter0 x y ([], []) in
+      search_mem ys x ((i, inter) :: acc)
+      
+ (* ============================================================ *)
+(* Force remote placement helpers                               *)
+(* ============================================================ *)
+
+let rec pick_other_membrane (src : membrane_id) (new0 : (membrane_id * nposi list) list)
+  : membrane_id option =
+  match new0 with
+  | [] -> None
+  | (j, _) :: tl -> if j = src then pick_other_membrane src tl else Some j
+
+let force_remote_insert
+    (src : membrane_id)
+    (dst : membrane_id)
+    (xnum : int)
+    (xset : nposi list)
+    (l : ((myOpAux * nposi list) * membrane_id) list)
+    (chan : int)
+    (new0 : (membrane_id * nposi list) list)
+  : int * ((((myOpAux * nposi list) * membrane_id) list * (membrane_id * nposi list) list) list) =
+  let comm = gen_comm' src dst xset chan [] in
+  let next_chan = chan + (2 * List.length xset) in
+  let new0' = add_qubits_to_mem dst xset new0 in
+  (next_chan, [((app comm [(((OpNum xnum), xset), dst)]), new0')])
+  
+(* ============================================================ *)
+(* Operation-load-aware placement                               *)
+(* ============================================================ *)
+
+let rec op_load_in_partial l mid =
+  match l with
+  | [] -> 0
+  | (((_aux, _qs), m)) :: xs ->
+      if Nat.eqb m mid
+      then Stdlib.succ (op_load_in_partial xs mid)
+      else op_load_in_partial xs mid
+
+let overlap_size x y =
+  length (fst (set_inter0 x y ([], [])))
+
+let import_cost xset local_qs =
+  sub (length xset) (overlap_size xset local_qs)
+
+let score_mem_for_op partial xset mid local_qs =
+  let imports = import_cost xset local_qs in
+  let op_load = op_load_in_partial partial mid in
+  add (mul 4 imports) (mul 5 op_load)
+
+let op_capacity = 6
+
+let over_op_capacity partial mid =
+  Nat.ltb op_capacity (op_load_in_partial partial mid)
+
+let rec best_mem_by_score partial xset candidates current_best current_score =
+  match candidates with
+  | [] -> current_best
+  | (mid, (local_qs, _rest)) :: xs ->
+      if over_op_capacity partial mid then
+        best_mem_by_score partial xset xs current_best current_score
+      else
+        let s = score_mem_for_op partial xset mid local_qs in
+        if Nat.ltb s current_score
+        then best_mem_by_score partial xset xs mid s
+        else best_mem_by_score partial xset xs current_best current_score
+        
+let rec insert_scored_candidate cand scored =
+  match scored with
+  | [] -> [cand]
+  | ((s1, _, _) as c1) :: tl ->
+      let (s, _, _) = cand in
+      if Nat.ltb s s1 then cand :: scored
+      else c1 :: insert_scored_candidate cand tl
+
+let rec take_scored n xs =
+  match n, xs with
+  | 0, _ -> []
+  | _, [] -> []
+  | n, x :: tl -> x :: take_scored (n - 1) tl
+
+let scored_candidates partial xset candidates =
+  let rec aux cs acc =
+    match cs with
+    | [] -> acc
+    | (mid, (local_qs, rest_qs)) :: tl ->
+        if over_op_capacity partial mid then
+          aux tl acc
+        else
+          let s = score_mem_for_op partial xset mid local_qs in
+          aux tl (insert_scored_candidate (s, mid, (local_qs, rest_qs)) acc)
+  in
+  aux candidates []
+let assign_mem_s new0 dc x l chan =
   let xset = snd x in
-  (match find_all_in xset new0 with
-   | Some p ->
-     let (i, _) = p in
-     (chan, (((app l0 ((((OpNum (fst x)), (snd x)), i) :: [])),
-     (turn_true i xset new0)) :: []))
-   | None ->
-     (match search_hb xset (fst x) hb (rev l0) [] with
-      | Some p ->
-        let (i, re) = p in
-        if Nat.ltb (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-             (Stdlib.succ 0)))))
-             (Nat.div
-               (mul (length re) (Stdlib.succ (Stdlib.succ (Stdlib.succ
-                 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-                 (Stdlib.succ (Stdlib.succ (Stdlib.succ 0)))))))))))
-               (length xset))
-        then let mid = gen_comm (search_all_mem i (snd x) new0) chan [] in
-             ((fst mid),
-             (((app l0
-                 (app (snd mid) ((((OpNum (fst x)), (snd x)), i) :: []))),
-             (add_posi_true i xset (subtract_all xset new0 []))) :: []))
-        else (match search_good_mem new0 xset with
-              | [] -> (chan, [])
-              | m :: l1 ->
-                (match find_least_q new0 with
-                 | Some na ->
-                   fold_left (fun a b ->
-                     let mid =
-                       gen_comm (search_all_mem b (snd x) new0) (fst a) []
-                     in
-                     ((fst mid),
-                     (((app l0
-                         (app (snd mid) ((((OpNum (fst x)), (snd x)),
-                           b) :: []))),
-                     (add_posi_true b xset (subtract_all xset new0 []))) :: 
-                     (snd a)))) ((fst na) :: (m :: l1)) (chan, [])
-                 | None -> (chan, [])))
-      | None ->
-        (match search_good_mem new0 xset with
-         | [] -> (chan, [])
-         | m :: l1 ->
-           fold_left (fun a b ->
-             let mid = gen_comm (search_all_mem b (snd x) new0) (fst a) [] in
-             ((fst mid),
-             (((app l0
-                 (app (snd mid) ((((OpNum (fst x)), (snd x)), b) :: []))),
-             (add_posi_true b xset (subtract_all xset new0 []))) :: (snd a))))
-             (m :: l1) (chan, []))))
+  let re = search_mem new0 xset [] in
+  match re with
+  | [] -> (chan, [])
+  | _ ->
+      let ranked =
+        match scored_candidates l xset re with
+        | [] ->
+            (* fallback: allow all if capacity filtered everything *)
+            scored_candidates [] xset re
+        | ys -> ys
+      in
+      let top = take_scored 3 ranked in
 
+      let rec build_choices cs acc =
+        match cs with
+        | [] -> acc
+        | (_score, chosen_mid, _data) :: tl ->
+            if is_one_mem re
+            then
+              let choice =
+                (((((OpNum (fst x)), xset), chosen_mid) :: l), new0)
+              in
+              build_choices tl (choice :: acc)
+            else
+              let others =
+                List.filter (fun (m, _) -> not (Nat.eqb m chosen_mid)) re
+              in
+              let mid_res =
+                post_dec chosen_mid new0 dc (fst x) xset chan others re l
+              in
+              let choices = snd mid_res in
+              build_choices tl (app choices acc)
+      in
+      (chan, build_choices top [])  
+
+(**
+let assign_mem_s new0 dc x l chan =
+  let xset = snd x in
+  let re = search_mem new0 xset [] in
+  if is_one_mem re
+  then
+    match get_one re with
+    | None -> (chan, [])
+    | Some i ->
+        (chan, [(((((OpNum (fst x)), xset), i) :: l), new0)])
+  else
+    match grab_good re [] with
+    | [] -> (chan, [])
+    | y :: ys ->
+        let (p, rea) = max_one ys 0 y [] in
+        let (i, _) = p in
+        post_dec i new0 dc (fst x) xset chan rea re l
+        
+        
+        **)
 (** val channel : int **)
 
 let channel =
   Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+    (Stdlib.succ 0)))))
 
 (** val assign_mem' :
-    hb_relation -> (myOpAux * posi list) list -> (var * (((myOpAux * posi
-    list) * membrane_id) list * (membrane_id * (posi * bool) list) list)
-    list) -> var * (((myOpAux * posi list) * membrane_id)
-    list * (membrane_id * (posi * bool) list) list) list **)
+    (nposi list * membrane_id) list -> (myOpAux * nposi list) list ->
+    (var * (((myOpAux * nposi list) * membrane_id)
+    list * (membrane_id * nposi list) list) list) -> var * (((myOpAux * nposi
+    list) * membrane_id) list * (membrane_id * nposi list) list) list **)
 
-let rec assign_mem' hb l0 acc =
-  match l0 with
+let rec assign_mem' dc l acc =
+  match l with
   | [] -> acc
   | a :: xs ->
     let (m, y) = a in
     (match m with
      | OpNum x ->
-       assign_mem' hb xs
+       assign_mem' dc xs
          (fold_left (fun a0 b ->
-           let mid = assign_mem_s (snd b) hb (x, y) (fst b) (fst a0) in
+           let mid = assign_mem_s (snd b) dc (x, y) (fst b) (fst a0) in
            ((fst mid), (app (snd a0) (snd mid)))) (snd acc) ((fst acc), []))
-     | OpExp _ -> assign_mem' hb xs acc)
+     | OpExp _ -> assign_mem' dc xs acc)
 
 (** val assign_mem_more :
-    (membrane_id * (posi * bool) list) list -> hb_relation -> (myOpAux * posi
-    list) list list -> ((myOpAux * posi list) * membrane_id) list list ->
-    ((myOpAux * posi list) * membrane_id) list list **)
-
-let rec assign_mem_more new0 hb l0 acc =
-  match l0 with
-  | [] -> acc
-  | x :: xs ->
-    assign_mem_more new0 hb xs
-      (app
-        (fst (split (snd (assign_mem' hb x (channel, (([], new0) :: []))))))
-        acc)
-
-(** val turn_new :
-    ((myOpAux * posi list) * membrane_id) list ->
-    (membrane_id * (posi * bool) list) list -> (membrane_id * (posi * bool)
-    list) list **)
-
-let rec turn_new l0 acc =
-  match l0 with
-  | [] -> acc
-  | p :: xs -> let (x, y) = p in turn_new xs ((y, (add_true (snd x))) :: acc)
-
-(** val gen_mem :
-    (myOpAux * posi list) list -> (myOpAux * posi list) list list ->
-    membrane_id list -> hb_relation -> ((myOpAux * posi list) * membrane_id)
+    (membrane_id * nposi list) list -> (nposi list * membrane_id) list ->
+    (myOpAux * nposi list) list list -> ((myOpAux * nposi
+    list) * membrane_id) list list -> ((myOpAux * nposi list) * membrane_id)
     list list **)
 
-let gen_mem news l0 ids hb =
-  map (fun a -> app (gen_mem_new news ids) a)
-    (assign_mem_more (turn_new (gen_mem_new news ids) []) hb l0 [])
+let rec assign_mem_more new0 dc l acc =
+  match l with
+  | [] -> acc
+  | x :: xs ->
+    assign_mem_more new0 dc xs
+      (app
+        (map rev
+          (fst (split (snd (assign_mem' dc x (channel, (([], new0) :: [])))))))
+        acc)
 
+(** val find_empty_new' :
+    (membrane_id * nposi list) list -> membrane_id -> membrane_id list ->
+    membrane_id list **)
+
+let rec find_empty_new' l m acc =
+  match l with
+  | [] -> m :: acc
+  | p :: xs ->
+    let (x, _) = p in if Nat.eqb x m then acc else find_empty_new' xs m acc
+
+(** val find_empy_new :
+    (membrane_id * nposi list) list -> membrane_id list -> membrane_id list
+    -> membrane_id list **)
+
+let rec find_empy_new l al acc =
+  match al with
+  | [] -> acc
+  | x :: xs -> find_empy_new l xs (find_empty_new' l x acc)
+
+(** val assign_new_mem :
+    (myOpAux * nposi list) list -> membrane_id list -> (nposi
+    list * membrane_id) list **)
+
+let rec assign_new_mem l = function
+| [] -> []
+| x :: xs ->
+  (match l with
+   | [] -> []
+   | y :: ys -> ((snd y), x) :: (assign_new_mem ys xs))
+
+(** val gen_empty_mem :
+    membrane_id list -> (membrane_id * nposi list) list **)
+
+let rec gen_empty_mem = function
+| [] -> []
+| a :: xl -> (a, []) :: (gen_empty_mem xl)
+
+(* ============================================================ *)
+(* Small take helper                                            *)
+(* ============================================================ *)
+
+  let rec take n xs =
+  match n, xs with
+  | 0, _ -> []
+  | _, [] -> []
+  | n, x :: tl -> x :: take (n - 1) tl
+
+let fallback_mid ql =
+  match ql with
+  | [] -> 0
+  | (_, mid) :: _ -> mid
+
+
+
+(** val gen_mem :
+    (myOpAux * nposi list) list -> (myOpAux * nposi list) list list ->
+    membrane_id list -> ((myOpAux * nposi list) * membrane_id) list list **)
+
+(* ============================================================ *)
+(* Modified gen_mem                                             *)
+(* ============================================================ *)
+let gen_mem news l ids =
+  let ql = gen_mem_new news ids in
+  let vl = turn_new (gen_mem_new news ids) [] in
+  let al = find_empy_new vl ids [] in
+  let dc = assign_new_mem news al in
+  let base_new0 = app (gen_empty_mem al) vl in
+  let res =
+    map
+      (fun a -> app ql a)
+      (assign_mem_more base_new0 dc l [])
+  in
+  match res with
+  | [] ->
+      let mid = fallback_mid ql in
+      (match take 3 l with
+       | [] -> [ql]
+       | xs ->
+           map
+             (fun x -> app ql (map (fun y -> (y, mid)) x))
+             xs)
+  | _ -> res
+  
 (** val insert_mem_id :
-    membrane_id -> (myOpAux * posi list) -> (int * (myOpAux * posi list)
-    list) list -> (membrane_id * (myOpAux * posi list) list) list **)
+    membrane_id -> (myOpAux * nposi list) -> (int * (myOpAux * nposi list)
+    list) list -> (membrane_id * (myOpAux * nposi list) list) list **)
 
 let rec insert_mem_id i x = function
 | [] -> (i, (x :: [])) :: []
@@ -1667,25 +1660,25 @@ let rec insert_mem_id i x = function
   else (a, b) :: (insert_mem_id i x xs)
 
 (** val distribute_op :
-    ((myOpAux * posi list) * membrane_id) list -> (int * (myOpAux * posi
-    list) list) list -> (int * (myOpAux * posi list) list) list **)
+    ((myOpAux * nposi list) * membrane_id) list -> (int * (myOpAux * nposi
+    list) list) list -> (int * (myOpAux * nposi list) list) list **)
 
-let rec distribute_op l0 acc =
-  match l0 with
+let rec distribute_op l acc =
+  match l with
   | [] -> acc
   | x :: xs -> distribute_op xs (insert_mem_id (snd x) (fst x) acc)
 
 (** val get_op : (int * myOp) list -> int -> myOp option **)
 
-let rec get_op l0 i =
-  match l0 with
+let rec get_op l i =
+  match l with
   | [] -> None
   | p :: xs -> let (x, y) = p in if N.eqb i x then Some y else get_op xs i
 
 (** val turn_cexp_to_proc : cexp list -> process -> process **)
 
-let rec turn_cexp_to_proc l0 p =
-  match l0 with
+let rec turn_cexp_to_proc l p =
+  match l with
   | [] -> p
   | x :: xs -> AP (x, (turn_cexp_to_proc xs p))
 
@@ -1694,14 +1687,14 @@ let rec turn_cexp_to_proc l0 p =
 let turn_op_to_proc x p =
   match x with
   | OpAP a -> AP (a, p)
-  | OpIf (b, l0, r) ->
-    PIf (b, (turn_cexp_to_proc l0 p), (turn_cexp_to_proc r p))
+  | OpIf (b, l, r) ->
+    PIf (b, (turn_cexp_to_proc l p), (turn_cexp_to_proc r p))
 
 (** val to_process :
-    (myOpAux * posi list) list -> (int * myOp) list -> process option **)
+    (myOpAux * nposi list) list -> (int * myOp) list -> process option **)
 
-let rec to_process l0 os =
-  match l0 with
+let rec to_process l os =
+  match l with
   | [] -> Some PNil
   | p :: xs ->
     let (m, _) = p in
@@ -1719,24 +1712,219 @@ let rec to_process l0 os =
         | None -> None))
 
 (** val to_prog :
-    (int * (myOpAux * posi list) list) list -> (int * myOp) list -> memb list **)
+    (int * (myOpAux * nposi list) list) list -> (int * myOp) list -> memb list **)
 
-let rec to_prog l0 os =
-  match l0 with
+let rec to_prog l os =
+  match l with
   | [] -> []
   | x :: xs ->
     (match to_process (snd x) os with
      | Some a -> (Memb ((fst x), a)) :: (to_prog xs os)
      | None -> [])
+     
+     
+     (* ============================================================ *)
+(* True distributed lowering helpers                            *)
+(* ============================================================ *)
 
+let rec has_if_ops = function
+  | [] -> false
+  | (_, OpIf _) :: _ -> true
+  | _ :: xs -> has_if_ops xs
+
+let rec assoc_opt_mem k = function
+  | [] -> None
+  | (k', v) :: xs -> if Nat.eqb k k' then Some v else assoc_opt_mem k xs
+
+let rec owner_of_pos owners p =
+  match owners with
+  | [] -> None
+  | (q, mid) :: xs -> if nposi_eq q p then Some mid else owner_of_pos xs p
+
+let rec set_owner owners p mid =
+  match owners with
+  | [] -> [(p, mid)]
+  | (q, m) :: xs ->
+      if nposi_eq q p
+      then (p, mid) :: xs
+      else (q, m) :: set_owner xs p mid
+
+let rec set_owner_many owners ps mid =
+  match ps with
+  | [] -> owners
+  | p :: xs -> set_owner_many (set_owner owners p mid) xs mid
+
+let rec append_cexp_to_mem mid ce acc =
+  match acc with
+  | [] -> [(mid, [ce])]
+  | (m, xs) :: tl ->
+      if Nat.eqb mid m
+      then (m, app xs [ce]) :: tl
+      else (m, xs) :: append_cexp_to_mem mid ce tl
+
+let rec add_initial_owners_from_solution sol os owners =
+  match sol with
+  | [] -> owners
+  | (((aux, qs), mid)) :: xs ->
+      let owners' =
+        match aux with
+        | OpNum n ->
+            (match get_op os n with
+             | Some (OpAP (CNew r)) ->
+                 set_owner_many owners (cutToQubits [r]) mid
+             | _ -> owners)
+        | OpExp (CNew r) ->
+            set_owner_many owners (cutToQubits [r]) mid
+        | _ -> owners
+      in
+      add_initial_owners_from_solution xs os owners'
+
+let rec max_explicit_chan_in_cexp = function
+  | CNew _ -> 0
+  | CAppU (_, _) -> 0
+  | CMeas (_, _) -> 0
+  | Send (c, _, _) -> c
+  | Recv (c, _, _) -> c
+
+let rec max_explicit_chan_in_process = function
+  | PNil -> 0
+  | AP (ce, p') -> Nat.max (max_explicit_chan_in_cexp ce) (max_explicit_chan_in_process p')
+  | PIf (_, p1, p2) ->
+      Nat.max (max_explicit_chan_in_process p1) (max_explicit_chan_in_process p2)
+
+let rec max_explicit_chan_in_config = function
+  | [] -> 0
+  | Memb (_, p) :: xs ->
+      Nat.max (max_explicit_chan_in_process p) (max_explicit_chan_in_config xs)
+
+let ensure_local_qubits dst qs owners bufs chan =
+  let rec go qs owners bufs chan =
+    match qs with
+    | [] -> (chan, owners, bufs)
+    | q :: tl ->
+        (match owner_of_pos owners q with
+         | Some src when not (Nat.eqb src dst) ->
+             let v = N.to_nat (fst q) in
+             let idx = N.to_nat (snd q) in
+             let bufs1 = append_cexp_to_mem src (Send (chan, v, idx)) bufs in
+             let bufs2 = append_cexp_to_mem dst (Recv (chan, v, idx)) bufs1 in
+             let owners' = set_owner owners q dst in
+             go tl owners' bufs2 (Stdlib.succ chan)
+         | _ ->
+             go tl owners bufs chan)
+  in
+  go qs owners bufs chan
+
+let to_prog_from_cexps grouped =
+  let rec aux = function
+    | [] -> []
+    | (mid, ces) :: xs -> Memb (mid, turn_cexp_to_proc ces PNil) :: aux xs
+  in
+  aux grouped
+  
+  
+ let lower_solution_distributed sol os =
+  let owners0 = add_initial_owners_from_solution sol os [] in
+
+  let rec go xs owners bufs chan =
+    match xs with
+    | [] ->
+        to_prog_from_cexps bufs
+
+    | (((aux, _qs), mid)) :: tl ->
+
+        begin
+          match aux with
+
+          | OpExp ce ->
+              let owners', bufs', chan' =
+                match ce with
+                | CNew r ->
+                    (set_owner_many owners (cutToQubits [r]) mid,
+                     append_cexp_to_mem mid ce bufs,
+                     chan)
+
+                | Recv (_, x, y) ->
+                    (set_owner owners ((N.of_nat x),(N.of_nat y)) mid,
+                     append_cexp_to_mem mid ce bufs,
+                     chan)
+
+                | _ ->
+                    (owners,
+                     append_cexp_to_mem mid ce bufs,
+                     chan)
+              in
+              go tl owners' bufs' chan'
+
+          | OpNum n ->
+              begin
+                match get_op os n with
+
+                | Some (OpAP ce) ->
+                    begin
+                      match ce with
+
+                      | CNew r ->
+                          let owners' =
+                            set_owner_many owners (cutToQubits [r]) mid
+                          in
+                          let bufs' =
+                            append_cexp_to_mem mid ce bufs
+                          in
+                          go tl owners' bufs' chan
+
+                      | CAppU (loc,e) ->
+                          let qbs = cutToQubits loc in
+                          let (chan',owners',bufs') =
+                            ensure_local_qubits mid qbs owners bufs chan
+                          in
+                          let bufs'' =
+                            append_cexp_to_mem mid (CAppU(loc,e)) bufs'
+                          in
+                          go tl owners' bufs'' chan'
+
+                      | CMeas (x,loc) ->
+                          let qbs = cutToQubits loc in
+                          let (chan',owners',bufs') =
+                            ensure_local_qubits mid qbs owners bufs chan
+                          in
+                          let bufs'' =
+                            append_cexp_to_mem mid (CMeas(x,loc)) bufs'
+                          in
+                          go tl owners' bufs'' chan'
+
+                      | Send _ | Recv _ ->
+                          let bufs' =
+                            append_cexp_to_mem mid ce bufs
+                          in
+                          go tl owners bufs' chan
+
+                    end
+
+                | _ ->
+                    go tl owners bufs chan
+
+              end
+
+        end
+
+  in
+  go sol owners0 [] 100000
 (** val gen_prog :
-    ((myOpAux * posi list) * membrane_id) list list -> (int * myOp) list ->
+    ((myOpAux * nposi list) * membrane_id) list list -> (int * myOp) list ->
     memb list list **)
 
-let rec gen_prog l0 os =
-  match l0 with
-  | [] -> []
-  | x :: xs -> (to_prog (distribute_op x []) os) :: (gen_prog xs os)
+let rec gen_prog l os =
+  if has_if_ops os
+  then
+    (* Fallback to old behavior if OpIf exists *)
+    match l with
+    | [] -> []
+    | x :: xs -> (to_prog (distribute_op x []) os) :: (gen_prog xs os)
+  else
+    match l with
+    | [] -> []
+    | x :: xs -> (lower_solution_distributed x os) :: (gen_prog xs os)
 
 (** val count_send_in_process : process -> int **)
 
@@ -1812,7 +2000,7 @@ let autodisq_all ops mids =
   let os = opListOrder ops in
   let hb = gen_hb os in
   let sq = gen_seq os hb in
-  let mem = gen_mem (fst sq) (snd sq) mids hb in gen_prog mem os
+  let mem = gen_mem (fst sq) (snd sq) mids in gen_prog mem os
 
 (** val autodisq_best : op_list -> membrane_id list -> config option **)
 
@@ -1835,1769 +2023,3 @@ let rec auto_disq_loop best = function
 
 let autodisq_best_1 ops mids =
   auto_disq_loop None (autodisq_all ops mids)
-
-(** val one_qubit_range : var -> range **)
-
-let one_qubit_range q =
-  (q, (0, (Stdlib.succ 0)))
-
-(** val l : locus **)
-
-let l =
-  []
-
-(** val alloc_qubits_from : var list -> op_list **)
-
-let rec alloc_qubits_from = function
-| [] -> []
-| q :: tl -> (OpAP (CNew (one_qubit_range q))) :: (alloc_qubits_from tl)
-
-(** val cnot_from : var -> var list -> op_list **)
-
-let rec cnot_from ctrl = function
-| [] -> []
-| q :: tl ->
-  (OpAP (CAppU (l, (CU (ctrl, (Num 0), (X (q, (Num
-    0)))))))) :: (cnot_from ctrl tl)
-
-(** val meas_all_from : var list -> op_list **)
-
-let rec meas_all_from = function
-| [] -> []
-| c :: tl -> (OpAP (CMeas (c, l))) :: (meas_all_from tl)
-
-(** val ghz8_n : int **)
-
-let ghz8_n =
-  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ 0)))))))
-
-(** val ghz8_qs : var list **)
-
-let ghz8_qs =
-  seq 0 ghz8_n
-
-(** val ghz8_outs : var list **)
-
-let ghz8_outs =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-    ghz8_n
-
-(** val gHZ8_prog : op_list **)
-
-let gHZ8_prog =
-  app (alloc_qubits_from ghz8_qs)
-    (app ((OpAP (CAppU (l, (H (0, (Num 0)))))) :: [])
-      (app (cnot_from 0 (seq (Stdlib.succ 0) (sub ghz8_n (Stdlib.succ 0))))
-        (meas_all_from ghz8_outs)))
-
-(** val ghz16_n : int **)
-
-let ghz16_n =
-  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ 0)))))))))))))))
-
-(** val ghz16_qs : var list **)
-
-let ghz16_qs =
-  seq 0 ghz16_n
-
-(** val ghz16_outs : var list **)
-
-let ghz16_outs =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-    ghz16_n
-
-(** val gHZ16_prog : op_list **)
-
-let gHZ16_prog =
-  app (alloc_qubits_from ghz16_qs)
-    (app ((OpAP (CAppU (l, (H (0, (Num 0)))))) :: [])
-      (app (cnot_from 0 (seq (Stdlib.succ 0) (sub ghz16_n (Stdlib.succ 0))))
-        (meas_all_from ghz16_outs)))
-
-(** val apply_H_all_from : var list -> op_list **)
-
-let rec apply_H_all_from = function
-| [] -> []
-| q :: tl -> (OpAP (CAppU (l, (H (q, (Num 0)))))) :: (apply_H_all_from tl)
-
-(** val controlled_x_chain_from : var list -> var list -> op_list **)
-
-let rec controlled_x_chain_from ctrls tgts =
-  match ctrls with
-  | [] -> []
-  | c :: ctrls' ->
-    (match tgts with
-     | [] -> []
-     | t0 :: tgts' ->
-       (OpAP (CAppU (l, (CU (c, (Num 0), (X (t0, (Num
-         0)))))))) :: (controlled_x_chain_from ctrls' tgts'))
-
-(** val shor8_qs : var list **)
-
-let shor8_qs =
-  seq 0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ 0))))))))
-
-(** val shor8_ctrls : var list **)
-
-let shor8_ctrls =
-  seq 0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ 0))))
-
-(** val shor8_tgts : var list **)
-
-let shor8_tgts =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ 0)))) (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ 0))))
-
-(** val shor8_outs : var list **)
-
-let shor8_outs =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ 0))))))))
-
-(** val sHOR8_prog : op_list **)
-
-let sHOR8_prog =
-  app (alloc_qubits_from shor8_qs)
-    (app (apply_H_all_from shor8_ctrls)
-      (app (controlled_x_chain_from shor8_ctrls shor8_tgts)
-        (app ((OpAP (CAppU (l, (QFT (0, (Stdlib.succ (Stdlib.succ
-          (Stdlib.succ (Stdlib.succ 0))))))))) :: [])
-          (meas_all_from shor8_outs))))
-
-(** val shor16_qs : var list **)
-
-let shor16_qs =
-  seq 0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ 0))))))))))))))))
-
-(** val shor16_ctrls : var list **)
-
-let shor16_ctrls =
-  seq 0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ 0))))))))
-
-(** val shor16_tgts : var list **)
-
-let shor16_tgts =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ 0)))))))) (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ 0))))))))
-
-(** val shor16_outs : var list **)
-
-let shor16_outs =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ 0))))))))))))))))
-
-(** val sHOR16_prog : op_list **)
-
-let sHOR16_prog =
-  app (alloc_qubits_from shor16_qs)
-    (app (apply_H_all_from shor16_ctrls)
-      (app (controlled_x_chain_from shor16_ctrls shor16_tgts)
-        (app ((OpAP (CAppU (l, (QFT (0, (Stdlib.succ (Stdlib.succ
-          (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-          (Stdlib.succ 0))))))))))))) :: []) (meas_all_from shor16_outs))))
-
-(** val qft8_n : int **)
-
-let qft8_n =
-  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ 0)))))))
-
-(** val qft8_q0 : var **)
-
-let qft8_q0 =
-  0
-
-(** val qft8_qubits : var list **)
-
-let qft8_qubits =
-  seq qft8_q0 qft8_n
-
-(** val qft8_outs : var list **)
-
-let qft8_outs =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-    qft8_n
-
-(** val qFT8_prog : op_list **)
-
-let qFT8_prog =
-  app (alloc_qubits_from qft8_qubits)
-    (app ((OpAP (CAppU (l, (QFT (qft8_q0, qft8_n))))) :: ((OpAP (CAppU (l,
-      (RQFT (qft8_q0, qft8_n))))) :: [])) (meas_all_from qft8_outs))
-
-(** val qft16_n : int **)
-
-let qft16_n =
-  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ 0)))))))))))))))
-
-(** val qft16_q0 : var **)
-
-let qft16_q0 =
-  0
-
-(** val qft16_qubits : var list **)
-
-let qft16_qubits =
-  seq qft16_q0 qft16_n
-
-(** val qft16_outs : var list **)
-
-let qft16_outs =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-    qft16_n
-
-(** val qFT16_prog : op_list **)
-
-let qFT16_prog =
-  app (alloc_qubits_from qft16_qubits)
-    (app ((OpAP (CAppU (l, (QFT (qft16_q0, qft16_n))))) :: ((OpAP (CAppU (l,
-      (RQFT (qft16_q0, qft16_n))))) :: [])) (meas_all_from qft16_outs))
-
-(** val qadd8_n : int **)
-
-let qadd8_n =
-  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ 0)))))))
-
-(** val qadd8_q0 : var **)
-
-let qadd8_q0 =
-  0
-
-(** val qadd8_qubits : var list **)
-
-let qadd8_qubits =
-  seq qadd8_q0 qadd8_n
-
-(** val qadd8_outs : var list **)
-
-let qadd8_outs =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-    qadd8_n
-
-(** val qadd8_x : var **)
-
-let qadd8_x =
-  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-(** val qFTAdder8_prog : op_list **)
-
-let qFTAdder8_prog =
-  app (alloc_qubits_from qadd8_qubits)
-    (app ((OpAP (CAppU (l, (QFT (qadd8_q0, (Stdlib.succ (Stdlib.succ
-      (Stdlib.succ (Stdlib.succ 0))))))))) :: ((OpAP (CAppU (l, (Addto
-      (qadd8_x, qadd8_q0))))) :: ((OpAP (CAppU (l, (RQFT (qadd8_q0,
-      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ 0))))))))) :: [])))
-      (meas_all_from qadd8_outs))
-
-(** val qadd16_n : int **)
-
-let qadd16_n =
-  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ 0)))))))))))))))
-
-(** val qadd16_q0 : var **)
-
-let qadd16_q0 =
-  0
-
-(** val qadd16_qubits : var list **)
-
-let qadd16_qubits =
-  seq qadd16_q0 qadd16_n
-
-(** val qadd16_outs : var list **)
-
-let qadd16_outs =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-    qadd16_n
-
-(** val qadd16_x : var **)
-
-let qadd16_x =
-  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ
-    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-(** val qFTAdder16_prog : op_list **)
-
-let qFTAdder16_prog =
-  app (alloc_qubits_from qadd16_qubits)
-    (app ((OpAP (CAppU (l, (QFT (qadd16_q0, (Stdlib.succ (Stdlib.succ
-      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-      (Stdlib.succ 0))))))))))))) :: ((OpAP (CAppU (l, (Addto (qadd16_x,
-      qadd16_q0))))) :: ((OpAP (CAppU (l, (RQFT (qadd16_q0, (Stdlib.succ
-      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-      (Stdlib.succ (Stdlib.succ 0))))))))))))) :: [])))
-      (meas_all_from qadd16_outs))
-
-(** val qft32_n : int **)
-
-let qft32_n =
-  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ 0)))))))))))))))))))))))))))))))
-
-(** val qft32_q0 : var **)
-
-let qft32_q0 =
-  0
-
-(** val qft32_qubits : var list **)
-
-let qft32_qubits =
-  seq qft32_q0 qft32_n
-
-(** val qft32_outs : var list **)
-
-let qft32_outs =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-    qft32_n
-
-(** val qFT32_prog : op_list **)
-
-let qFT32_prog =
-  app (alloc_qubits_from qft32_qubits)
-    (app ((OpAP (CAppU (l, (QFT (qft32_q0, qft32_n))))) :: ((OpAP (CAppU (l,
-      (RQFT (qft32_q0, qft32_n))))) :: [])) (meas_all_from qft32_outs))
-
-(** val qadd32_n : int **)
-
-let qadd32_n =
-  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ 0)))))))))))))))))))))))))))))))
-
-(** val qadd32_q0 : var **)
-
-let qadd32_q0 =
-  0
-
-(** val qadd32_qubits : var list **)
-
-let qadd32_qubits =
-  seq qadd32_q0 qadd32_n
-
-(** val qadd32_outs : var list **)
-
-let qadd32_outs =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-    qadd32_n
-
-(** val qadd32_x : var **)
-
-let qadd32_x =
-  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ
-    0)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-(** val qFTAdder32_prog : op_list **)
-
-let qFTAdder32_prog =
-  app (alloc_qubits_from qadd32_qubits)
-    (app ((OpAP (CAppU (l, (QFT (qadd32_q0, (Stdlib.succ (Stdlib.succ
-      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-      0))))))))))))))))))))) :: ((OpAP (CAppU (l, (Addto (qadd32_x,
-      qadd32_q0))))) :: ((OpAP (CAppU (l, (RQFT (qadd32_q0, (Stdlib.succ
-      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-      0))))))))))))))))))))) :: []))) (meas_all_from qadd32_outs))
-
-(** val ghz32_n : int **)
-
-let ghz32_n =
-  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ 0)))))))))))))))))))))))))))))))
-
-(** val ghz32_qs : var list **)
-
-let ghz32_qs =
-  seq 0 ghz32_n
-
-(** val ghz32_outs : var list **)
-
-let ghz32_outs =
-  seq (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
-    0))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-    ghz32_n
-
-(** val gHZ32_prog : op_list **)
-
-let gHZ32_prog =
-  app (alloc_qubits_from ghz32_qs)
-    (app ((OpAP (CAppU (l, (H (0, (Num 0)))))) :: [])
-      (app (cnot_from 0 (seq (Stdlib.succ 0) (sub ghz32_n (Stdlib.succ 0))))
-        (meas_all_from ghz32_outs)))

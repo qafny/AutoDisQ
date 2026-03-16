@@ -10,8 +10,8 @@ Extraction Language OCaml.
 Require Import DisQ.BasicUtility.
 Require Import DisQ.DisQSyntax.
 Require Import DisQ.AUTO.
-Require Import DisQ.AUTO_Test.
 
+Require Import DisQ.AUTO_Test.
 Extraction Blacklist List String Bool.
 
 Set Extraction AutoInline.
@@ -100,6 +100,20 @@ Extract Constant inject_Z => "Zarith.Q.of_bigint".
 Extraction
   "autodisq_extract.ml"
 
+  myOp myOpAux
+  opListOrder
+  gen_hb
+  gen_seq
+  gen_mem
+  gen_prog
+  fit
+  best_prog
+  autodisq_all
+  autodisq_best
+  autodisq_best_1.
+
+
+(*
     list_eqb
   aexp_eqb
   cbexp_eqb
@@ -156,15 +170,11 @@ Extraction
   assemble_range
   sublist_posi
   set_inter
-  sub_locus_i
-  isSend
-  no_send_check
-  search_hb
   search_mem
   max_one
-  search_good_mem
-  find_least_q'
-  find_least_q
+  
+
+
   subtract_aux
   subtract_posi
   subtract_all
@@ -216,9 +226,7 @@ Extraction
   GHZ32_prog.
 
 
-
-
-
+*)
 
 
 
