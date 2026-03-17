@@ -110,6 +110,15 @@ Extraction
   best_prog
   autodisq_all
   autodisq_best
+  assign_mem_s
+  assign_mem_more
+  gen_mem_new
+  scored_candidates
+  gen_comm
+  post_dec
+  lower_solution_distributed_go
+  lower_solution_distributed
+  autodisq_first
   autodisq_best_1.
 
 

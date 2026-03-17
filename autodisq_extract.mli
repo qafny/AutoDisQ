@@ -1,4 +1,6 @@
 
+val negb : bool -> bool
+
 val fst : ('a1 * 'a2) -> 'a1
 
 val snd : ('a1 * 'a2) -> 'a2
@@ -12,11 +14,59 @@ type comparison =
 | Lt
 | Gt
 
+type uint =
+| Nil
+| D0 of uint
+| D1 of uint
+| D2 of uint
+| D3 of uint
+| D4 of uint
+| D5 of uint
+| D6 of uint
+| D7 of uint
+| D8 of uint
+| D9 of uint
+
+type uint0 =
+| Nil0
+| D10 of uint0
+| D11 of uint0
+| D12 of uint0
+| D13 of uint0
+| D14 of uint0
+| D15 of uint0
+| D16 of uint0
+| D17 of uint0
+| D18 of uint0
+| D19 of uint0
+| Da of uint0
+| Db of uint0
+| Dc of uint0
+| Dd of uint0
+| De of uint0
+| Df of uint0
+
+type uint1 =
+| UIntDecimal of uint
+| UIntHexadecimal of uint0
+
 val add : int -> int -> int
 
-val mul : int -> int -> int
+val tail_add : int -> int -> int
 
-val sub : int -> int -> int
+val tail_addmul : int -> int -> int -> int
+
+val tail_mul : int -> int -> int
+
+val of_uint_acc : uint -> int -> int
+
+val of_uint : uint -> int
+
+val of_hex_uint_acc : uint0 -> int -> int
+
+val of_hex_uint : uint0 -> int
+
+val of_num_uint : uint1 -> int
 
 module type TotalLeBool' =
  sig
@@ -27,6 +77,14 @@ module type TotalLeBool' =
 
 module Nat :
  sig
+  val succ : int -> int
+
+  val add : int -> int -> int
+
+  val mul : int -> int -> int
+
+  val sub : int -> int -> int
+
   val eqb : int -> int -> bool
 
   val leb : int -> int -> bool
@@ -42,38 +100,11 @@ module Nat :
 
 module Pos :
  sig
-  type mask =
-  | IsNul
-  | IsPos of int
-  | IsNeg
- end
-
-module Coq_Pos :
- sig
   val succ : int -> int
 
   val add : int -> int -> int
 
   val add_carry : int -> int -> int
-
-  val pred_double : int -> int
-
-  type mask = Pos.mask =
-  | IsNul
-  | IsPos of int
-  | IsNeg
-
-  val succ_double_mask : mask -> mask
-
-  val double_mask : mask -> mask
-
-  val double_pred_mask : int -> mask
-
-  val sub_mask : int -> int -> mask
-
-  val sub_mask_carry : int -> int -> mask
-
-  val mul : int -> int -> int
 
   val compare_cont : comparison -> int -> int -> comparison
 
@@ -90,35 +121,15 @@ module Coq_Pos :
 
 module N :
  sig
-  val zero : int
-
-  val one : int
-
-  val succ_double : int -> int
-
-  val double : int -> int
-
   val succ : int -> int
 
   val add : int -> int -> int
-
-  val sub : int -> int -> int
-
-  val mul : int -> int -> int
 
   val compare : int -> int -> comparison
 
   val eqb : int -> int -> bool
 
-  val leb : int -> int -> bool
-
   val ltb : int -> int -> bool
-
-  val pos_div_eucl : int -> int -> int * int
-
-  val div_eucl : int -> int -> int * int
-
-  val div : int -> int -> int
 
   val to_nat : int -> int
 
@@ -127,11 +138,11 @@ module N :
 
 val rev : 'a1 list -> 'a1 list
 
-val concat : 'a1 list list -> 'a1 list
-
 val map : ('a1 -> 'a2) -> 'a1 list -> 'a2 list
 
 val fold_left : ('a1 -> 'a2 -> 'a1) -> 'a2 list -> 'a1 -> 'a1
+
+val filter : ('a1 -> bool) -> 'a1 list -> 'a1 list
 
 val split : ('a1 * 'a2) list -> 'a1 list * 'a2 list
 
@@ -222,6 +233,10 @@ type myOpAux =
 
 type fitness_value = int
 
+type scored_cand = (int * membrane_id) * ((int * int) list * (int * int) list)
+
+type nposi = int * int
+
 module RangeOrder :
  sig
   type t = range
@@ -253,9 +268,9 @@ val intersect' : range -> locus -> bool
 
 val intersect : locus -> locus -> bool
 
-val get_locus : cexp -> range list
+val get_locus : cexp -> locus
 
-val get_loci : cexp list -> range list
+val get_loci : cexp list -> locus
 
 val get_vars_cexp : cexp -> var list
 
@@ -274,17 +289,15 @@ val opListOrder' : op_list -> int -> (int * myOp) list
 
 val opListOrder : op_list -> (int * myOp) list
 
-val gen_hb' :
-  (int * myOp) -> (int * myOp) list -> (int -> int -> bool) -> int -> int ->
-  bool
+val gen_hb' : (int * myOp) -> (int * myOp) list -> hb_relation -> hb_relation
 
-val gen_hb_a : (int * myOp) list -> (int -> int -> bool) -> int -> int -> bool
+val gen_hb_a : (int * myOp) list -> hb_relation -> hb_relation
 
-val trans_closure : int -> int -> (int -> int -> bool) -> int -> int -> bool
+val trans_closure : int -> int -> hb_relation -> hb_relation
 
-val gen_hb_trans : int -> int -> (int -> int -> bool) -> int -> int -> bool
+val gen_hb_trans : int -> int -> hb_relation -> hb_relation
 
-val gen_hb : (int * myOp) list -> int -> int -> bool
+val gen_hb : (int * myOp) list -> hb_relation
 
 val sim_exp : exp -> exp -> bool
 
@@ -298,15 +311,9 @@ val partition_op' :
 
 val partition_op : (int * myOp) list -> (int * myOp) list list
 
-type nposi = int * int
-
 val nposi_eq : nposi -> nposi -> bool
 
-val insert_all :
-  (myOpAux * nposi list) -> (myOpAux * nposi list) list -> (myOpAux * nposi
-  list) list list
-
-val permutations :
+val permutations_one :
   (myOpAux * nposi list) list -> (myOpAux * nposi list) list list
 
 val car_concat' :
@@ -328,22 +335,22 @@ val grab_related' :
   (int * myOp) -> (int * myOp) list -> hb_relation -> (int * myOp) list ->
   (int * myOp) list
 
-val up_qubits : var -> int -> int -> (int * int) list -> (int * int) list
+val up_qubits : var -> int -> int -> nposi list -> nposi list
 
-val cutToQubits' : range list -> (int * int) list
+val cutToQubits' : range list -> nposi list
 
-val cutToQubits : range list -> (int * int) list
+val cutToQubits : range list -> nposi list
 
 val get_locus_in_op : (int * myOp) list -> range list
 
-val get_nlocus : (int * myOp) list -> (myOpAux * (int * int) list) list
+val get_nlocus : (int * myOp) list -> (myOpAux * nposi list) list
 
 val assign_each :
   int -> (int * myOp) list list -> hb_relation -> (myOpAux * nposi list) list
   list -> (myOpAux * nposi list) list list
 
 val gen_seq :
-  (int * myOp) list -> hb_relation -> (myOpAux * (int * int) list)
+  (int * myOp) list -> hb_relation -> (myOpAux * nposi list)
   list * (myOpAux * nposi list) list list
 
 val count_a :
@@ -383,26 +390,6 @@ val all_no_mem : (membrane_id * (nposi list * nposi list)) list -> bool
 
 val is_one_mem : (membrane_id * (nposi list * nposi list)) list -> bool
 
-val get_one :
-  (membrane_id * (nposi list * nposi list)) list -> membrane_id option
-
-val grab_good :
-  (membrane_id * (nposi list * nposi list)) list -> (membrane_id * (nposi
-  list * nposi list)) list -> (membrane_id * (nposi list * nposi list)) list
-
-val nlength : 'a1 list -> int
-
-val max_one :
-  (membrane_id * (nposi list * nposi list)) list -> int ->
-  (membrane_id * (nposi list * nposi list)) -> (membrane_id * (nposi
-  list * nposi list)) list -> (membrane_id * (nposi list * nposi
-  list)) * (membrane_id * (nposi list * nposi list)) list
-
-val max_mem_id :
-  (membrane_id * (nposi list * nposi list)) list -> int -> (nposi
-  list * nposi list) -> (int * (nposi list * nposi list)) list ->
-  (int * (nposi list * nposi list)) * (int * (nposi list * nposi list)) list
-
 val gen_comm' :
   membrane_id -> membrane_id -> nposi list -> var -> ((myOpAux * nposi
   list) * membrane_id) list -> ((myOpAux * nposi list) * membrane_id) list
@@ -427,8 +414,9 @@ val collect_all_posi :
   (membrane_id * (nposi list * nposi list)) list -> nposi list -> nposi list
 
 val push_to_mem_i :
-  int -> int -> nposi list -> (membrane_id * (nposi list * nposi list)) list
-  -> (int * nposi list) list -> (int * nposi list) list
+  membrane_id -> membrane_id -> nposi list -> (membrane_id * (nposi
+  list * nposi list)) list -> (membrane_id * nposi list) list ->
+  (membrane_id * nposi list) list
 
 val post_dec :
   membrane_id -> (membrane_id * nposi list) list -> (nposi
@@ -438,13 +426,61 @@ val post_dec :
   var * (((myOpAux * nposi list) * membrane_id) list * (membrane_id * nposi
   list) list) list
 
+val assoc_opt_mem :
+  membrane_id -> (membrane_id * nposi list) list -> nposi list option
+
+val mem_qubit_load : (membrane_id * nposi list) list -> membrane_id -> int
+
+val membrane_capacity : int
+
+val op_capacity : int
+
+val mem_has_capacity :
+  (membrane_id * nposi list) list -> membrane_id -> nposi list -> bool
+
+val op_load_in_partial :
+  ((myOpAux * nposi list) * membrane_id) list -> membrane_id -> int
+
+val overlap_size : nposi list -> nposi list -> int
+
+val import_cost : nposi list -> nposi list -> int
+
+val score_mem_for_op :
+  ((myOpAux * nposi list) * membrane_id) list -> nposi list -> membrane_id ->
+  nposi list -> int
+
+val over_op_capacity :
+  ((myOpAux * nposi list) * membrane_id) list -> membrane_id -> bool
+
+val insert_scored_candidate :
+  scored_cand -> scored_cand list -> scored_cand list
+
+val take_scored : int -> scored_cand list -> scored_cand list
+
+val scored_candidates :
+  (membrane_id * nposi list) list -> ((myOpAux * nposi list) * membrane_id)
+  list -> nposi list -> (membrane_id * (nposi list * nposi list)) list ->
+  scored_cand list
+
+val scored_candidates_nocap :
+  ((myOpAux * nposi list) * membrane_id) list -> nposi list ->
+  (membrane_id * (nposi list * nposi list)) list -> scored_cand list
+
+val build_choices :
+  scored_cand list -> (membrane_id * (nposi list * nposi list)) list ->
+  (membrane_id * nposi list) list -> (nposi list * membrane_id) list -> int
+  -> nposi list -> ((myOpAux * nposi list) * membrane_id) list -> var ->
+  (((myOpAux * nposi list) * membrane_id) list * (membrane_id * nposi list)
+  list) list -> (((myOpAux * nposi list) * membrane_id)
+  list * (membrane_id * nposi list) list) list
+
 val assign_mem_s :
   (membrane_id * nposi list) list -> (nposi list * membrane_id) list ->
   (int * nposi list) -> ((myOpAux * nposi list) * membrane_id) list -> var ->
   var * (((myOpAux * nposi list) * membrane_id) list * (membrane_id * nposi
   list) list) list
 
-val channel : int
+val channel : var
 
 val assign_mem' :
   (nposi list * membrane_id) list -> (myOpAux * nposi list) list ->
@@ -471,17 +507,22 @@ val assign_new_mem :
 
 val gen_empty_mem : membrane_id list -> (membrane_id * nposi list) list
 
+val take : int -> 'a1 list -> 'a1 list
+
+val fallback_mid : ((myOpAux * nposi list) * membrane_id) list -> membrane_id
+
 val gen_mem :
   (myOpAux * nposi list) list -> (myOpAux * nposi list) list list ->
   membrane_id list -> ((myOpAux * nposi list) * membrane_id) list list
 
 val insert_mem_id :
-  membrane_id -> (myOpAux * nposi list) -> (int * (myOpAux * nposi list)
-  list) list -> (membrane_id * (myOpAux * nposi list) list) list
+  membrane_id -> (myOpAux * nposi list) -> (membrane_id * (myOpAux * nposi
+  list) list) list -> (membrane_id * (myOpAux * nposi list) list) list
 
 val distribute_op :
-  ((myOpAux * nposi list) * membrane_id) list -> (int * (myOpAux * nposi
-  list) list) list -> (int * (myOpAux * nposi list) list) list
+  ((myOpAux * nposi list) * membrane_id) list ->
+  (membrane_id * (myOpAux * nposi list) list) list ->
+  (membrane_id * (myOpAux * nposi list) list) list
 
 val get_op : (int * myOp) list -> int -> myOp option
 
@@ -495,9 +536,49 @@ val to_process :
 val to_prog :
   (int * (myOpAux * nposi list) list) list -> (int * myOp) list -> memb list
 
+val has_if_ops : (int * myOp) list -> bool
+
+val owner_of_pos : (nposi * membrane_id) list -> nposi -> membrane_id option
+
+val set_owner :
+  (nposi * membrane_id) list -> nposi -> membrane_id -> (nposi * membrane_id)
+  list
+
+val set_owner_many :
+  (nposi * membrane_id) list -> nposi list -> membrane_id ->
+  (nposi * membrane_id) list
+
+val append_cexp_to_mem :
+  membrane_id -> cexp -> (membrane_id * cexp list) list ->
+  (membrane_id * cexp list) list
+
+val add_initial_owners_from_solution :
+  ((myOpAux * nposi list) * membrane_id) list -> (int * myOp) list ->
+  (nposi * membrane_id) list -> (nposi * membrane_id) list
+
+val ensure_local_qubits_aux :
+  membrane_id -> nposi list -> (nposi * membrane_id) list ->
+  (membrane_id * cexp list) list -> var -> (var * (nposi * membrane_id)
+  list) * (membrane_id * cexp list) list
+
+val ensure_local_qubits :
+  membrane_id -> nposi list -> (nposi * membrane_id) list ->
+  (membrane_id * cexp list) list -> var -> (var * (nposi * membrane_id)
+  list) * (membrane_id * cexp list) list
+
+val to_prog_from_cexps : (membrane_id * cexp list) list -> config
+
+val lower_solution_distributed_go :
+  ((myOpAux * nposi list) * membrane_id) list -> (int * myOp) list ->
+  (nposi * membrane_id) list -> (membrane_id * cexp list) list -> var ->
+  config
+
+val lower_solution_distributed :
+  ((myOpAux * nposi list) * membrane_id) list -> (int * myOp) list -> config
+
 val gen_prog :
   ((myOpAux * nposi list) * membrane_id) list list -> (int * myOp) list ->
-  memb list list
+  config list
 
 val count_send_in_process : process -> int
 
@@ -524,5 +605,7 @@ val autodisq_all : op_list -> membrane_id list -> config list
 val autodisq_best : op_list -> membrane_id list -> config option
 
 val auto_disq_loop : config option -> config list -> config option
+
+val autodisq_first : (int * myOp) list -> membrane_id list -> config option
 
 val autodisq_best_1 : op_list -> membrane_id list -> config option

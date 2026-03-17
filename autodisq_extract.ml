@@ -1,4 +1,10 @@
 
+(** val negb : bool -> bool **)
+
+let negb = function
+| true -> false
+| false -> true
+
 (** val fst : ('a1 * 'a2) -> 'a1 **)
 
 let fst = function
@@ -27,18 +33,264 @@ type comparison =
 | Lt
 | Gt
 
+type uint =
+| Nil
+| D0 of uint
+| D1 of uint
+| D2 of uint
+| D3 of uint
+| D4 of uint
+| D5 of uint
+| D6 of uint
+| D7 of uint
+| D8 of uint
+| D9 of uint
+
+type uint0 =
+| Nil0
+| D10 of uint0
+| D11 of uint0
+| D12 of uint0
+| D13 of uint0
+| D14 of uint0
+| D15 of uint0
+| D16 of uint0
+| D17 of uint0
+| D18 of uint0
+| D19 of uint0
+| Da of uint0
+| Db of uint0
+| Dc of uint0
+| Dd of uint0
+| De of uint0
+| Df of uint0
+
+type uint1 =
+| UIntDecimal of uint
+| UIntHexadecimal of uint0
+
 module Coq__1 = struct
  (** val add : int -> int -> int **)let rec add = (+)
 end
 include Coq__1
 
-(** val mul : int -> int -> int **)
+(** val tail_add : int -> int -> int **)
 
-let rec mul = ( * )
+let rec tail_add n0 m =
+  (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
+    (fun _ -> m)
+    (fun n1 -> tail_add n1 (Stdlib.succ m))
+    n0
 
-(** val sub : int -> int -> int **)
+(** val tail_addmul : int -> int -> int -> int **)
 
-let rec sub = fun n m -> Stdlib.max 0 (n-m)
+let rec tail_addmul r n0 m =
+  (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
+    (fun _ -> r)
+    (fun n1 -> tail_addmul (tail_add m r) n1 m)
+    n0
+
+(** val tail_mul : int -> int -> int **)
+
+let tail_mul n0 m =
+  tail_addmul 0 n0 m
+
+(** val of_uint_acc : uint -> int -> int **)
+
+let rec of_uint_acc d acc =
+  match d with
+  | Nil -> acc
+  | D0 d0 ->
+    of_uint_acc d0
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ 0)))))))))) acc)
+  | D1 d0 ->
+    of_uint_acc d0 (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ 0)))))))))) acc))
+  | D2 d0 ->
+    of_uint_acc d0 (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ 0)))))))))) acc)))
+  | D3 d0 ->
+    of_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ 0)))))))))) acc))))
+  | D4 d0 ->
+    of_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ 0)))))))))) acc)))))
+  | D5 d0 ->
+    of_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ 0)))))))))) acc))))))
+  | D6 d0 ->
+    of_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ 0)))))))))) acc)))))))
+  | D7 d0 ->
+    of_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ 0)))))))))) acc))))))))
+  | D8 d0 ->
+    of_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ 0)))))))))) acc)))))))))
+  | D9 d0 ->
+    of_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ 0)))))))))) acc))))))))))
+
+(** val of_uint : uint -> int **)
+
+let of_uint d =
+  of_uint_acc d 0
+
+(** val of_hex_uint_acc : uint0 -> int -> int **)
+
+let rec of_hex_uint_acc d acc =
+  match d with
+  | Nil0 -> acc
+  | D10 d0 ->
+    of_hex_uint_acc d0
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc)
+  | D11 d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc))
+  | D12 d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc)))
+  | D13 d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc))))
+  | D14 d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc)))))
+  | D15 d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc))))))
+  | D16 d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc)))))))
+  | D17 d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc))))))))
+  | D18 d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc)))))))))
+  | D19 d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc))))))))))
+  | Da d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc)))))))))))
+  | Db d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc))))))))))))
+  | Dc d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc)))))))))))))
+  | Dd d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc))))))))))))))
+  | De d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc)))))))))))))))
+  | Df d0 ->
+    of_hex_uint_acc d0 (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      (Stdlib.succ
+      (tail_mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+        (Stdlib.succ (Stdlib.succ 0)))))))))))))))) acc))))))))))))))))
+
+(** val of_hex_uint : uint0 -> int **)
+
+let of_hex_uint d =
+  of_hex_uint_acc d 0
+
+(** val of_num_uint : uint1 -> int **)
+
+let of_num_uint = function
+| UIntDecimal d0 -> of_uint d0
+| UIntHexadecimal d0 -> of_hex_uint d0
 
 module type TotalLeBool' =
  sig
@@ -49,6 +301,23 @@ module type TotalLeBool' =
 
 module Nat =
  struct
+  (** val succ : int -> int **)
+
+  let succ x =
+    Stdlib.succ x
+
+  (** val add : int -> int -> int **)
+
+  let rec add = ( + )
+
+  (** val mul : int -> int -> int **)
+
+  let rec mul = ( * )
+
+  (** val sub : int -> int -> int **)
+
+  let rec sub = (fun a b -> let d = a - b in if d < 0 then 0 else d)
+
   (** val eqb : int -> int -> bool **)
 
   let rec eqb = ( = )
@@ -92,14 +361,6 @@ module Nat =
 
 module Pos =
  struct
-  type mask =
-  | IsNul
-  | IsPos of int
-  | IsNeg
- end
-
-module Coq_Pos =
- struct
   (** val succ : int -> int **)
 
   let rec succ = Pervasives.succ
@@ -135,98 +396,6 @@ module Coq_Pos =
         (fun _ -> (fun p->1+2*p) 1)
         y)
       x
-
-  (** val pred_double : int -> int **)
-
-  let rec pred_double x =
-    (fun f2p1 f2p f1 p ->
-  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
-      (fun p -> (fun p->1+2*p) ((fun p->2*p) p))
-      (fun p -> (fun p->1+2*p) (pred_double p))
-      (fun _ -> 1)
-      x
-
-  type mask = Pos.mask =
-  | IsNul
-  | IsPos of int
-  | IsNeg
-
-  (** val succ_double_mask : mask -> mask **)
-
-  let succ_double_mask = function
-  | IsNul -> IsPos 1
-  | IsPos p -> IsPos ((fun p->1+2*p) p)
-  | IsNeg -> IsNeg
-
-  (** val double_mask : mask -> mask **)
-
-  let double_mask = function
-  | IsPos p -> IsPos ((fun p->2*p) p)
-  | x0 -> x0
-
-  (** val double_pred_mask : int -> mask **)
-
-  let double_pred_mask x =
-    (fun f2p1 f2p f1 p ->
-  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
-      (fun p -> IsPos ((fun p->2*p) ((fun p->2*p) p)))
-      (fun p -> IsPos ((fun p->2*p) (pred_double p)))
-      (fun _ -> IsNul)
-      x
-
-  (** val sub_mask : int -> int -> mask **)
-
-  let rec sub_mask x y =
-    (fun f2p1 f2p f1 p ->
-  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
-      (fun p ->
-      (fun f2p1 f2p f1 p ->
-  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
-        (fun q -> double_mask (sub_mask p q))
-        (fun q -> succ_double_mask (sub_mask p q))
-        (fun _ -> IsPos ((fun p->2*p) p))
-        y)
-      (fun p ->
-      (fun f2p1 f2p f1 p ->
-  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
-        (fun q -> succ_double_mask (sub_mask_carry p q))
-        (fun q -> double_mask (sub_mask p q))
-        (fun _ -> IsPos (pred_double p))
-        y)
-      (fun _ ->
-      (fun f2p1 f2p f1 p ->
-  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
-        (fun _ -> IsNeg)
-        (fun _ -> IsNeg)
-        (fun _ -> IsNul)
-        y)
-      x
-
-  (** val sub_mask_carry : int -> int -> mask **)
-
-  and sub_mask_carry x y =
-    (fun f2p1 f2p f1 p ->
-  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
-      (fun p ->
-      (fun f2p1 f2p f1 p ->
-  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
-        (fun q -> succ_double_mask (sub_mask_carry p q))
-        (fun q -> double_mask (sub_mask p q))
-        (fun _ -> IsPos (pred_double p))
-        y)
-      (fun p ->
-      (fun f2p1 f2p f1 p ->
-  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
-        (fun q -> double_mask (sub_mask_carry p q))
-        (fun q -> succ_double_mask (sub_mask_carry p q))
-        (fun _ -> double_pred_mask p)
-        y)
-      (fun _ -> IsNeg)
-      x
-
-  (** val mul : int -> int -> int **)
-
-  let rec mul = ( * )
 
   (** val compare_cont : comparison -> int -> int -> comparison **)
 
@@ -290,32 +459,6 @@ module Coq_Pos =
 
 module N =
  struct
-  (** val zero : int **)
-
-  let zero =
-    0
-
-  (** val one : int **)
-
-  let one =
-    1
-
-  (** val succ_double : int -> int **)
-
-  let succ_double x =
-    (fun f0 fp n -> if n=0 then f0 () else fp n)
-      (fun _ -> 1)
-      (fun p -> ((fun p->1+2*p) p))
-      x
-
-  (** val double : int -> int **)
-
-  let double n0 =
-    (fun f0 fp n -> if n=0 then f0 () else fp n)
-      (fun _ -> 0)
-      (fun p -> ((fun p->2*p) p))
-      n0
-
   (** val succ : int -> int **)
 
   let succ = Pervasives.succ
@@ -323,14 +466,6 @@ module N =
   (** val add : int -> int -> int **)
 
   let add = (+)
-
-  (** val sub : int -> int -> int **)
-
-  let sub = fun n m -> Pervasives.max 0 (n-m)
-
-  (** val mul : int -> int -> int **)
-
-  let mul = ( * )
 
   (** val compare : int -> int -> comparison **)
 
@@ -348,16 +483,9 @@ module N =
       (fun p ->
       (fun f0 fp n -> if n=0 then f0 () else fp n)
         (fun _ -> false)
-        (fun q -> Coq_Pos.eqb p q)
+        (fun q -> Pos.eqb p q)
         m)
       n0
-
-  (** val leb : int -> int -> bool **)
-
-  let leb x y =
-    match compare x y with
-    | Gt -> false
-    | _ -> true
 
   (** val ltb : int -> int -> bool **)
 
@@ -366,54 +494,12 @@ module N =
     | Lt -> true
     | _ -> false
 
-  (** val pos_div_eucl : int -> int -> int * int **)
-
-  let rec pos_div_eucl a b =
-    (fun f2p1 f2p f1 p ->
-  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
-      (fun a' ->
-      let (q, r) = pos_div_eucl a' b in
-      let r' = succ_double r in
-      if leb b r' then ((succ_double q), (sub r' b)) else ((double q), r'))
-      (fun a' ->
-      let (q, r) = pos_div_eucl a' b in
-      let r' = double r in
-      if leb b r' then ((succ_double q), (sub r' b)) else ((double q), r'))
-      (fun _ ->
-      (fun f0 fp n -> if n=0 then f0 () else fp n)
-        (fun _ -> (0, 1))
-        (fun p ->
-        (fun f2p1 f2p f1 p ->
-  if p<=1 then f1 () else if p mod 2 = 0 then f2p (p/2) else f2p1 (p/2))
-          (fun _ -> (0, 1))
-          (fun _ -> (0, 1))
-          (fun _ -> (1, 0))
-          p)
-        b)
-      a
-
-  (** val div_eucl : int -> int -> int * int **)
-
-  let div_eucl a b =
-    (fun f0 fp n -> if n=0 then f0 () else fp n)
-      (fun _ -> (0, 0))
-      (fun na ->
-      (fun f0 fp n -> if n=0 then f0 () else fp n)
-        (fun _ -> (0, a))
-        (fun _ -> pos_div_eucl na b)
-        b)
-      a
-
-  (** val div : int -> int -> int **)
-
-  let div = fun a b -> if b=0 then 0 else a/b
-
   (** val to_nat : int -> int **)
 
   let to_nat a =
     (fun f0 fp n -> if n=0 then f0 () else fp n)
       (fun _ -> 0)
-      (fun p -> Coq_Pos.to_nat p)
+      (fun p -> Pos.to_nat p)
       a
 
   (** val of_nat : int -> int **)
@@ -421,7 +507,7 @@ module N =
   let of_nat n0 =
     (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
       (fun _ -> 0)
-      (fun n' -> (Coq_Pos.of_succ_nat n'))
+      (fun n' -> (Pos.of_succ_nat n'))
       n0
  end
 
@@ -430,12 +516,6 @@ module N =
 let rec rev = function
 | [] -> []
 | x :: l' -> app (rev l') (x :: [])
-
-(** val concat : 'a1 list list -> 'a1 list **)
-
-let rec concat = function
-| [] -> []
-| x :: l0 -> app x (concat l0)
 
 (** val map : ('a1 -> 'a2) -> 'a1 list -> 'a2 list **)
 
@@ -449,6 +529,12 @@ let rec fold_left f l a0 =
   match l with
   | [] -> a0
   | b :: t0 -> fold_left f t0 (f a0 b)
+
+(** val filter : ('a1 -> bool) -> 'a1 list -> 'a1 list **)
+
+let rec filter f = function
+| [] -> []
+| x :: l0 -> if f x then x :: (filter f l0) else filter f l0
 
 (** val split : ('a1 * 'a2) list -> 'a1 list * 'a2 list **)
 
@@ -597,6 +683,10 @@ type myOpAux =
 
 type fitness_value = int
 
+type scored_cand = (int * membrane_id) * ((int * int) list * (int * int) list)
+
+type nposi = int * int
+
 module RangeOrder =
  struct
   type t = range
@@ -644,16 +734,16 @@ let rec intersect x y =
   | [] -> false
   | a :: xas -> if intersect' a y then true else intersect xas y
 
-(** val get_locus : cexp -> range list **)
+(** val get_locus : cexp -> locus **)
 
 let get_locus = function
 | CNew a -> a :: []
 | CAppU (l, _) -> l
 | CMeas (_, k) -> k
-| Send (_, x0, a) -> (x0, (a, (Stdlib.succ a))) :: []
-| Recv (_, x0, y) -> (x0, (y, (Stdlib.succ y))) :: []
+| Send (_, x0, a) -> (x0, (a, (Nat.succ a))) :: []
+| Recv (_, x0, y) -> (x0, (y, (Nat.succ y))) :: []
 
-(** val get_loci : cexp list -> range list **)
+(** val get_loci : cexp list -> locus **)
 
 let get_loci x =
   fold_left (fun a b -> app (get_locus b) a) x []
@@ -734,24 +824,21 @@ let opListOrder l =
   opListOrder' l 0
 
 (** val gen_hb' :
-    (int * myOp) -> (int * myOp) list -> (int -> int -> bool) -> int -> int
-    -> bool **)
+    (int * myOp) -> (int * myOp) list -> hb_relation -> hb_relation **)
 
 let rec gen_hb' x l acc =
   match l with
   | [] -> acc
   | a :: xas -> gen_hb_single x a (gen_hb' x xas acc)
 
-(** val gen_hb_a :
-    (int * myOp) list -> (int -> int -> bool) -> int -> int -> bool **)
+(** val gen_hb_a : (int * myOp) list -> hb_relation -> hb_relation **)
 
 let rec gen_hb_a r acc =
   match r with
   | [] -> acc
   | a :: xas -> gen_hb_a xas (gen_hb' a xas acc)
 
-(** val trans_closure :
-    int -> int -> (int -> int -> bool) -> int -> int -> bool **)
+(** val trans_closure : int -> int -> hb_relation -> hb_relation **)
 
 let trans_closure n0 x acc a b =
   if (&&) ((&&) ((&&) ((&&) (N.ltb a x) (N.ltb x b)) (N.ltb b n0)) (acc a x))
@@ -759,8 +846,7 @@ let trans_closure n0 x acc a b =
   then true
   else acc a b
 
-(** val gen_hb_trans :
-    int -> int -> (int -> int -> bool) -> int -> int -> bool **)
+(** val gen_hb_trans : int -> int -> hb_relation -> hb_relation **)
 
 let rec gen_hb_trans size n0 acc =
   (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
@@ -768,7 +854,7 @@ let rec gen_hb_trans size n0 acc =
     (fun m -> gen_hb_trans size m (trans_closure size (N.of_nat m) acc))
     n0
 
-(** val gen_hb : (int * myOp) list -> int -> int -> bool **)
+(** val gen_hb : (int * myOp) list -> hb_relation **)
 
 let gen_hb r =
   gen_hb_trans (N.of_nat (length r)) (length r)
@@ -842,21 +928,21 @@ let sim_cexp x y =
 
 let insert_op a acc = match acc with
 | [] -> (a :: []) :: []
-| y :: al ->
-  (match y with
+| l :: al ->
+  (match l with
    | [] -> (a :: []) :: al
    | p :: xl ->
      let (i, m) = p in
      (match m with
       | OpAP b ->
-        let (i0, m0) = a in
+        let (j, m0) = a in
         (match m0 with
          | OpAP q ->
            if sim_cexp q b
-           then ((i, (OpAP b)) :: (app xl ((i0, (OpAP q)) :: []))) :: al
-           else ((i0, (OpAP q)) :: []) :: acc
+           then ((i, (OpAP b)) :: (app xl ((j, (OpAP q)) :: []))) :: al
+           else ((j, (OpAP q)) :: []) :: acc
          | OpIf (c, d, e) ->
-           ((i0, (OpIf (c, d, e))) :: []) :: (((i0, (OpAP b)) :: xl) :: al))
+           ((j, (OpIf (c, d, e))) :: []) :: (((i, (OpAP b)) :: xl) :: al))
       | OpIf (c, d, e) -> (a :: []) :: (((i, (OpIf (c, d, e))) :: xl) :: al)))
 
 (** val partition_op' :
@@ -872,27 +958,16 @@ let rec partition_op' l acc =
 let partition_op l =
   rev (partition_op' l [])
 
-type nposi = int * int
-
 (** val nposi_eq : nposi -> nposi -> bool **)
 
 let nposi_eq r1 r2 =
   let (x1, y1) = r1 in let (x2, y2) = r2 in (&&) (N.eqb x1 x2) (N.eqb y1 y2)
 
-(** val insert_all :
-    (myOpAux * nposi list) -> (myOpAux * nposi list) list -> (myOpAux * nposi
-    list) list list **)
-
-let rec insert_all x = function
-| [] -> (x :: []) :: []
-| y :: tl -> (x :: (y :: tl)) :: (map (fun zs -> y :: zs) (insert_all x tl))
-
-(** val permutations :
+(** val permutations_one :
     (myOpAux * nposi list) list -> (myOpAux * nposi list) list list **)
 
-let rec permutations = function
-| [] -> [] :: []
-| x :: tl -> concat (map (insert_all x) (permutations tl))
+let permutations_one l =
+  l :: []
 
 (** val car_concat' :
     (myOpAux * nposi list) list -> (myOpAux * nposi list) list list ->
@@ -952,8 +1027,7 @@ let rec grab_related' x l re acc =
     then grab_related' x xs re acc
     else grab_related' x xs re (app acc (a :: []))
 
-(** val up_qubits :
-    var -> int -> int -> (int * int) list -> (int * int) list **)
+(** val up_qubits : var -> int -> int -> nposi list -> nposi list **)
 
 let rec up_qubits x i n0 acc =
   (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
@@ -963,15 +1037,15 @@ let rec up_qubits x i n0 acc =
       (app acc (((N.of_nat x), (N.add (N.of_nat i) (N.of_nat m))) :: [])))
     n0
 
-(** val cutToQubits' : range list -> (int * int) list **)
+(** val cutToQubits' : range list -> nposi list **)
 
 let rec cutToQubits' = function
 | [] -> []
 | r0 :: xs ->
   let (x, p) = r0 in
-  let (l0, r) = p in app (up_qubits x l0 (sub r l0) []) (cutToQubits' xs)
+  let (l0, r) = p in app (up_qubits x l0 (Nat.sub r l0) []) (cutToQubits' xs)
 
-(** val cutToQubits : range list -> (int * int) list **)
+(** val cutToQubits : range list -> nposi list **)
 
 let cutToQubits l =
   cutToQubits' (SortRange.sort l)
@@ -989,49 +1063,32 @@ let rec get_locus_in_op = function
       | r :: l0 -> app (r :: l0) (get_locus_in_op la))
    | OpIf (_, _, _) -> get_locus_in_op la)
 
-(** val get_nlocus :
-    (int * myOp) list -> (myOpAux * (int * int) list) list **)
+(** val get_nlocus : (int * myOp) list -> (myOpAux * nposi list) list **)
 
 let rec get_nlocus = function
 | [] -> []
 | x :: xs ->
   ((OpNum (fst x)),
     (cutToQubits (get_locus_in_op (x :: [])))) :: (get_nlocus xs)
-    
-(* ============================================================ *)
-(* Bounded permutation helper                                   *)
-(* ============================================================ *)
-
-let permutations_one (l : (myOpAux * nposi list) list)
-  : (myOpAux * nposi list) list list =
-  [l]
-
-
 
 (** val assign_each :
     int -> (int * myOp) list list -> hb_relation -> (myOpAux * nposi list)
     list list -> (myOpAux * nposi list) list list **)
 
-(* ============================================================ *)
-(* Modified assign_each                                         *)
-(* ============================================================ *)
-
 let rec assign_each n0 l re acc =
   (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
     (fun _ -> acc)
     (fun m ->
-      match get_first l with
-      | [] -> acc
-      | p :: l0 ->
-          let good = grab_related' p l0 re (p :: []) in
-          let next_acc =
-            car_concat acc (permutations_one (get_nlocus good))
-          in
-          assign_each m (remove_first l good) re next_acc)
+    match get_first l with
+    | [] -> acc
+    | p :: l0 ->
+      let good = grab_related' p l0 re (p :: []) in
+      let next_acc = car_concat acc (permutations_one (get_nlocus good)) in
+      assign_each m (remove_first l good) re next_acc)
     n0
 
 (** val gen_seq :
-    (int * myOp) list -> hb_relation -> (myOpAux * (int * int) list)
+    (int * myOp) list -> hb_relation -> (myOpAux * nposi list)
     list * (myOpAux * nposi list) list list **)
 
 let gen_seq l re =
@@ -1040,7 +1097,7 @@ let gen_seq l re =
    | [] -> ([], [])
    | x :: xs ->
      ((get_nlocus x),
-       (assign_each (sub (length l) (length x)) xs re ([] :: []))))
+       (assign_each (Nat.sub (length l) (length x)) xs re ([] :: []))))
 
 (** val count_a :
     (myOpAux * nposi list) list -> membrane_id list -> ((myOpAux * nposi
@@ -1071,8 +1128,10 @@ let rec gen_mem_new' t0 news l acc =
     (myOpAux * nposi list) list -> membrane_id list -> ((myOpAux * nposi
     list) * membrane_id) list **)
 
-let gen_mem_new news l =
-  let v = add (Nat.div (length news) (length l)) (Stdlib.succ 0) in
+let gen_mem_new news l = match l with
+| [] -> []
+| _ :: _ ->
+  let v = Nat.add (Nat.div (length news) (length l)) (Stdlib.succ 0) in
   gen_mem_new' v news l []
 
 (** val insert_posis :
@@ -1132,7 +1191,8 @@ let rec search_mem new0 x acc =
   match new0 with
   | [] -> acc
   | p :: ys ->
-    let (i, y) = p in search_mem ys x ((i, (set_inter0 x y ([], []))) :: acc)
+    let (i, y) = p in
+    let inter = set_inter0 x y ([], []) in search_mem ys x ((i, inter) :: acc)
 
 (** val all_no_mem :
     (membrane_id * (nposi list * nposi list)) list -> bool **)
@@ -1157,66 +1217,6 @@ let rec is_one_mem = function
    | [] -> is_one_mem ys
    | _ :: _ -> all_no_mem ys)
 
-(** val get_one :
-    (membrane_id * (nposi list * nposi list)) list -> membrane_id option **)
-
-let rec get_one = function
-| [] -> None
-| p :: ys ->
-  let (a, b) = p in
-  let (l0, _) = b in (match l0 with
-                      | [] -> get_one ys
-                      | _ :: _ -> Some a)
-
-(** val grab_good :
-    (membrane_id * (nposi list * nposi list)) list -> (membrane_id * (nposi
-    list * nposi list)) list -> (membrane_id * (nposi list * nposi list)) list **)
-
-let rec grab_good l acc =
-  match l with
-  | [] -> acc
-  | p :: ys ->
-    let (a, p0) = p in
-    let (ha, hb) = p0 in
-    (match ha with
-     | [] -> grab_good ys acc
-     | _ :: _ -> grab_good ys ((a, (ha, hb)) :: acc))
-
-(** val nlength : 'a1 list -> int **)
-
-let rec nlength = function
-| [] -> N.zero
-| _ :: xs -> N.add N.one (nlength xs)
-
-(** val max_one :
-    (membrane_id * (nposi list * nposi list)) list -> int ->
-    (membrane_id * (nposi list * nposi list)) -> (membrane_id * (nposi
-    list * nposi list)) list -> (membrane_id * (nposi list * nposi
-    list)) * (membrane_id * (nposi list * nposi list)) list **)
-
-let rec max_one l v acc accb =
-  match l with
-  | [] -> (acc, accb)
-  | p :: ys ->
-    let (i, y) = p in
-    if N.ltb v (nlength (fst y))
-    then max_one ys (nlength (fst y)) (i, y) (acc :: accb)
-    else max_one ys v acc ((i, y) :: accb)
-
-(** val max_mem_id :
-    (membrane_id * (nposi list * nposi list)) list -> int -> (nposi
-    list * nposi list) -> (int * (nposi list * nposi list)) list ->
-    (int * (nposi list * nposi list)) * (int * (nposi list * nposi list)) list **)
-
-let rec max_mem_id l v acc accb =
-  match l with
-  | [] -> ((v, acc), accb)
-  | p :: ys ->
-    let (i, y) = p in
-    if Nat.ltb v i
-    then max_mem_id ys i y ((v, acc) :: accb)
-    else max_mem_id ys v acc ((i, y) :: accb)
-
 (** val gen_comm' :
     membrane_id -> membrane_id -> nposi list -> var -> ((myOpAux * nposi
     list) * membrane_id) list -> ((myOpAux * nposi list) * membrane_id) list **)
@@ -1225,7 +1225,7 @@ let rec gen_comm' i j l chan acc =
   match l with
   | [] -> acc
   | x :: xs ->
-    gen_comm' i j xs (Stdlib.succ chan) ((((OpExp (Recv (chan,
+    gen_comm' i j xs (Nat.succ chan) ((((OpExp (Recv (chan,
       (N.to_nat (fst x)), (N.to_nat (snd x))))), (x :: [])), j) :: ((((OpExp
       (Send (chan, (N.to_nat (fst x)), (N.to_nat (snd x))))), (x :: [])),
       i) :: acc))
@@ -1242,7 +1242,8 @@ let rec gen_comm j l chan acc accb =
   | p :: xs ->
     let (i, p0) = p in
     let (x, _) = p0 in
-    gen_comm j xs (add chan (mul (Stdlib.succ (Stdlib.succ 0)) (length x)))
+    gen_comm j xs
+      (Nat.add chan (Nat.mul (Stdlib.succ (Stdlib.succ 0)) (length x)))
       (gen_comm' j i x chan acc) (gen_comm' i j x chan accb)
 
 (** val gen_comm_insert :
@@ -1265,7 +1266,7 @@ let rec gen_comm_b j l chan acc =
   | p :: xs ->
     let (i, p0) = p in
     let (x, _) = p0 in
-    gen_comm_b j xs (add chan (length x)) (gen_comm' j i x chan acc)
+    gen_comm_b j xs (Nat.add chan (length x)) (gen_comm' j i x chan acc)
 
 (** val collect_all_posi :
     (membrane_id * (nposi list * nposi list)) list -> nposi list -> nposi list **)
@@ -1277,18 +1278,21 @@ let rec collect_all_posi l acc =
     let (_, p0) = p in let (x, _) = p0 in collect_all_posi xs (app x acc)
 
 (** val push_to_mem_i :
-    int -> int -> nposi list -> (membrane_id * (nposi list * nposi list))
-    list -> (int * nposi list) list -> (int * nposi list) list **)
+    membrane_id -> membrane_id -> nposi list -> (membrane_id * (nposi
+    list * nposi list)) list -> (membrane_id * nposi list) list ->
+    (membrane_id * nposi list) list **)
 
 let rec push_to_mem_i i j v l acc =
   match l with
   | [] -> acc
-  | (k, (x, y)) :: xs ->
-      if Nat.eqb i k
-      then push_to_mem_i i j v xs ((k, app v y) :: acc)
-      else if Nat.eqb j k
-      then push_to_mem_i i j v xs ((k, app x y) :: acc)
-      else push_to_mem_i i j v xs ((k, y) :: acc)
+  | p :: xs ->
+    let (k, p0) = p in
+    let (x, y) = p0 in
+    if Nat.eqb i k
+    then push_to_mem_i i j v xs ((k, (app v y)) :: acc)
+    else if Nat.eqb j k
+         then push_to_mem_i i j v xs ((k, (app x y)) :: acc)
+         else push_to_mem_i i j v xs ((k, y) :: acc)
 
 (** val post_dec :
     membrane_id -> (membrane_id * nposi list) list -> (nposi
@@ -1311,219 +1315,192 @@ let post_dec i new0 dc xnum xset chan rea input acc =
           gen_comm' i j v (fst pre_gen) ((((OpNum xnum), xset),
             i) :: (snd pre_gen))
         in
-        ((add (fst pre_gen) (length v)), ((((((OpNum xnum), xset),
+        ((Nat.add (fst pre_gen) (length v)), ((((((OpNum xnum), xset),
         i) :: (snd mid)), new0) :: ((post_gen,
         (push_to_mem_i j i v input [])) :: [])))
       | None ->
         let pre_gen = gen_comm_insert i rea chan acc (((OpNum xnum), xset), i)
         in
         ((fst pre_gen), (((snd pre_gen), new0) :: []))))
-        
-let rec mem_pos p xs =
-  match xs with
-  | [] -> false
-  | y :: ys -> y = p || mem_pos p ys
 
-let rec add_nodup xs ys =
-  match xs with
-  | [] -> ys
-  | x :: tl ->
-      if mem_pos x ys then add_nodup tl ys
-      else add_nodup tl (x :: ys)
+(** val assoc_opt_mem :
+    membrane_id -> (membrane_id * nposi list) list -> nposi list option **)
 
-let rec add_qubits_to_mem i xs new0 =
-  match new0 with
-  | [] -> []
-  | (j, ys) :: tl ->
-      if i = j
-      then (j, add_nodup xs ys) :: add_qubits_to_mem i xs tl
-      else (j, ys) :: add_qubits_to_mem i xs tl
+let rec assoc_opt_mem i = function
+| [] -> None
+| p :: tl ->
+  let (j, xs) = p in if Nat.eqb i j then Some xs else assoc_opt_mem i tl
+
+(** val mem_qubit_load :
+    (membrane_id * nposi list) list -> membrane_id -> int **)
+
+let mem_qubit_load new0 i =
+  match assoc_opt_mem i new0 with
+  | Some xs -> length xs
+  | None -> 0
+
+(** val membrane_capacity : int **)
+
+let membrane_capacity =
+  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+    (Stdlib.succ (Stdlib.succ (Stdlib.succ 0)))))))
+
+(** val op_capacity : int **)
+
+let op_capacity =
+  Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+    (Stdlib.succ 0)))))
+
+(** val mem_has_capacity :
+    (membrane_id * nposi list) list -> membrane_id -> nposi list -> bool **)
+
+let mem_has_capacity new0 i xset =
+  let current = mem_qubit_load new0 i in
+  Nat.leb (Nat.add current (length xset)) membrane_capacity
+
+(** val op_load_in_partial :
+    ((myOpAux * nposi list) * membrane_id) list -> membrane_id -> int **)
+
+let rec op_load_in_partial l mid =
+  match l with
+  | [] -> 0
+  | p :: xs ->
+    let (_, m) = p in
+    if Nat.eqb m mid
+    then Nat.succ (op_load_in_partial xs mid)
+    else op_load_in_partial xs mid
+
+(** val overlap_size : nposi list -> nposi list -> int **)
+
+let overlap_size x y =
+  length (fst (set_inter0 x y ([], [])))
+
+(** val import_cost : nposi list -> nposi list -> int **)
+
+let import_cost xset local_qs =
+  Nat.sub (length xset) (overlap_size xset local_qs)
+
+(** val score_mem_for_op :
+    ((myOpAux * nposi list) * membrane_id) list -> nposi list -> membrane_id
+    -> nposi list -> int **)
+
+let score_mem_for_op partial xset mid local_qs =
+  let imports = import_cost xset local_qs in
+  let opl = op_load_in_partial partial mid in
+  Nat.add
+    (Nat.mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ 0))))
+      imports)
+    (Nat.mul (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
+      0))))) opl)
+
+(** val over_op_capacity :
+    ((myOpAux * nposi list) * membrane_id) list -> membrane_id -> bool **)
+
+let over_op_capacity partial mid =
+  Nat.ltb op_capacity (op_load_in_partial partial mid)
+
+(** val insert_scored_candidate :
+    scored_cand -> scored_cand list -> scored_cand list **)
+
+let rec insert_scored_candidate cand scored = match scored with
+| [] -> cand :: []
+| c1 :: tl ->
+  let (p, _) = c1 in
+  let (s1, _) = p in
+  let (p0, _) = cand in
+  let (s, _) = p0 in
+  if Nat.ltb s s1
+  then cand :: scored
+  else c1 :: (insert_scored_candidate cand tl)
+
+(** val take_scored : int -> scored_cand list -> scored_cand list **)
+
+let rec take_scored n0 xs =
+  (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
+    (fun _ -> [])
+    (fun n' -> match xs with
+               | [] -> []
+               | x :: tl -> x :: (take_scored n' tl))
+    n0
+
+(** val scored_candidates :
+    (membrane_id * nposi list) list -> ((myOpAux * nposi list) * membrane_id)
+    list -> nposi list -> (membrane_id * (nposi list * nposi list)) list ->
+    scored_cand list **)
+
+let rec scored_candidates new0 partial xset = function
+| [] -> []
+| p :: tl ->
+  let (mid, p0) = p in
+  let (local_qs, rest_qs) = p0 in
+  if (||) (over_op_capacity partial mid)
+       (negb (mem_has_capacity new0 mid xset))
+  then scored_candidates new0 partial xset tl
+  else let s = score_mem_for_op partial xset mid local_qs in
+       insert_scored_candidate ((s, mid), (local_qs, rest_qs))
+         (scored_candidates new0 partial xset tl)
+
+(** val scored_candidates_nocap :
+    ((myOpAux * nposi list) * membrane_id) list -> nposi list ->
+    (membrane_id * (nposi list * nposi list)) list -> scored_cand list **)
+
+let rec scored_candidates_nocap partial xset = function
+| [] -> []
+| p :: tl ->
+  let (mid, p0) = p in
+  let (local_qs, rest_qs) = p0 in
+  if over_op_capacity partial mid
+  then scored_candidates_nocap partial xset tl
+  else let s = score_mem_for_op partial xset mid local_qs in
+       insert_scored_candidate ((s, mid), (local_qs, rest_qs))
+         (scored_candidates_nocap partial xset tl)
+
+(** val build_choices :
+    scored_cand list -> (membrane_id * (nposi list * nposi list)) list ->
+    (membrane_id * nposi list) list -> (nposi list * membrane_id) list -> int
+    -> nposi list -> ((myOpAux * nposi list) * membrane_id) list -> var ->
+    (((myOpAux * nposi list) * membrane_id) list * (membrane_id * nposi list)
+    list) list -> (((myOpAux * nposi list) * membrane_id)
+    list * (membrane_id * nposi list) list) list **)
+
+let rec build_choices cs re new0 dc xnum xset l chan acc =
+  match cs with
+  | [] -> acc
+  | s :: tl ->
+    let (p, _) = s in
+    let (_, chosen_mid) = p in
+    if is_one_mem re
+    then let choice = (((((OpNum xnum), xset), chosen_mid) :: l), new0) in
+         build_choices tl re new0 dc xnum xset l chan (choice :: acc)
+    else let others = filter (fun p0 -> negb (Nat.eqb (fst p0) chosen_mid)) re
+         in
+         let mid_res = post_dec chosen_mid new0 dc xnum xset chan others re l
+         in
+         let choices = snd mid_res in
+         build_choices tl re new0 dc xnum xset l chan (app choices acc)
 
 (** val assign_mem_s :
     (membrane_id * nposi list) list -> (nposi list * membrane_id) list ->
     (int * nposi list) -> ((myOpAux * nposi list) * membrane_id) list -> var
     -> var * (((myOpAux * nposi list) * membrane_id)
     list * (membrane_id * nposi list) list) list **)
-    
-(* ============================================================ *)
-(* Capacity control                                             *)
-(* ============================================================ *)
 
-let mem_qubit_load (new0 : (membrane_id * nposi list) list) (i : membrane_id) : int =
-  match List.assoc_opt i new0 with
-  | Some xs -> List.length xs
-  | None -> 0
-
-(* Small capacity to force distributed placement and Send/Recv *)
-let membrane_capacity = 8
-
-let mem_has_capacity (new0 : (membrane_id * nposi list) list) (i : membrane_id) (xset : nposi list) : bool =
-  let current = mem_qubit_load new0 i in
-  current + List.length xset <= membrane_capacity
-
-let rec set_inter0 x y (acc_common, acc_rest) =
-  match x with
-  | [] -> (List.rev acc_common, List.rev acc_rest)
-  | a :: xs ->
-      if List.mem a y
-      then set_inter0 xs y (a :: acc_common, acc_rest)
-      else set_inter0 xs y (acc_common, a :: acc_rest)
-
-let rec search_mem new0 x acc =
-  match new0 with
-  | [] -> acc
-  | (i, y) :: ys ->
-      let inter = set_inter0 x y ([], []) in
-      search_mem ys x ((i, inter) :: acc)
-      
- (* ============================================================ *)
-(* Force remote placement helpers                               *)
-(* ============================================================ *)
-
-let rec pick_other_membrane (src : membrane_id) (new0 : (membrane_id * nposi list) list)
-  : membrane_id option =
-  match new0 with
-  | [] -> None
-  | (j, _) :: tl -> if j = src then pick_other_membrane src tl else Some j
-
-let force_remote_insert
-    (src : membrane_id)
-    (dst : membrane_id)
-    (xnum : int)
-    (xset : nposi list)
-    (l : ((myOpAux * nposi list) * membrane_id) list)
-    (chan : int)
-    (new0 : (membrane_id * nposi list) list)
-  : int * ((((myOpAux * nposi list) * membrane_id) list * (membrane_id * nposi list) list) list) =
-  let comm = gen_comm' src dst xset chan [] in
-  let next_chan = chan + (2 * List.length xset) in
-  let new0' = add_qubits_to_mem dst xset new0 in
-  (next_chan, [((app comm [(((OpNum xnum), xset), dst)]), new0')])
-  
-(* ============================================================ *)
-(* Operation-load-aware placement                               *)
-(* ============================================================ *)
-
-let rec op_load_in_partial l mid =
-  match l with
-  | [] -> 0
-  | (((_aux, _qs), m)) :: xs ->
-      if Nat.eqb m mid
-      then Stdlib.succ (op_load_in_partial xs mid)
-      else op_load_in_partial xs mid
-
-let overlap_size x y =
-  length (fst (set_inter0 x y ([], [])))
-
-let import_cost xset local_qs =
-  sub (length xset) (overlap_size xset local_qs)
-
-let score_mem_for_op partial xset mid local_qs =
-  let imports = import_cost xset local_qs in
-  let op_load = op_load_in_partial partial mid in
-  add (mul 4 imports) (mul 5 op_load)
-
-let op_capacity = 6
-
-let over_op_capacity partial mid =
-  Nat.ltb op_capacity (op_load_in_partial partial mid)
-
-let rec best_mem_by_score partial xset candidates current_best current_score =
-  match candidates with
-  | [] -> current_best
-  | (mid, (local_qs, _rest)) :: xs ->
-      if over_op_capacity partial mid then
-        best_mem_by_score partial xset xs current_best current_score
-      else
-        let s = score_mem_for_op partial xset mid local_qs in
-        if Nat.ltb s current_score
-        then best_mem_by_score partial xset xs mid s
-        else best_mem_by_score partial xset xs current_best current_score
-        
-let rec insert_scored_candidate cand scored =
-  match scored with
-  | [] -> [cand]
-  | ((s1, _, _) as c1) :: tl ->
-      let (s, _, _) = cand in
-      if Nat.ltb s s1 then cand :: scored
-      else c1 :: insert_scored_candidate cand tl
-
-let rec take_scored n xs =
-  match n, xs with
-  | 0, _ -> []
-  | _, [] -> []
-  | n, x :: tl -> x :: take_scored (n - 1) tl
-
-let scored_candidates partial xset candidates =
-  let rec aux cs acc =
-    match cs with
-    | [] -> acc
-    | (mid, (local_qs, rest_qs)) :: tl ->
-        if over_op_capacity partial mid then
-          aux tl acc
-        else
-          let s = score_mem_for_op partial xset mid local_qs in
-          aux tl (insert_scored_candidate (s, mid, (local_qs, rest_qs)) acc)
-  in
-  aux candidates []
 let assign_mem_s new0 dc x l chan =
   let xset = snd x in
   let re = search_mem new0 xset [] in
-  match re with
-  | [] -> (chan, [])
-  | _ ->
-      let ranked =
-        match scored_candidates l xset re with
-        | [] ->
-            (* fallback: allow all if capacity filtered everything *)
-            scored_candidates [] xset re
-        | ys -> ys
-      in
-      let top = take_scored 3 ranked in
+  (match re with
+   | [] -> (chan, [])
+   | _ :: _ ->
+     let ranked =
+       match scored_candidates new0 l xset re with
+       | [] -> scored_candidates_nocap l xset re
+       | s :: l0 -> s :: l0
+     in
+     let top = take_scored (Stdlib.succ (Stdlib.succ (Stdlib.succ 0))) ranked
+     in
+     (chan, (build_choices top re new0 dc (fst x) xset l chan [])))
 
-      let rec build_choices cs acc =
-        match cs with
-        | [] -> acc
-        | (_score, chosen_mid, _data) :: tl ->
-            if is_one_mem re
-            then
-              let choice =
-                (((((OpNum (fst x)), xset), chosen_mid) :: l), new0)
-              in
-              build_choices tl (choice :: acc)
-            else
-              let others =
-                List.filter (fun (m, _) -> not (Nat.eqb m chosen_mid)) re
-              in
-              let mid_res =
-                post_dec chosen_mid new0 dc (fst x) xset chan others re l
-              in
-              let choices = snd mid_res in
-              build_choices tl (app choices acc)
-      in
-      (chan, build_choices top [])  
-
-(**
-let assign_mem_s new0 dc x l chan =
-  let xset = snd x in
-  let re = search_mem new0 xset [] in
-  if is_one_mem re
-  then
-    match get_one re with
-    | None -> (chan, [])
-    | Some i ->
-        (chan, [(((((OpNum (fst x)), xset), i) :: l), new0)])
-  else
-    match grab_good re [] with
-    | [] -> (chan, [])
-    | y :: ys ->
-        let (p, rea) = max_one ys 0 y [] in
-        let (i, _) = p in
-        post_dec i new0 dc (fst x) xset chan rea re l
-        
-        
-        **)
-(** val channel : int **)
+(** val channel : var **)
 
 let channel =
   Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ (Stdlib.succ
@@ -1538,14 +1515,14 @@ let channel =
 let rec assign_mem' dc l acc =
   match l with
   | [] -> acc
-  | a :: xs ->
-    let (m, y) = a in
+  | p :: xs ->
+    let (m, y) = p in
     (match m with
      | OpNum x ->
        assign_mem' dc xs
-         (fold_left (fun a0 b ->
-           let mid = assign_mem_s (snd b) dc (x, y) (fst b) (fst a0) in
-           ((fst mid), (app (snd a0) (snd mid)))) (snd acc) ((fst acc), []))
+         (fold_left (fun a b ->
+           let mid = assign_mem_s (snd b) dc (x, y) (fst b) (fst a) in
+           ((fst mid), (app (snd a) (snd mid)))) (snd acc) ((fst acc), []))
      | OpExp _ -> assign_mem' dc xs acc)
 
 (** val assign_mem_more :
@@ -1558,11 +1535,9 @@ let rec assign_mem_more new0 dc l acc =
   match l with
   | [] -> acc
   | x :: xs ->
+    let seed = (channel, (([], new0) :: [])) in
     assign_mem_more new0 dc xs
-      (app
-        (map rev
-          (fst (split (snd (assign_mem' dc x (channel, (([], new0) :: [])))))))
-        acc)
+      (app (map rev (fst (split (snd (assign_mem' dc x seed))))) acc)
 
 (** val find_empty_new' :
     (membrane_id * nposi list) list -> membrane_id -> membrane_id list ->
@@ -1601,67 +1576,73 @@ let rec gen_empty_mem = function
 | [] -> []
 | a :: xl -> (a, []) :: (gen_empty_mem xl)
 
-(* ============================================================ *)
-(* Small take helper                                            *)
-(* ============================================================ *)
+(** val take : int -> 'a1 list -> 'a1 list **)
 
-  let rec take n xs =
-  match n, xs with
-  | 0, _ -> []
-  | _, [] -> []
-  | n, x :: tl -> x :: take (n - 1) tl
+let rec take n0 xs =
+  (fun fO fS n -> if n = 0 then fO () else fS (n - 1))
+    (fun _ -> [])
+    (fun n' -> match xs with
+               | [] -> []
+               | x :: tl -> x :: (take n' tl))
+    n0
 
-let fallback_mid ql =
-  match ql with
-  | [] -> 0
-  | (_, mid) :: _ -> mid
+(** val fallback_mid :
+    ((myOpAux * nposi list) * membrane_id) list -> membrane_id **)
 
-
+let fallback_mid = function
+| [] -> 0
+| p :: _ -> let (_, mid) = p in mid
 
 (** val gen_mem :
     (myOpAux * nposi list) list -> (myOpAux * nposi list) list list ->
     membrane_id list -> ((myOpAux * nposi list) * membrane_id) list list **)
 
-(* ============================================================ *)
-(* Modified gen_mem                                             *)
-(* ============================================================ *)
 let gen_mem news l ids =
-  let ql = gen_mem_new news ids in
-  let vl = turn_new (gen_mem_new news ids) [] in
+  let ql =
+    match ids with
+    | [] -> []
+    | _ :: _ ->
+      let v = Nat.add (Nat.div (length news) (length ids)) (Stdlib.succ 0) in
+      gen_mem_new' v news ids []
+  in
+  let vl =
+    turn_new
+      (match ids with
+       | [] -> []
+       | _ :: _ ->
+         let v = Nat.add (Nat.div (length news) (length ids)) (Stdlib.succ 0)
+         in
+         gen_mem_new' v news ids []) []
+  in
   let al = find_empy_new vl ids [] in
   let dc = assign_new_mem news al in
   let base_new0 = app (gen_empty_mem al) vl in
-  let res =
-    map
-      (fun a -> app ql a)
-      (assign_mem_more base_new0 dc l [])
-  in
-  match res with
-  | [] ->
-      let mid = fallback_mid ql in
-      (match take 3 l with
-       | [] -> [ql]
-       | xs ->
-           map
-             (fun x -> app ql (map (fun y -> (y, mid)) x))
-             xs)
-  | _ -> res
-  
+  let res = map (fun a -> app ql a) (assign_mem_more base_new0 dc l []) in
+  (match res with
+   | [] ->
+     let mid = fallback_mid ql in
+     (match take (Stdlib.succ (Stdlib.succ (Stdlib.succ 0))) l with
+      | [] -> ql :: []
+      | l0 :: l1 ->
+        map (fun x -> app ql (map (fun y -> (y, mid)) x)) (l0 :: l1))
+   | _ :: _ -> res)
+
 (** val insert_mem_id :
-    membrane_id -> (myOpAux * nposi list) -> (int * (myOpAux * nposi list)
-    list) list -> (membrane_id * (myOpAux * nposi list) list) list **)
+    membrane_id -> (myOpAux * nposi list) -> (membrane_id * (myOpAux * nposi
+    list) list) list -> (membrane_id * (myOpAux * nposi list) list) list **)
 
 let rec insert_mem_id i x = function
 | [] -> (i, (x :: [])) :: []
-| y :: xs ->
-  let (a, b) = y in
+| p :: xs ->
+  let (a, b) = p in
   if Nat.eqb i a
   then (a, (app b (x :: []))) :: xs
   else (a, b) :: (insert_mem_id i x xs)
 
 (** val distribute_op :
-    ((myOpAux * nposi list) * membrane_id) list -> (int * (myOpAux * nposi
-    list) list) list -> (int * (myOpAux * nposi list) list) list **)
+    ((myOpAux * nposi list) * membrane_id) list ->
+    (membrane_id * (myOpAux * nposi list) list) list ->
+    (membrane_id * (myOpAux * nposi list) list) list **)
 
 let rec distribute_op l acc =
   match l with
@@ -1721,210 +1702,206 @@ let rec to_prog l os =
     (match to_process (snd x) os with
      | Some a -> (Memb ((fst x), a)) :: (to_prog xs os)
      | None -> [])
-     
-     
-     (* ============================================================ *)
-(* True distributed lowering helpers                            *)
-(* ============================================================ *)
+
+(** val has_if_ops : (int * myOp) list -> bool **)
 
 let rec has_if_ops = function
-  | [] -> false
-  | (_, OpIf _) :: _ -> true
-  | _ :: xs -> has_if_ops xs
+| [] -> false
+| p :: xs ->
+  let (_, m) = p in
+  (match m with
+   | OpAP _ -> has_if_ops xs
+   | OpIf (_, _, _) -> true)
 
-let rec assoc_opt_mem k = function
-  | [] -> None
-  | (k', v) :: xs -> if Nat.eqb k k' then Some v else assoc_opt_mem k xs
+(** val owner_of_pos :
+    (nposi * membrane_id) list -> nposi -> membrane_id option **)
 
 let rec owner_of_pos owners p =
   match owners with
   | [] -> None
-  | (q, mid) :: xs -> if nposi_eq q p then Some mid else owner_of_pos xs p
+  | p0 :: xs ->
+    let (q, mid) = p0 in if nposi_eq q p then Some mid else owner_of_pos xs p
+
+(** val set_owner :
+    (nposi * membrane_id) list -> nposi -> membrane_id ->
+    (nposi * membrane_id) list **)
 
 let rec set_owner owners p mid =
   match owners with
-  | [] -> [(p, mid)]
-  | (q, m) :: xs ->
-      if nposi_eq q p
-      then (p, mid) :: xs
-      else (q, m) :: set_owner xs p mid
+  | [] -> (p, mid) :: []
+  | p0 :: xs ->
+    let (q, m) = p0 in
+    if nposi_eq q p then (p, mid) :: xs else (q, m) :: (set_owner xs p mid)
+
+(** val set_owner_many :
+    (nposi * membrane_id) list -> nposi list -> membrane_id ->
+    (nposi * membrane_id) list **)
 
 let rec set_owner_many owners ps mid =
   match ps with
   | [] -> owners
   | p :: xs -> set_owner_many (set_owner owners p mid) xs mid
 
-let rec append_cexp_to_mem mid ce acc =
-  match acc with
-  | [] -> [(mid, [ce])]
-  | (m, xs) :: tl ->
-      if Nat.eqb mid m
-      then (m, app xs [ce]) :: tl
-      else (m, xs) :: append_cexp_to_mem mid ce tl
+(** val append_cexp_to_mem :
+    membrane_id -> cexp -> (membrane_id * cexp list) list ->
+    (membrane_id * cexp list) list **)
+
+let rec append_cexp_to_mem mid ce = function
+| [] -> (mid, (ce :: [])) :: []
+| p :: tl ->
+  let (m, xs) = p in
+  if Nat.eqb mid m
+  then (m, (app xs (ce :: []))) :: tl
+  else (m, xs) :: (append_cexp_to_mem mid ce tl)
+
+(** val add_initial_owners_from_solution :
+    ((myOpAux * nposi list) * membrane_id) list -> (int * myOp) list ->
+    (nposi * membrane_id) list -> (nposi * membrane_id) list **)
 
 let rec add_initial_owners_from_solution sol os owners =
   match sol with
   | [] -> owners
-  | (((aux, qs), mid)) :: xs ->
-      let owners' =
-        match aux with
-        | OpNum n ->
-            (match get_op os n with
-             | Some (OpAP (CNew r)) ->
-                 set_owner_many owners (cutToQubits [r]) mid
-             | _ -> owners)
-        | OpExp (CNew r) ->
-            set_owner_many owners (cutToQubits [r]) mid
-        | _ -> owners
-      in
-      add_initial_owners_from_solution xs os owners'
+  | p :: xs ->
+    let (p0, mid) = p in
+    let (aux, _) = p0 in
+    let owners' =
+      match aux with
+      | OpNum n0 ->
+        (match get_op os n0 with
+         | Some m ->
+           (match m with
+            | OpAP a ->
+              (match a with
+               | CNew r -> set_owner_many owners (cutToQubits (r :: [])) mid
+               | _ -> owners)
+            | OpIf (_, _, _) -> owners)
+         | None -> owners)
+      | OpExp a ->
+        (match a with
+         | CNew r -> set_owner_many owners (cutToQubits (r :: [])) mid
+         | _ -> owners)
+    in
+    add_initial_owners_from_solution xs os owners'
 
-let rec max_explicit_chan_in_cexp = function
-  | CNew _ -> 0
-  | CAppU (_, _) -> 0
-  | CMeas (_, _) -> 0
-  | Send (c, _, _) -> c
-  | Recv (c, _, _) -> c
+(** val ensure_local_qubits_aux :
+    membrane_id -> nposi list -> (nposi * membrane_id) list ->
+    (membrane_id * cexp list) list -> var -> (var * (nposi * membrane_id)
+    list) * (membrane_id * cexp list) list **)
 
-let rec max_explicit_chan_in_process = function
-  | PNil -> 0
-  | AP (ce, p') -> Nat.max (max_explicit_chan_in_cexp ce) (max_explicit_chan_in_process p')
-  | PIf (_, p1, p2) ->
-      Nat.max (max_explicit_chan_in_process p1) (max_explicit_chan_in_process p2)
+let rec ensure_local_qubits_aux dst qs owners bufs chan =
+  match qs with
+  | [] -> ((chan, owners), bufs)
+  | q :: tl ->
+    (match owner_of_pos owners q with
+     | Some src ->
+       if Nat.eqb src dst
+       then ensure_local_qubits_aux dst tl owners bufs chan
+       else let v = N.to_nat (fst q) in
+            let idx = N.to_nat (snd q) in
+            let bufs1 = append_cexp_to_mem src (Send (chan, v, idx)) bufs in
+            let bufs2 = append_cexp_to_mem dst (Recv (chan, v, idx)) bufs1 in
+            let owners' = set_owner owners q dst in
+            ensure_local_qubits_aux dst tl owners' bufs2 (Nat.succ chan)
+     | None -> ensure_local_qubits_aux dst tl owners bufs chan)
 
-let rec max_explicit_chan_in_config = function
-  | [] -> 0
-  | Memb (_, p) :: xs ->
-      Nat.max (max_explicit_chan_in_process p) (max_explicit_chan_in_config xs)
+(** val ensure_local_qubits :
+    membrane_id -> nposi list -> (nposi * membrane_id) list ->
+    (membrane_id * cexp list) list -> var -> (var * (nposi * membrane_id)
+    list) * (membrane_id * cexp list) list **)
 
-let ensure_local_qubits dst qs owners bufs chan =
-  let rec go qs owners bufs chan =
-    match qs with
-    | [] -> (chan, owners, bufs)
-    | q :: tl ->
-        (match owner_of_pos owners q with
-         | Some src when not (Nat.eqb src dst) ->
-             let v = N.to_nat (fst q) in
-             let idx = N.to_nat (snd q) in
-             let bufs1 = append_cexp_to_mem src (Send (chan, v, idx)) bufs in
-             let bufs2 = append_cexp_to_mem dst (Recv (chan, v, idx)) bufs1 in
-             let owners' = set_owner owners q dst in
-             go tl owners' bufs2 (Stdlib.succ chan)
-         | _ ->
-             go tl owners bufs chan)
-  in
-  go qs owners bufs chan
+let ensure_local_qubits =
+  ensure_local_qubits_aux
 
-let to_prog_from_cexps grouped =
-  let rec aux = function
-    | [] -> []
-    | (mid, ces) :: xs -> Memb (mid, turn_cexp_to_proc ces PNil) :: aux xs
-  in
-  aux grouped
-  
-  
- let lower_solution_distributed sol os =
+(** val to_prog_from_cexps : (membrane_id * cexp list) list -> config **)
+
+let rec to_prog_from_cexps = function
+| [] -> []
+| p :: xs ->
+  let (mid, ces) = p in
+  (Memb (mid, (turn_cexp_to_proc ces PNil))) :: (to_prog_from_cexps xs)
+
+(** val lower_solution_distributed_go :
+    ((myOpAux * nposi list) * membrane_id) list -> (int * myOp) list ->
+    (nposi * membrane_id) list -> (membrane_id * cexp list) list -> var ->
+    config **)
+
+let rec lower_solution_distributed_go xs os owners bufs chan =
+  match xs with
+  | [] -> to_prog_from_cexps bufs
+  | p :: tl ->
+    let (p0, mid) = p in
+    let (aux, _) = p0 in
+    (match aux with
+     | OpNum n0 ->
+       (match get_op os n0 with
+        | Some m ->
+          (match m with
+           | OpAP ce ->
+             (match ce with
+              | CNew r ->
+                let owners' =
+                  set_owner_many owners (cutToQubits (r :: [])) mid
+                in
+                let bufs' = append_cexp_to_mem mid ce bufs in
+                lower_solution_distributed_go tl os owners' bufs' chan
+              | CAppU (loc, e) ->
+                let qbs = cutToQubits loc in
+                let tmp = ensure_local_qubits mid qbs owners bufs chan in
+                let p1 = fst tmp in
+                let chan' = fst p1 in
+                let owners' = snd p1 in
+                let bufs' = snd tmp in
+                let bufs'' = append_cexp_to_mem mid (CAppU (loc, e)) bufs' in
+                lower_solution_distributed_go tl os owners' bufs'' chan'
+              | CMeas (x, loc) ->
+                let qbs = cutToQubits loc in
+                let tmp = ensure_local_qubits mid qbs owners bufs chan in
+                let p1 = fst tmp in
+                let chan' = fst p1 in
+                let owners' = snd p1 in
+                let bufs' = snd tmp in
+                let bufs'' = append_cexp_to_mem mid (CMeas (x, loc)) bufs' in
+                lower_solution_distributed_go tl os owners' bufs'' chan'
+              | _ ->
+                let bufs' = append_cexp_to_mem mid ce bufs in
+                lower_solution_distributed_go tl os owners bufs' chan)
+           | OpIf (_, _, _) ->
+             lower_solution_distributed_go tl os owners bufs chan)
+        | None -> lower_solution_distributed_go tl os owners bufs chan)
+     | OpExp ce ->
+       (match ce with
+        | CNew r ->
+          let owners' = set_owner_many owners (cutToQubits (r :: [])) mid in
+          let bufs' = append_cexp_to_mem mid ce bufs in
+          lower_solution_distributed_go tl os owners' bufs' chan
+        | Recv (_, x, y) ->
+          let owners' = set_owner owners ((N.of_nat x), (N.of_nat y)) mid in
+          let bufs' = append_cexp_to_mem mid ce bufs in
+          lower_solution_distributed_go tl os owners' bufs' chan
+        | _ ->
+          let bufs' = append_cexp_to_mem mid ce bufs in
+          lower_solution_distributed_go tl os owners bufs' chan))
+
+(** val lower_solution_distributed :
+    ((myOpAux * nposi list) * membrane_id) list -> (int * myOp) list -> config **)
+
+let lower_solution_distributed sol os =
   let owners0 = add_initial_owners_from_solution sol os [] in
+  lower_solution_distributed_go sol os owners0 []
+    (of_num_uint (UIntDecimal (D1 (D0 (D0 (D0 (D0 (D0 Nil))))))))
 
-  let rec go xs owners bufs chan =
-    match xs with
-    | [] ->
-        to_prog_from_cexps bufs
-
-    | (((aux, _qs), mid)) :: tl ->
-
-        begin
-          match aux with
-
-          | OpExp ce ->
-              let owners', bufs', chan' =
-                match ce with
-                | CNew r ->
-                    (set_owner_many owners (cutToQubits [r]) mid,
-                     append_cexp_to_mem mid ce bufs,
-                     chan)
-
-                | Recv (_, x, y) ->
-                    (set_owner owners ((N.of_nat x),(N.of_nat y)) mid,
-                     append_cexp_to_mem mid ce bufs,
-                     chan)
-
-                | _ ->
-                    (owners,
-                     append_cexp_to_mem mid ce bufs,
-                     chan)
-              in
-              go tl owners' bufs' chan'
-
-          | OpNum n ->
-              begin
-                match get_op os n with
-
-                | Some (OpAP ce) ->
-                    begin
-                      match ce with
-
-                      | CNew r ->
-                          let owners' =
-                            set_owner_many owners (cutToQubits [r]) mid
-                          in
-                          let bufs' =
-                            append_cexp_to_mem mid ce bufs
-                          in
-                          go tl owners' bufs' chan
-
-                      | CAppU (loc,e) ->
-                          let qbs = cutToQubits loc in
-                          let (chan',owners',bufs') =
-                            ensure_local_qubits mid qbs owners bufs chan
-                          in
-                          let bufs'' =
-                            append_cexp_to_mem mid (CAppU(loc,e)) bufs'
-                          in
-                          go tl owners' bufs'' chan'
-
-                      | CMeas (x,loc) ->
-                          let qbs = cutToQubits loc in
-                          let (chan',owners',bufs') =
-                            ensure_local_qubits mid qbs owners bufs chan
-                          in
-                          let bufs'' =
-                            append_cexp_to_mem mid (CMeas(x,loc)) bufs'
-                          in
-                          go tl owners' bufs'' chan'
-
-                      | Send _ | Recv _ ->
-                          let bufs' =
-                            append_cexp_to_mem mid ce bufs
-                          in
-                          go tl owners bufs' chan
-
-                    end
-
-                | _ ->
-                    go tl owners bufs chan
-
-              end
-
-        end
-
-  in
-  go sol owners0 [] 100000
 (** val gen_prog :
     ((myOpAux * nposi list) * membrane_id) list list -> (int * myOp) list ->
-    memb list list **)
+    config list **)
 
 let rec gen_prog l os =
   if has_if_ops os
-  then
-    (* Fallback to old behavior if OpIf exists *)
-    match l with
-    | [] -> []
-    | x :: xs -> (to_prog (distribute_op x []) os) :: (gen_prog xs os)
-  else
-    match l with
-    | [] -> []
-    | x :: xs -> (lower_solution_distributed x os) :: (gen_prog xs os)
+  then (match l with
+        | [] -> []
+        | x :: xs -> (to_prog (distribute_op x []) os) :: (gen_prog xs os))
+  else (match l with
+        | [] -> []
+        | x :: xs -> (lower_solution_distributed x os) :: (gen_prog xs os))
 
 (** val count_send_in_process : process -> int **)
 
@@ -1932,10 +1909,11 @@ let rec count_send_in_process = function
 | PNil -> 0
 | AP (a, p') ->
   (match a with
-   | Send (_, _, _) -> Stdlib.succ (count_send_in_process p')
-   | Recv (_, _, _) -> Stdlib.succ (count_send_in_process p')
+   | Send (_, _, _) -> Nat.succ (count_send_in_process p')
+   | Recv (_, _, _) -> Nat.succ (count_send_in_process p')
    | _ -> count_send_in_process p')
-| PIf (_, p1, p2) -> add (count_send_in_process p1) (count_send_in_process p2)
+| PIf (_, p1, p2) ->
+  Nat.add (count_send_in_process p1) (count_send_in_process p2)
 
 (** val count_send_in_memb : memb -> int **)
 
@@ -1946,14 +1924,14 @@ let count_send_in_memb = function
 
 let rec count_comm_ops = function
 | [] -> 0
-| m :: xs -> add (count_send_in_memb m) (count_comm_ops xs)
+| m :: xs -> Nat.add (count_send_in_memb m) (count_comm_ops xs)
 
 (** val process_size : process -> int **)
 
 let rec process_size = function
 | PNil -> 0
-| AP (_, p') -> Stdlib.succ (process_size p')
-| PIf (_, p1, p2) -> add (process_size p1) (process_size p2)
+| AP (_, p') -> Nat.succ (process_size p')
+| PIf (_, p1, p2) -> Nat.add (process_size p1) (process_size p2)
 
 (** val memb_load : memb -> int **)
 
@@ -1976,7 +1954,7 @@ let alpha =
 (** val fit : config -> fitness_value **)
 
 let fit cfg =
-  add (mul alpha (count_comm_ops cfg)) (max_load cfg)
+  Nat.add (Nat.mul alpha (count_comm_ops cfg)) (max_load cfg)
 
 (** val best_prog_aux : config -> int -> config list -> config **)
 
@@ -2018,6 +1996,25 @@ let rec auto_disq_loop best = function
      then auto_disq_loop (Some p) xs
      else auto_disq_loop best xs
    | None -> auto_disq_loop (Some p) xs)
+
+(** val autodisq_first :
+    (int * myOp) list -> membrane_id list -> config option **)
+
+let autodisq_first ops mids =
+  let nl = get_nlocus ops in
+  let init =
+    match mids with
+    | [] -> []
+    | _ :: _ ->
+      let v = Nat.add (Nat.div (length nl) (length mids)) (Stdlib.succ 0) in
+      gen_mem_new' v nl mids []
+  in
+  let new0 = turn_new init [] in
+  let dc = [] in
+  let sols = assign_mem_more new0 dc (map (fun x -> x :: []) nl) [] in
+  (match sols with
+   | [] -> None
+   | sol :: _ -> Some (lower_solution_distributed sol ops))
 
 (** val autodisq_best_1 : op_list -> membrane_id list -> config option **)
 
