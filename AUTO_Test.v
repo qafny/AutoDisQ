@@ -457,6 +457,7 @@ Definition GROVER32_prog : op_list :=
 
 
 
+(*
 (* ===================================== *)
 (* Ripple-Carry Adder *)
 (* ===================================== *)
@@ -530,7 +531,7 @@ Definition rippleCarrySeq : op_list :=
 Compute autodisq_best GROVER32_prog [0;1].
 Compute autodisq_best_1 GROVER32_prog [0;1].
 *)
-
+*)
 
 
 (* ===================================== *)
