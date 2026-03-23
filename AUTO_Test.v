@@ -33,8 +33,8 @@ Compute autodisq_best small_prog2 mids_small.
 (* Helpers for building GHZ programs                            *)
 (* ============================================================ *)
 
-Definition one_qubit_range (q : var) : range := (q,(0,1)).
 Definition L : locus := ([] : locus).
+Definition one_qubit_range (q : var) : range := (q,(0,1)).
 
 Fixpoint alloc_qubits_from (qs : list var) : op_list :=
   match qs with
@@ -132,8 +132,8 @@ Fixpoint controlled_x_chain_from (ctrls tgts : list var) : op_list :=
 
 
 Definition shor8_qs : list var := List.seq 0 8.
-Definition shor8_ctrls : list var := List.seq 0 4.
 Definition shor8_tgts  : list var := List.seq 4 4.
+Definition shor8_ctrls : list var := List.seq 0 4.
 Definition shor8_outs  : list var := List.seq 300 8.
 
 Definition SHOR8_prog : op_list :=
@@ -531,6 +531,148 @@ Compute autodisq_best GROVER32_prog [0;1].
 Compute autodisq_best_1 GROVER32_prog [0;1].
 *)
 
+
+
+(* ===================================== *)
+(* Ripple-Carry Adder *)
+(* ===================================== *)
+
+Definition MAJ_at (i : nat) (a b c : var) : op_list :=
+  [ OpAP (CAppU ([(b,(i,1)); (c,(i,1))]) (CU c (Num i) (X b (Num i))));
+    OpAP (CAppU ([(a,(i,1)); (c,(i,1))]) (CU c (Num i) (X a (Num i))));
+    OpAP (CAppU ([(c,(i,1)); (b,(i,1)); (a,(i,1))]) (CU a (Num i) (CU b (Num i) (X c (Num i)))))
+  ].
+
+Definition UMA_at (i : nat) (a b c : var) : op_list :=
+  [ OpAP (CAppU ([(c,(i,1)); (b,(i,1)); (a,(i,1))]) (CU a (Num i) (CU b (Num i) (X c (Num i)))));
+    OpAP (CAppU ([(a,(i,1)); (c,(i,1))]) (CU c (Num i) (X a (Num i))));
+    OpAP (CAppU ([(b,(i,1)); (a,(i,1))]) (CU a (Num i) (X b (Num i))))
+  ].
+
+Fixpoint MAJseq' (k : nat) (t y x : var) : op_list :=
+  match k with
+  | 0 => MAJ_at 0 x y t
+  | S m => MAJseq' m t y x ++ MAJ_at (S m) x y t
+  end.
+
+Definition MAJseq (n : nat) (t y x : var) : op_list :=
+  match n with
+  | 0 => []
+  | S k => MAJseq' k t y x
+  end.
+
+Fixpoint UMAseq' (k : nat) (t y x : var) : op_list :=
+  match k with
+  | 0 => UMA_at 0 x y t
+  | S m => UMA_at (S m) x y t ++ UMAseq' m t y x
+  end.
+
+Definition UMAseq (n : nat) (t y x : var) : op_list :=
+  match n with
+  | 0 => []
+  | S k => UMAseq' k t y x
+  end.
+
+(* size of arguments *)
+Definition n: nat := 2.
+Definition t : var := 0.
+Definition y : var := 1.
+Definition x : var := 3.
+Definition z : var := 4.
+
+
+Definition rippleCarrySeq : op_list :=
+  [ OpAP (CNew (t, (0, n)));
+    OpAP (CNew (y, (0, n)));
+    OpAP (CNew (x, (0, n)))
+  ] ++
+  MAJseq n t y x ++
+  UMAseq n t y x.
+
+(*Compute autodisq_best rippleCarrySeq [0;1].*)
+
+
+(* ===================================== *)
+(* QFT-based Adder *)
+(* ===================================== *)
+(* Implementing x + y addition for fixedp values. *)
+Fixpoint rz_full_adder' (x:var) (n:nat) (size:nat) (y:var): op_list :=
+  match n with
+  | 0 => [OpAP (CAppU ([(x,(0,1))]) (SKIP x (Num 0)))]
+  | S m => [OpAP (CAppU ([(y,(m,m+1)); (x,(0,size-n))]) (CU y (Num m) (SR (size - n) x)))] ++ (rz_full_adder' x m size y)
+  end.
+Definition rz_full_adder (x:var) (n:nat) (y:var) := rz_full_adder' x n n y.
+
+(*qubits of y require reversal before and after*)
+Definition qftAdder: op_list := [OpAP (CNew (x, (0,n))); OpAP (CNew (y, (0,n)));
+ OpAP (CAppU ([(y,(0,n))]) (QFT y n))] ++ (rz_full_adder y n x) ++ [OpAP (CAppU ([(y,(0,n))]) (RQFT y n))].
+
+Compute autodisq_best qftAdder [0;1].
+(*Definition distQFTAdder : distributed_prog :=
+  auto_disq_alg1_paper 2 2 qftAdder cfg1.
+Compute distQFTAdder.*)
+
+(* ===================================== *)
+(* QFT *)
+(* ===================================== *)
+
+(*Performs sequence of RZ gates on x[n], k shoud initialy be size(x)-n-1*)
+Fixpoint qft_rotations (x:var) (n:nat) (k:nat): op_list :=
+  match k with
+  | 0    => []
+  | S k' => [OpAP (CAppU ([(x,(n,n+1));(x,(k+n,k+n+1))]) (CU x (Num (k+n)) (RZ (k+1) x (Num n))))] ++ (qft_rotations x n k')
+  end.
+
+Fixpoint qft' (x:var) (size:nat) (n:nat) : op_list :=
+  match n with
+  | 0 => []
+  | S n' => [OpAP (CAppU ([(x,(n',n'+1))]) (H x (Num n')))] ++ (qft_rotations x n' (size-n'-1)) ++ (qft' x size n')
+  end.
+
+Definition qft (x:var) (size:nat) := qft' x size size.
+
+Definition qftSeq: op_list := [OpAP (CNew (x, (0,n)))] ++ (qft x n).
+
+Compute autodisq_best qftSeq [0;1].
+
+(* ===================================== *)
+(*  Amplitude Estimation *)
+(* ===================================== *)
+
+Fixpoint control_Qs (x:var) (y:var) (n:nat) : op_list :=
+  match n with
+  | 0    => []
+  | S n' => [OpAP (CAppU ([(x,(n',n'+1));(y,(0,n))]) (CU x (Num n') (SKIP y (Num 0))))] ++ (control_Qs x y n')
+  end.
+
+
+Fixpoint apply_H (x:var) (n:nat) : op_list :=
+  match n with
+  | 0 => []
+  | S n' => [OpAP (CAppU ([(x,(n',n'+1))]) (H x (Num n')))] ++ (apply_H x n')
+  end.
+
+
+Definition ampEstSeq: op_list := [OpAP (CNew (x, (0,n))); OpAP (CNew (y, (0,n)))]
+ ++ (apply_H x n) ++ (apply_H y n) ++ (control_Qs x y n) ++ [OpAP (CAppU ([(x,(0,n))]) (RQFT x n))].
+
+Compute autodisq_best ampEstSeq [0;1].
+
+(* ===================================== *)
+(*  Discrete Log *)
+(* ===================================== *)
+
+Fixpoint control_ops (x:var) (y:var) (n:nat) : op_list :=
+  match n with
+  | 0   => []
+  | S n'=> [OpAP (CAppU ([(x,(n',n'+1));(y,(0,n))]) (CU x (Num n') (SKIP y (Num 0))))] ++ (control_ops x y n')
+  end.
+
+Definition discLogSeq: op_list := [OpAP (CNew (x, (0,n)));
+ OpAP (CNew (y, (0,n))); OpAP (CNew (z, (0,n)))] ++ (apply_H x n) ++ (apply_H y n) ++ (control_ops x z n) ++ (control_ops y z n) ++ 
+ [OpAP (CAppU ([(x,(0,n))]) (QFT x n)); OpAP (CAppU ([(y,(0,n))]) (QFT y n))].
+
+(*Compute autodisq_best discLogSeq [0;1]. *)
 
 (*
 
@@ -1676,110 +1818,6 @@ Compute fit QFT64_best.
 
 
 
-(* ===================================== *)
-(* Ripple-Carry Adder *)
-(* ===================================== *)
-Definition MAJ a b c : op_list := [OpAP (CAppU [b[0],c[0]] (CU c (Num 0) (X b (Num 0)))); 
-OpAP (CAppU [a[0],c[0]] (CU c (Num 0) (X a (Num 0)))); 
-OpAP (CAppU [c[0],b[0],a[0]](CU a (Num 0) (CU b (Num 0) (X c (Num 0)))))].
-Definition UMA a b c : op_list := [OpAP (CAppU [c[0],b[0],a[0]] (CU a (Num 0) (CU b (Num 0)) (X c (Num 0)))); 
-OpAP (CAppU [a[0],c[0]] (CU c (Num 0) (X a (Num 0)))); 
-OpAP (CAppU [b[0],a[0]] (CU a (Num 0) (X b (Num 0))))].
-
-Fixpoint MAJseq' n t y x : op_list :=
-  match n with
-  | 0 => MAJ (x (Num 0)) (y (Num 0)) (t (Num 0))
-  | S m => (MAJseq' m t y x) ++ (MAJ (x (Num m)) (y (Num n)) (x (Num n)))
-  end.
-  Definition MAJseq n t y x := MAJseq' (n - 1) t y x.
-
-Fixpoint UMAseq' n t y x : op_list :=
-  match n with
-  | 0 => UMA x (y (Num 0)) (t (Num 0))
-  | S m => (UMA (t (Num m)) (y (Num n)) (t (Num n))) ++ (UMAseq' m t y x)
-  end.
-Definition UMAseq n t y x := UMAseq' (n - 1) t y x.
-
-(*size of arguments*)
-Definition n : var := 2.
-
-Definition rippleCarrySeq : op_list := [OpAP (CNew (t, (0*n))); OpAP (CNew (y, (0*n))); OpAP (CNew (x (0*2)))] 
-  ++ (MAJseq n t y x) ++ (UMAseq n t y x).
-
-Definition distRippleCarry : distributed_prog :=
-  auto_disq_alg1_paper 2 2 rippleCarrySeq cfg1.
-Compute distRippleCarry.
-
-(* ===================================== *)
-(* QFT-based Adder *)
-(* ===================================== *)
-(* Implementing x + y addition for fixedp values. *)
-Fixpoint rz_full_adder' (x:var) (n:nat) (size:nat) (y:var): op_list :=
-  match n with
-  | 0 => [OpAp (CAppU [x[0]] (SKIP x (Num 0)))]
-  | S m => [OpAp (CAppU [y[m], x[0,size-n]] (CU y (Num m) (SR (size - n) x)))] ++ (rz_full_adder' x m size y)
-  end.
-Definition rz_full_adder (x:var) (n:nat) (y:var) := rz_full_adder' x n n y.
-
-
-(*size of arguments*)
-Definition n : var := 2.
-(*qubits of y require reversal before and after*)
-Definition qftAdder: op_list := [OpAP (CNew (x, (0*n))); OpAP (CNew (y, (0*n)));
- OpAP (CAppU [y[0,n-1]] (QFT y n))] ++ (rz_full_adder y n x) ++ [OpAP (CAppU [y[0,n-1]] (RQFT y n))].
-
-Definition distQFTAdder : distributed_prog :=
-  auto_disq_alg1_paper 2 2 qftAdder cfg1.
-Compute distQFTAdder.
-
-
-(* ===================================== *)
-(* QFT *)
-(* ===================================== *)
-
-(*Performs sequence of RZ gates on x[n], k shoud initialy be size(x)-n*)
-Fixpoint qft_rotations (x:var) (n:nat) (k:nat): op_list
-  match k with
-  | 1 => [OpAP (CAppU [x[n]] (SKIP x (Num n)))]
-  | S k' => [OpAP (CAppU [x[n],x[k'+n]] (CU x (Num k'+n) (RZ k x (Num n))))] ++ (qft_rotations x n k')
-  end.
-
-Fixpoint qft' (x:var) (size:nat) (n:nat) : op_list :=
-  match n with
-  | 0 => [OpAP (CAppU [x[n]] (SKIP x (Num 0)))]
-  | S n' => [OpAP (CAppU [x[n']] (H x (Num n')))] ++ (qft_rotations x n' (size-n')) ++ (qft' x size n')
-  end.
-
-Definition qft (x:var) (size:nat) := qft' x size size.
-
-(*size of arguments*)
-Definition n : var := 2.
-
-Definition qftSeq: op_list := [OpAP (CNew (x, (0*n)))] ++ (qft x n).
-
-Definition distQFT : distributed_prog :=
-  auto_disq_alg1_paper 2 2 qftSeq cfg1.
-Compute distQFT.
-
-
-(* ===================================== *)
-(*  Amplitude Estimation *)
-(* ===================================== *)
-
-Definition Q := SKIP y[0].
-
-Fixpoint control_Qs (x:var) (y:var) (n:int) : op_list :=
-  match n with
-  0   => [OpAP (CAppU [] SKIP Q)]
-  S n'=> [OpAP (CAppU [x[n'],y[0,n-1]] CU x (Num n') Q)] ++ (control_Qs x y n')
-  end.
-
-(*size of arguments*)
-Definition n : var := 2.
-
-Definition qftSeq: op_list := [OpAP (CNew (x, (0*n))); OpAP (CNew (y, (0*n)));
- OpAP (CAppU [x[0,n-1]] (H x ?)); OpAP (CAppU [y[0,n-1]] (H y ?))] ++ (control_Qs x y n)
- ++ [OpAP (CAppU x[0,n-1] (RQFT x ?))].
 
 *)
 
