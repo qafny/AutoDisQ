@@ -1474,7 +1474,6 @@ Definition autodisq_best_1
 
 
 
-
 (**
 From Coq Require Import List Arith Bool Nat NArith Lia.
 Import ListNotations.

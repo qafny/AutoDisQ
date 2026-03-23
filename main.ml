@@ -968,7 +968,7 @@ let print_load_chart () =
 (* ============================================================ *)
 (* Main                                                         *)
 (* ============================================================ *)
-(**
+
 let () =
   Printexc.record_backtrace true;
 
@@ -1170,7 +1170,7 @@ let () =
   ()
 
 
-**)
+
 
 
 (**
@@ -2195,7 +2195,7 @@ let () =
 **)
 
 
-
+(**
 
 let () =
   Printexc.record_backtrace true;
@@ -2294,4 +2294,6 @@ let () =
   print_summary ();
   print_load_chart ();
   ()
+  
+  **)
 

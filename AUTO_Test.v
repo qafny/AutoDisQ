@@ -457,6 +457,74 @@ Definition GROVER32_prog : op_list :=
 
 
 
+(* ===================================== *)
+(* Ripple-Carry Adder *)
+(* ===================================== *)
+
+Definition MAJ_at (i : nat) (a b c : var) : op_list :=
+  [ OpAP (CAppU ([(b,(i,1)); (c,(i,1))])
+                (CU c (Num i) (X b (Num i))));
+    OpAP (CAppU ([(a,(i,1)); (c,(i,1))])
+                (CU c (Num i) (X a (Num i))));
+    OpAP (CAppU ([(c,(i,1)); (b,(i,1)); (a,(i,1))])
+                (CU a (Num i) (CU b (Num i) (X c (Num i)))))
+  ].
+
+Definition UMA_at (i : nat) (a b c : var) : op_list :=
+  [ OpAP (CAppU ([(c,(i,1)); (b,(i,1)); (a,(i,1))])
+                (CU a (Num i) (CU b (Num i) (X c (Num i)))));
+    OpAP (CAppU ([(a,(i,1)); (c,(i,1))])
+                (CU c (Num i) (X a (Num i))));
+    OpAP (CAppU ([(b,(i,1)); (a,(i,1))])
+                (CU a (Num i) (X b (Num i))))
+  ].
+
+Fixpoint MAJseq' (k : nat) (t y x : var) : op_list :=
+  match k with
+  | 0 => MAJ_at 0 x y t
+  | S m => MAJseq' m t y x ++ MAJ_at (S m) x y t
+  end.
+
+Definition MAJseq (n : nat) (t y x : var) : op_list :=
+  match n with
+  | 0 => []
+  | S k => MAJseq' k t y x
+  end.
+
+Fixpoint UMAseq' (k : nat) (t y x : var) : op_list :=
+  match k with
+  | 0 => UMA_at 0 x y t
+  | S m => UMA_at (S m) x y t ++ UMAseq' m t y x
+  end.
+
+Definition UMAseq (n : nat) (t y x : var) : op_list :=
+  match n with
+  | 0 => []
+  | S k => UMAseq' k t y x
+  end.
+
+(* size of arguments *)
+Definition n: nat := 2.
+Definition t : var := 0.
+Definition y : var := 1.
+Definition x : var := 3.
+
+Definition rippleCarrySeq : op_list :=
+  [ OpAP (CNew (t, (0, n)));
+    OpAP (CNew (y, (0, n)));
+    OpAP (CNew (x, (0, n)))
+  ] ++
+  MAJseq n t y x ++
+  UMAseq n t y x.
+
+
+
+
+
+
+
+
+
 
 (* You can comment these out if make becomes heavy 
 Compute autodisq_best GROVER32_prog [0;1].
