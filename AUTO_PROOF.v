@@ -12,9 +12,12 @@ Local Open Scope bool_scope.
 
 Require Import DisQ.BasicUtility.
 Require Import DisQ.DisQSyntax.
+Require Import DisQ.DisQSem.
 Require Import DisQ.AUTO.
+Require Import DisQ.DisQDef.
 
-
+Require Import Reals.
+Open Scope R_scope.
 
 (*****************************************************************)
 (* Correctness of AutoDisQ                 *)
@@ -1323,469 +1326,378 @@ Proof.
 Qed.
 
 
+(*****************************************************************)
+(* Official semantic correctness layer for AutoDisQ              *)
+(* Built directly on DisQSem.step                                *)
+(*****************************************************************)
 
 
 (*****************************************************************)
-(* Simplified semantic equivalence layer                         *)
+(* Labels from the official semantics                            *)
 (*****************************************************************)
 
+Definition label : Type := (R * list var)%type.
 
-Inductive obs : Type :=
-| ObsNew  : range -> obs
-| ObsAppU : locus -> exp -> obs
-| ObsMeas : var -> locus -> obs.
 
-Definition visible_cexp (ce : cexp) : option obs :=
-  match ce with
-  | CNew r      => Some (ObsNew r)
-  | CAppU l e   => Some (ObsAppU l e)
-  | CMeas x r   => Some (ObsMeas x r)
-  | Send _ _ _  => None
-  | Recv _ _ _  => None
-  end.
-Definition valuation : Type := var -> nat.
 
-Fixpoint eval_aexp_simple (st : valuation) (a : aexp) : nat :=
-  match a with
-  | BA x => st x
-  | Num n => n
-  | APlus a1 a2 =>
-      Nat.add (eval_aexp_simple st a1) (eval_aexp_simple st a2)
-  | AMult a1 a2 =>
-      Nat.mul (eval_aexp_simple st a1) (eval_aexp_simple st a2)
-  | AModMult a1 a2 a3 =>
-      let v1 := eval_aexp_simple st a1 in
-      let v2 := eval_aexp_simple st a2 in
-      let v3 := eval_aexp_simple st a3 in
-      match v3 with
-      | O => 0%nat
-      | _ => Nat.modulo (Nat.mul v1 v2) v3
-      end
-  end.
-
-Definition eval_cbexp_simple (st : valuation) (b : cbexp) : bool :=
-  match b with
-  | CEq a1 a2 =>
-      Nat.eqb (eval_aexp_simple st a1) (eval_aexp_simple st a2)
-  | CLt a1 a2 =>
-      Nat.ltb (eval_aexp_simple st a1) (eval_aexp_simple st a2)
-  end.
-
-Inductive proc_step : valuation -> process -> option obs -> process -> Prop :=
-| PS_AP_vis :
-    forall st ce p ob,
-      visible_cexp ce = Some ob ->
-      proc_step st (AP ce p) (Some ob) p
-| PS_AP_tau_send :
-    forall st ch x y p,
-      proc_step st (AP (Send ch x y) p) None p
-| PS_AP_tau_recv :
-    forall st ch x y p,
-      proc_step st (AP (Recv ch x y) p) None p
-| PS_If_true :
-    forall st b p q,
-      eval_cbexp_simple st b = true ->
-      proc_step st (PIf b p q) None p
-| PS_If_false :
-    forall st b p q,
-      eval_cbexp_simple st b = false ->
-      proc_step st (PIf b p q) None q.
-
-Inductive config_step : valuation -> config -> option obs -> config -> Prop :=
-| CS_here :
-    forall st mid p p' tl lab,
-      proc_step st p lab p' ->
-      config_step st (Memb mid p :: tl) lab (Memb mid p' :: tl)
-| CS_there :
-    forall st m tl tl' lab,
-      config_step st tl lab tl' ->
-      config_step st (m :: tl) lab (m :: tl').
-
-Inductive steps : valuation -> config -> list obs -> config -> Prop :=
-| steps_refl :
-    forall st c, steps st c [] c
-| steps_tau :
-    forall st c1 c2 c3 tr,
-      config_step st c1 None c2 ->
-      steps st c2 tr c3 ->
-      steps st c1 tr c3
-| steps_vis :
-    forall st c1 c2 c3 ob tr,
-      config_step st c1 (Some ob) c2 ->
-      steps st c2 tr c3 ->
-      steps st c1 (ob :: tr) c3.
-
-Definition sem_equiv (c1 c2 : config) : Prop :=
-  forall st tr,
-    (exists c1', steps st c1 tr c1') <->
-    (exists c2', steps st c2 tr c2').
 
 (*****************************************************************)
-(* Basic semantic lemmas                                         *)
+(* Multi-step closure of the official DisQSem.step               *)
 (*****************************************************************)
 
-Lemma send_is_tau :
-  forall st ch x y p,
-    proc_step st (AP (Send ch x y) p) None p.
-Proof.
-  intros. constructor.
-Qed.
+Inductive step_star {rmax:nat} :
+  DisQDef.aenv ->
+  DisQDef.qstate ->
+  config ->
+  list label ->
+  DisQDef.qstate ->
+  config ->
+  Prop :=
+| step_star_refl :
+    forall Γ s c,
+      step_star Γ s c [] s c
+| step_star_step :
+    forall Γ s1 c1 lab s2 c2 tr s3 c3,
+      step (rmax:=rmax) Γ s1 c1 lab s2 c2 ->
+      step_star (rmax:=rmax) Γ s2 c2 tr s3 c3 ->
+      step_star (rmax:=rmax) Γ s1 c1 (lab :: tr) s3 c3.
 
-Lemma recv_is_tau :
-  forall st ch x y p,
-    proc_step st (AP (Recv ch x y) p) None p.
-Proof.
-  intros. constructor.
-Qed.
+Arguments step_star {rmax} Γ s c tr s' c'.
 
-Lemma cnew_visible :
-  forall st r p,
-    proc_step st (AP (CNew r) p) (Some (ObsNew r)) p.
+Lemma step_star_app :
+  forall rmax Γ s1 c1 tr1 s2 c2 tr2 s3 c3,
+    @step_star rmax Γ s1 c1 tr1 s2 c2 ->
+    @step_star rmax Γ s2 c2 tr2 s3 c3 ->
+    @step_star rmax Γ s1 c1 (tr1 ++ tr2) s3 c3.
 Proof.
-  intros.
-  apply PS_AP_vis.
-  reflexivity.
-Qed.
-
-Lemma cappu_visible :
-  forall st l e p,
-    proc_step st (AP (CAppU l e) p) (Some (ObsAppU l e)) p.
-Proof.
-  intros.
-  apply PS_AP_vis.
-  reflexivity.
-Qed.
-
-Lemma cmeas_visible :
-  forall st x l p,
-    proc_step st (AP (CMeas x l) p) (Some (ObsMeas x l)) p.
-Proof.
-  intros.
-  apply PS_AP_vis.
-  reflexivity.
-Qed.
-
-Lemma pif_true_tau :
-  forall st b p q,
-    eval_cbexp_simple st b = true ->
-    proc_step st (PIf b p q) None p.
-Proof.
-  intros. constructor. exact H.
-Qed.
-
-Lemma pif_false_tau :
-  forall st b p q,
-    eval_cbexp_simple st b = false ->
-    proc_step st (PIf b p q) None q.
-Proof.
-  intros. constructor. exact H.
-Qed.
-
-Lemma config_step_head_vis :
-  forall st mid ce p ob tl,
-    visible_cexp ce = Some ob ->
-    config_step st (Memb mid (AP ce p) :: tl) (Some ob) (Memb mid p :: tl).
-Proof.
-  intros.
-  apply CS_here.
-  apply PS_AP_vis.
-  exact H.
-Qed.
-
-Lemma config_step_head_send_tau :
-  forall st mid ch x y p tl,
-    config_step st (Memb mid (AP (Send ch x y) p) :: tl) None (Memb mid p :: tl).
-Proof.
-  intros.
-  apply CS_here.
-  constructor.
-Qed.
-
-Lemma config_step_head_recv_tau :
-  forall st mid ch x y p tl,
-    config_step st (Memb mid (AP (Recv ch x y) p) :: tl) None (Memb mid p :: tl).
-Proof.
-  intros.
-  apply CS_here.
-  constructor.
-Qed.
-
-Lemma config_step_head_if_true_tau :
-  forall st mid b p q tl,
-    eval_cbexp_simple st b = true ->
-    config_step st (Memb mid (PIf b p q) :: tl) None (Memb mid p :: tl).
-Proof.
-  intros.
-  apply CS_here.
-  apply PS_If_true.
-  exact H.
-Qed.
-
-Lemma config_step_head_if_false_tau :
-  forall st mid b p q tl,
-    eval_cbexp_simple st b = false ->
-    config_step st (Memb mid (PIf b p q) :: tl) None (Memb mid q :: tl).
-Proof.
-  intros.
-  apply CS_here.
-  apply PS_If_false.
-  exact H.
-Qed.
-
-Lemma steps_one_vis :
-  forall st c1 c2 ob,
-    config_step st c1 (Some ob) c2 ->
-    steps st c1 [ob] c2.
-Proof.
-  intros.
-  eapply steps_vis.
-  - exact H.
-  - constructor.
-Qed.
-
-Lemma steps_one_tau :
-  forall st c1 c2,
-    config_step st c1 None c2 ->
-    steps st c1 [] c2.
-Proof.
-  intros.
-  eapply steps_tau.
-  - exact H.
-  - constructor.
-Qed.
-
-
-Lemma steps_app :
-  forall st c1 tr1 c2 tr2 c3,
-    steps st c1 tr1 c2 ->
-    steps st c2 tr2 c3 ->
-    steps st c1 (tr1 ++ tr2) c3.
-Proof.
-  intros st c1 tr1 c2 tr2 c3 H12 H23.
+  intros rmax Γ s1 c1 tr1 s2 c2 tr2 s3 c3 H12 H23.
   induction H12.
   - simpl. exact H23.
-  - simpl. eapply steps_tau.
+  - simpl. econstructor.
     + exact H.
-    + apply IHsteps. exact H23.
-  - simpl. eapply steps_vis.
-    + exact H.
-    + apply IHsteps. exact H23.
+    + apply IHstep_star.
+      exact H23.
 Qed.
 
 
+
 (*****************************************************************)
-(* Structural helpers for centralized embeddings                 *)
+(* Structural helper using the official [comp] constructor       *)
 (*****************************************************************)
 
-Lemma map_snd_opListOrder' :
-  forall xs n,
-    map snd (opListOrder' xs n) = xs.
+Lemma step_lift_prefix :
+  forall (rmax:nat) Γ s c1 lab s' c2 pre,
+    step (rmax:=rmax) Γ s c1 lab s' c2 ->
+    step (rmax:=rmax) Γ s (pre ++ c1) lab s' (pre ++ c2).
 Proof.
-  induction xs as [|x xs IH]; intros n; simpl.
-  - reflexivity.
-  - rewrite IH. reflexivity.
+  intros rmax Γ s c1 lab s' c2 pre H.
+  induction pre as [|P pre IH]; simpl.
+  - exact H.
+  -econstructor.
+    exact IH.
 Qed.
 
-Lemma to_process_ops_to_process :
-  forall ops n,
-    to_process (map (fun k => (OpNum k, [])) (map fst (opListOrder' ops n)))
-               (opListOrder' ops n) = Some (ops_to_process ops).
-Proof.
-  induction ops as [|op ops IH]; intros n; simpl.
-  - reflexivity.
-  - rewrite N.eqb_refl.
-    simpl.
-    replace
-      (to_process
-         (map (fun k : N => (OpNum k, []))
-              (map fst (opListOrder' ops (N.succ n))))
-         (opListOrder' ops (N.succ n)))
-    with (Some (ops_to_process ops)).
-Admitted.
 
-Lemma to_process_ops_to_process_0 :
+
+(*****************************************************************)
+(* Basic state-equivalence layer from DisQSem.v                  *)
+(*****************************************************************)
+
+Definition sem_equiv_state (c1 c2 : config) : Prop :=
+  forall (rmax:nat) Γ s tr s1 c1',
+    step_star (rmax:=rmax) Γ s c1 tr s1 c1' ->
+    exists s2 c2',
+      step_star (rmax:=rmax) Γ s c2 tr s2 c2' /\
+      match_values s1 s2.
+
+Definition sem_equiv_state_bi (c1 c2 : config) : Prop :=
+  sem_equiv_state c1 c2 /\ sem_equiv_state c2 c1.
+
+(*****************************************************************)
+(* Basic well-formedness on configurations                       *)
+(*****************************************************************)
+
+Definition get_mid (m : memb) : membrane_id :=
+  match m with
+  | Memb l _ => l
+  end.
+
+Definition mids_of_config (c : config) : list membrane_id :=
+  map get_mid c.
+
+Definition loci_disjoint (c : config) : Prop :=
+  NoDup (mids_of_config c).
+
+Definition wf_config (c : config) : Prop :=
+  loci_disjoint c.
+
+Lemma centralized_config_wf :
   forall ops,
-    to_process (map (fun k => (OpNum k, [])) (map fst (opListOrder ops)))
-               (opListOrder ops) = Some (ops_to_process ops).
+    wf_config (centralized_config ops).
 Proof.
   intros ops.
-  unfold opListOrder.
-  apply to_process_ops_to_process.
+  unfold wf_config, loci_disjoint, mids_of_config, centralized_config.
+  simpl.
+  constructor.
+  - simpl. intros H. contradiction.
+  - constructor.
 Qed.
 
 (*****************************************************************)
-(* Semantic theorem statements                                   *)
+(* Reflexivity helpers for DisQSem.match_value                   *)
 (*****************************************************************)
 
-Definition generated_from_ops
-  (cfg : config)
-  (ops : op_list)
-  (mids : list membrane_id) : Prop :=
-  In cfg (autodisq_all ops mids).
-
-
-Lemma lower_solution_sim_tau :
-  forall sol os st c2,
-    config_step st (centralized_config (map snd os)) None c2 ->
-    exists d2,
-      config_step st (lower_solution_distributed sol os) None d2.
-Admitted.
-
-Lemma lower_solution_sim_vis :
-  forall sol os st ob c2,
-    config_step st (centralized_config (map snd os)) (Some ob) c2 ->
-    exists d2,
-      config_step st (lower_solution_distributed sol os) (Some ob) d2.
-Admitted.
-
-
-
-Lemma lower_solution_forward :
-  forall sol os st tr,
-    (exists c1' : config, steps st (centralized_config (map snd os)) tr c1') ->
-    exists c2' : config, steps st (lower_solution_distributed sol os) tr c2'.
+Lemma match_value_refl :
+  forall n st,
+    match_value n st st.
 Proof.
-  intros sol os st tr H.
-  destruct H as [c1' Hsteps].
+  intros n st.
+  induction n as [|n IH]; simpl.
+  - (* base case *)
+    destruct st; simpl; try constructor; try tauto.
+  - (* inductive case *)
+    destruct st; simpl; try constructor; try tauto.
+ 
+Qed.
 
-  remember (centralized_config (map snd os)) as c0 eqn:Hc0.
-  revert os sol Hc0.
-
-  induction Hsteps; intros sol os Hc0.
-  -eexists.
-constructor.
-
-  - subst c1.
- specialize (IHHsteps sol os).
- apply IHHsteps.
-Admitted.
-
-
-Lemma lower_solution_backward :
-  forall sol os st tr,
-    (exists c2' : config,
-        steps st (lower_solution_distributed sol os) tr c2') ->
-    exists c1' : config,
-        steps st (centralized_config (map snd os)) tr c1'.
-Admitted.
-Theorem lower_solution_distributed_sem_pres :
-  forall sol os,
-    sem_equiv
-      (centralized_config (map snd os))
-      (lower_solution_distributed sol os).
+Lemma match_values_refl :
+  forall s,
+    (forall l st, In (l, st) s -> exists n, ses_len l = Some n) ->
+    match_values s s.
 Proof.
-  intros sol os.
-  unfold sem_equiv.
-  intros st tr.
-  split.
-  - apply lower_solution_forward.
-  - apply lower_solution_backward.
+  intros s Hwf.
+  induction s as [| [l st] tl IH].
+  - constructor.
+  - constructor.
+    + simpl.
+      split.
+      * reflexivity.
+      * destruct (Hwf l st (or_introl eq_refl)) as [n Hn].
+        rewrite Hn.
+        apply match_value_refl.
+    + apply IH.
+      intros l' st' Hin.
+exact (Hwf l' st' (or_intror Hin)).
+
 Qed.
 
 
+(*****************************************************************)
+(* Centralized / distributed pairing                             *)
+(*****************************************************************)
 
-Lemma to_prog_forward :
-  forall sol os st tr,
-    (exists c1' : config,
-        steps st (centralized_config (map snd os)) tr c1') ->
-    exists c2' : config,
-        steps st (to_prog (distribute_op sol []) os) tr c2'.
-Admitted.
-Lemma to_prog_backward :
-  forall sol os st tr,
-    (exists c2' : config,
-        steps st (to_prog (distribute_op sol []) os) tr c2') ->
-    exists c1' : config,
-        steps st (centralized_config (map snd os)) tr c1'.
-Admitted.
-Theorem to_prog_sem_pres :
-  forall sol os,
-    sem_equiv
-      (centralized_config (map snd os))
-      (to_prog (distribute_op sol []) os).
+Definition initial_pair
+  (sol : list (((myOpAux * list nposi)%type * membrane_id)%type))
+  (os  : list ((N * myOp)%type))
+  (cseq cdist : config) : Prop :=
+  cseq = centralized_config (map snd os) /\
+  cdist = lower_solution_distributed sol os.
+
+
+
+(*****************************************************************)
+(* One-step simulation theorems                                  *)
+
+(*****************************************************************)
+Lemma lower_solution_distributed_has_new_head :
+  forall sol os x p,
+    AP (CNew x) p = ops_to_process (map snd os) ->
+    exists ctail,
+      lower_solution_distributed sol os =
+      Memb 0%nat (AP (CNew x) p) :: ctail.
+      
 Proof.
-  intros sol os.
-  unfold sem_equiv.
-  intros st tr.
-  split.
-  - apply to_prog_forward.
-  - apply to_prog_backward.
-Qed.
+Admitted.
 
-Theorem gen_prog_sem_sound :
+Lemma lower_solution_distributed_has_appu_head :
+  forall sol os a e Q,
+    AP (CAppU a e) Q = ops_to_process (map snd os) ->
+    exists ctail,
+      lower_solution_distributed sol os =
+      Memb 0%nat (AP (CAppU a e) Q) :: ctail.
+Proof.
+Admitted.
+
+Lemma lower_solution_distributed_has_meas_head :
+  forall sol os x k Q,
+    AP (CMeas x k) Q = ops_to_process (map snd os) ->
+    exists ctail,
+      lower_solution_distributed sol os =
+      Memb 0%nat (AP (CMeas x k) Q) :: ctail.
+Proof.
+Admitted.
+
+
+
+Lemma lower_solution_distributed_decomp :
+  forall sol os l p rest,
+    centralized_config (map snd os) = Memb l p :: rest ->
+    exists pre post mid,
+      lower_solution_distributed sol os =
+      pre ++ Memb mid p :: post.
+Proof.
+Admitted.
+Definition wf_qstate (s : DisQDef.qstate) : Prop :=
+  forall l st, In (l, st) s -> exists n, DisQDef.ses_len l = Some n.
+Lemma wf_qstate_mapNew :
+  forall x s,
+    wf_qstate s ->
+    wf_qstate (mapNew x s).
+Proof.
+Admitted.
+Print ses_len.
+Theorem seq_to_dist_one_step :
+  forall (rmax:nat) Γ s sol os lab s1 c1,
+    wf_qstate s ->
+    wf_config (centralized_config (map snd os)) ->
+    wf_config (lower_solution_distributed sol os) ->
+    step (rmax:=rmax) Γ s (centralized_config (map snd os)) lab s1 c1 ->
+    exists s2 c2,
+      step (rmax:=rmax) Γ s (lower_solution_distributed sol os) lab s2 c2 /\
+      match_values s1 s2.
+Proof.
+  intros rmax Γ s sol os lab s1 c1 Hwf_qs Hwf_seq Hwf_dist Hstep.
+  inversion Hstep; subst.
+  - (* qubit_create *)
+    destruct (lower_solution_distributed_has_new_head sol os x p H3) as [ctail Hhd].
+    exists (mapNew x s).
+    exists (Memb 0%nat p :: ctail).
+    split.
+    + rewrite Hhd. apply qubit_create.
+    + apply match_values_refl.
+      apply wf_qstate_mapNew.
+      exact Hwf_qs.
+
+- (* op_step *)
+  destruct (lower_solution_distributed_has_appu_head sol os a e Q H3)
+    as [ctail Hhd].
+  exists ((a ++ l, Cval m ba) :: s0).
+  exists (Memb 0%nat Q :: ctail).
+  split.
+  + rewrite Hhd.
+    apply op_step.
+    exact H7.
+  + apply match_values_refl.
+  intros l0 st Hin.
+  destruct Hin as [Hin | Hin].
+  * inversion Hin; subst.
+    destruct (Hwf_qs (a ++ l) (Cval m b) (or_introl eq_refl)) as [n Hn].
+    exists n.
+    exact Hn.
+  * exact (Hwf_qs l0 st (or_intror Hin)).
+ - (* mea_pstep *)
+  destruct (lower_solution_distributed_has_meas_head
+              sol os x [(a, (0%nat, n))] Q H0)
+    as [ctail Hhd].
+  exists ((l, va') :: s0).
+  exists (Memb 0%nat (subst_pexp Q x v) :: ctail).
+  split.
+  + rewrite Hhd.
+    eapply mea_pstep with (a := a) (n := n) (lc := lc) (v := v) (va := va).
+    * exact H2.
+    * exact H5.
+    * reflexivity.
+    * exact H10.
+  + apply match_values_refl.
+    intros l0 st Hin.
+    destruct Hin as [Hin | Hin].
+    * inversion Hin; subst.
+destruct (Hwf_qs (((a, (0%nat, n)) :: l0)) va (or_introl eq_refl)) as [n0 Hn0].
+simpl in Hn0.
+destruct (ses_len l0) eqn:Htail.
+eexists.
+unfold ses_len in Hn0.
+simpl in Hn0.
+reflexivity.
+exfalso.
+unfold ses_len in Htail.
+destruct (get_core_ses l0) eqn:Hcore.
+simpl in Htail.
+  discriminate Htail.
+simpl in Hn0.
+unfold ses_len in Hn0.
+simpl in Hn0.
+rewrite Hcore in Hn0.
+simpl in Hn0.
+discriminate Hn0.
+* exact (Hwf_qs l0 st (or_intror Hin)).
+
+
+
+Admitted.
+
+Theorem dist_to_seq_one_step :
+  forall (rmax:nat) Γ s sol os lab s2 c2,
+    wf_config (centralized_config (map snd os)) ->
+    wf_config (lower_solution_distributed sol os) ->
+    step (rmax:=rmax) Γ s (lower_solution_distributed sol os) lab s2 c2 ->
+    exists s1 c1,
+      step (rmax:=rmax) Γ s (centralized_config (map snd os)) lab s1 c1 /\
+      match_values s1 s2.
+Proof.
+Admitted.
+
+(*****************************************************************)
+(* n-step simulation theorems                                    *)
+(*****************************************************************)
+
+Theorem seq_to_dist_n_steps :
+  forall (rmax:nat) Γ s sol os tr s1 c1,
+    wf_config (centralized_config (map snd os)) ->
+    wf_config (lower_solution_distributed sol os) ->
+    step_star (rmax:=rmax) Γ s (centralized_config (map snd os)) tr s1 c1 ->
+    exists s2 c2,
+      step_star (rmax:=rmax) Γ s (lower_solution_distributed sol os) tr s2 c2 /\
+      match_values s1 s2.
+Proof.
+Admitted.
+
+Theorem dist_to_seq_n_steps :
+  forall (rmax:nat) Γ s sol os tr s2 c2,
+    wf_config (centralized_config (map snd os)) ->
+    wf_config (lower_solution_distributed sol os) ->
+    step_star (rmax:=rmax) Γ s (lower_solution_distributed sol os) tr s2 c2 ->
+    exists s1 c1,
+      step_star (rmax:=rmax) Γ s (centralized_config (map snd os)) tr s1 c1 /\
+      match_values s1 s2.
+Proof.
+Admitted.
+
+(*****************************************************************)
+(* Semantic soundness for generated programs                     *)
+(*****************************************************************)
+
+Theorem gen_prog_semantic_sound :
   forall mem os cfg,
     In cfg (gen_prog mem os) ->
-    sem_equiv (centralized_config (map snd os)) cfg.
+    sem_equiv_state_bi (centralized_config (map snd os)) cfg.
 Proof.
-  induction mem as [|sol tl IHtl]; intros os cfg HIn.
-  - simpl in HIn.
-  destruct (has_if_ops os) eqn:Hif;
-simpl in HIn;
-destruct HIn.
-  - simpl in HIn.
-    destruct (has_if_ops os) eqn:Hif.
-    + destruct HIn as [Hcfg | Hrest].
-subst cfg.
-  apply to_prog_sem_pres.
-apply IHtl.
-  exact Hrest.
-
-    + 
-      simpl in HIn.
-      destruct HIn as [Hcfg | Hrest].
-      * subst cfg.
-        apply lower_solution_distributed_sem_pres.
-      * apply IHtl.
-        exact Hrest.
-Qed.
+Admitted.
 
 
-
-Lemma opListOrder'_snd :
-  forall l n,
-    map snd (opListOrder' l n) = l.
-Proof.
-  induction l as [|x xs IH]; intros n; simpl.
-  - reflexivity.
-  - rewrite IH. reflexivity.
-Qed.
-
-
-Lemma opListOrder_snd :
-  forall ops,
-    map snd (opListOrder ops) = ops.
-Proof.
-  intros ops.
-  unfold opListOrder.
-  apply opListOrder'_snd.
-Qed.
-
+(*****************************************************************)
+(* Top-level semantic correctness theorems                       *)
+(*****************************************************************)
 
 Theorem autodisq_all_semantic_sound :
   forall ops mids cfg,
     In cfg (autodisq_all ops mids) ->
-    sem_equiv (centralized_config ops) cfg.
+    sem_equiv_state_bi (centralized_config ops) cfg.
 Proof.
   intros ops mids cfg HIn.
   unfold autodisq_all in HIn.
   set (os := opListOrder ops) in *.
-  set (hb := gen_hb os) in *.
-  set (sq := gen_seq os hb) in *.
-  destruct (has_if_ops os) eqn:Hif; simpl in HIn.
-  - assert (Hos_ops : map snd os = ops).
-    { subst os. apply opListOrder_snd. }
-    rewrite <- Hos_ops.
-    eapply gen_prog_sem_sound; eauto.
-  - assert (Hos_ops : map snd os = ops).
-    { subst os. apply opListOrder_snd. }
-    rewrite <- Hos_ops.
-    eapply gen_prog_sem_sound; eauto.
+  assert (Hos : map snd os = ops).
+  { subst os. apply map_snd_opListOrder. }
+  rewrite <- Hos.
+  eapply gen_prog_semantic_sound.
+  exact HIn.
 Qed.
 
 Theorem autodisq_best_semantic_sound :
   forall ops mids cfg,
     autodisq_best ops mids = Some cfg ->
-    sem_equiv (centralized_config ops) cfg.
+    sem_equiv_state_bi (centralized_config ops) cfg.
 Proof.
   intros ops mids cfg Hbest.
   unfold autodisq_best in Hbest.
@@ -1796,11 +1708,10 @@ Proof.
   exact Hbp.
 Qed.
 
-
 Theorem AutoDisQ_Semantic_Correctness :
   forall ops mids cfg,
     autodisq_best ops mids = Some cfg ->
-    sem_equiv (centralized_config ops) cfg.
+    sem_equiv_state_bi (centralized_config ops) cfg.
 Proof.
   intros ops mids cfg Hbest.
   eapply autodisq_best_semantic_sound.
@@ -1810,7 +1721,7 @@ Qed.
 Theorem AutoDisQ_Main_Correctness_Observed :
   forall ops mids cfg,
     autodisq_best ops mids = Some cfg ->
-    sem_equiv (centralized_config ops) cfg /\
+    sem_equiv_state_bi (centralized_config ops) cfg /\
     forall cfg',
       In cfg' (autodisq_all ops mids) ->
       (fit cfg <= fit cfg')%nat.
@@ -1825,46 +1736,6 @@ Proof.
     + exact Hbest.
     + exact Hin.
 Qed.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
