@@ -194,6 +194,7 @@ Compute autodisq_best_1 QFT8_prog [0;1].
 Definition qft16_n  : nat := 16.
 Definition qft16_q0 : var := 0.
 Definition qft16_qubits : list var := List.seq qft16_q0 qft16_n.
+
 Definition qft16_outs   : list var := List.seq 700 qft16_n.
 
 Definition QFT16_prog : op_list :=
@@ -532,8 +533,72 @@ Compute autodisq_best GROVER32_prog [0;1].
 Compute autodisq_best_1 GROVER32_prog [0;1].
 *)
 *)
+(* ===================================== *)
+(* Ripple-Carry Adder *)
+(* ===================================== *)
+
+(* Performs MAJ and UMA operations on x_0 (carry in bit), t_0, and y_0*)
+Definition MAJ_zero (i : nat) (a b c : var) : op_list :=
+  [ OpAP (CAppU ([(b,(i,1)); (c,(i,1))]) (CU c (Num i) (X b (Num i))));
+    OpAP (CAppU ([(a,(i,1)); (c,(i,1))]) (CU c (Num i) (X a (Num i))));
+    OpAP (CAppU ([(c,(i,1)); (b,(i,1)); (a,(i,1))]) (CU a (Num i) (CU b (Num i) (X c (Num i)))))
+  ].
+
+Definition UMA_zero (i : nat) (a b c : var) : op_list :=
+  [ OpAP (CAppU ([(c,(i,1)); (b,(i,1)); (a,(i,1))]) (CU a (Num i) (CU b (Num i) (X c (Num i)))));
+    OpAP (CAppU ([(a,(i,1)); (c,(i,1))]) (CU c (Num i) (X a (Num i))));
+    OpAP (CAppU ([(b,(i,1)); (a,(i,1))]) (CU a (Num i) (X b (Num i))))
+  ].
+
+(* Performs MAJ and UMA operations on a_i, b_i, a_i+1*)
+Definition MAJ_at (i : nat) (a b : var) : op_list :=
+  [ OpAP (CAppU ([(b,(i,i+1)); (a,(i+1,i+2))]) (CU a (Num (i+1)) (X b (Num i))));
+    OpAP (CAppU ([(a,(i,i+1)); (a,(i+1,i+2))]) (CU a (Num (i+1)) (X a (Num i))));
+    OpAP (CAppU ([(a,(i+1,i+2)); (b,(i,1)); (a,(i,1))]) (CU a (Num i) (CU b (Num i) (X a (Num (i+1))))))
+  ].
+
+Definition UMA_at (i : nat) (a b : var) : op_list :=
+  [ OpAP (CAppU ([(a,(i+1,i+2)); (b,(i,i+1)); (a,(i,i+1))]) (CU a (Num i) (CU b (Num i) (X a (Num (i+1))))));
+    OpAP (CAppU ([(a,(i,i+1)); (a,(i+1,a+2))]) (CU a (Num (i+1)) (X a (Num i))));
+    OpAP (CAppU ([(b,(i,i+1)); (a,(i,i+1))]) (CU a (Num i) (X b (Num i))))
+  ].
+
+ (* Recursive function applying MAJ gates to t and y (and carry in bit)*) 
+Fixpoint MAJseq (k : nat) (t y x : var) : op_list :=
+  match k with
+  | 0 => MAJ_zero 0 x y t
+  | S m => MAJseq m t y x ++ MAJ_at (S m) t y
+  end.
+
+(* Recursive function applying UMA gates to t and y (and carry in bit)*) 
+Fixpoint UMAseq (k : nat) (t y x : var) : op_list :=
+  match k with
+  | 0 => UMA_zero 0 x y t
+  | S m => UMA_at (S m) t y ++ UMAseq m t y x
+  end.
+
+(* Size of qubit arrays - can adjust this*)
+Definition n: nat := 2.
+
+(* varibale names *)
+Definition t : var := 0.
+Definition y : var := 1.
+Definition x : var := 3.
+Definition z : var := 4.
 
 
+Definition rippleCarrySeq : op_list :=
+  [ OpAP (CNew (t, (0, n)));
+    OpAP (CNew (y, (0, n)));
+    OpAP (CNew (x, (0, 2)))
+  ] ++
+  MAJseq n t y x ++
+  [OpAP (CAppU ([(t,(n-1,n));(x,(1,2))]) (CU t (Num (n-1)) (X x (Num 1))))]
+  ++ UMAseq n t y x.
+
+(*Compute autodisq_best rippleCarrySeq [0;1].*)
+
+(*
 (* ===================================== *)
 (* Ripple-Carry Adder *)
 (* ===================================== *)
@@ -590,7 +655,7 @@ Definition rippleCarrySeq : op_list :=
   MAJseq n t y x ++
   UMAseq n t y x.
 
-(*Compute autodisq_best rippleCarrySeq [0;1].*)
+Compute autodisq_best rippleCarrySeq [0;1].*)
 
 
 (* ===================================== *)
