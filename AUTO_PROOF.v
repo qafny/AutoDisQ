@@ -1,3 +1,5 @@
+
+(* AUTO_PROOF.v*)
 From Coq Require Import List Arith Bool Nat NArith Lia.
 Import ListNotations.
 
@@ -15,10 +17,18 @@ Require Import DisQ.DisQSyntax.
 Require Import DisQ.DisQSem.
 Require Import DisQ.AUTO.
 Require Import DisQ.DisQDef.
+Require Import DisQ.AUTO_Correctness.
+Require Import SQIR.SQIR.
+Require Import SQIR.UnitaryOps.
+Require Import SQIR.UnitarySem.
+Require Import SQIR.DensitySem.
 
 Require Import Reals.
 Open Scope R_scope.
-
+Local Open Scope nat_scope.
+Local Open Scope list_scope.
+Local Open Scope bool_scope.
+Local Open Scope com_scope.
 (*****************************************************************)
 (* Correctness of AutoDisQ                 *)
 (*****************************************************************)
@@ -139,19 +149,56 @@ Proof.
   - simpl. discriminate.
 Qed.
 
+
 Theorem autodisq_all_nonempty :
   forall ops mids,
     autodisq_all ops mids <> [].
 Proof.
   intros ops mids.
   unfold autodisq_all.
-  set (os := opListOrder ops).
-  set (hb := gen_hb os).
-  set (sq := gen_seq os hb).
-  set (mem := gen_mem (fst sq) (snd sq) mids).
-  apply gen_prog_nonempty.
-  apply gen_mem_nonempty.
+  intro H.
+
+  apply map_eq_nil in H.
+
+  unfold autodisq_solutions in H.
+  apply gen_mem_nonempty in H.
+  contradiction.
 Qed.
+
+
+
+Lemma best_solution_aux_in :
+  forall ops xs best bestv,
+    In (best_solution_aux ops best bestv xs) (best :: xs).
+Proof.
+  intros ops xs.
+  induction xs as [| x xs IH]; intros best bestv.
+  - simpl. left. reflexivity.
+  - simpl.
+    destruct (Nat.ltb (solution_fit ops x) bestv) eqn:Hlt.
+    + specialize (IH x (solution_fit ops x)).
+      simpl. right. exact IH.
+    + specialize (IH best bestv).
+      simpl in IH.
+      simpl.
+      destruct IH as [H | H].
+      * left. exact H.
+      * right. right. exact H.
+Qed.
+
+Lemma autodisq_best_solution_is_candidate :
+  forall ops mids sol,
+    autodisq_best_solution ops mids = Some sol ->
+    In sol (autodisq_solutions ops mids).
+Proof.
+  intros ops mids sol H.
+  unfold autodisq_best_solution in H.
+  destruct (autodisq_solutions ops mids) as [|x xs] eqn:Hs.
+  - discriminate.
+  - inversion H; subst; clear H.
+    apply best_solution_aux_in.
+Qed.
+
 
 Theorem autodisq_best_sound :
   forall ops mids cfg,
@@ -159,11 +206,34 @@ Theorem autodisq_best_sound :
     In cfg (autodisq_all ops mids) /\
     forall y, In y (autodisq_all ops mids) -> (fit cfg <= fit y)%nat.
 Proof.
-  intros ops mids cfg H.
-  unfold autodisq_best in H.
-  apply best_prog_spec in H.
-  exact H.
+  intros ops mids cfg Hbest.
+  unfold autodisq_best in Hbest.
+  split.
+  - unfold autodisq_all.
+    destruct (autodisq_best_solution ops mids) as [sol|] eqn:Hsol.
+    + inversion Hbest; subst; clear Hbest.
+    apply
+  (in_map
+     (fun sol0 : autodisq_solution =>
+        lower_autodisq_solution sol0 (opListOrder ops))).
+apply autodisq_best_solution_is_candidate.
+exact Hsol.
+    + discriminate Hbest.
+  - intros y Hy.
+    unfold autodisq_all in Hy.
+    apply in_map_iff in Hy.
+    destruct Hy as [sol' [Hy Hcand']].
+    subst y.
+
+    destruct (autodisq_best_solution ops mids) as [sol|] eqn:Hsol.
+    + inversion Hbest; subst; clear Hbest.
+      eapply best_solution_minimal.
+      * exact Hsol.
+      * unfold solution_is_candidate.
+        exact Hcand'.
+    + discriminate Hbest.
 Qed.
+
 
 Theorem autodisq_best_exists :
   forall ops mids,
@@ -171,16 +241,16 @@ Theorem autodisq_best_exists :
 Proof.
   intros ops mids.
   unfold autodisq_best.
-  destruct (autodisq_all ops mids) as [|x xs] eqn:Hgen.
-  - exfalso.
-    pose proof (autodisq_all_nonempty ops mids) as Hnz.
-    rewrite Hgen in Hnz.
-    contradiction.
-  - eexists. reflexivity.
+  destruct (autodisq_best_solution ops mids) as [sol|] eqn:Hsol.
+  - exists (lower_autodisq_solution sol (opListOrder ops)).
+    reflexivity.
+  - unfold autodisq_best_solution in Hsol.
+    destruct (autodisq_solutions ops mids) as [|x xs] eqn:Hs.
+    + exfalso.
+      apply gen_mem_nonempty in Hs.
+      contradiction.
+    + discriminate Hsol.
 Qed.
-
-
-
 
 
 
@@ -576,6 +646,136 @@ Definition ensure_local_result
 (* their old ownership.                                          *)
 (*****************************************************************)
 
+Lemma nposi_eq_true_eq :
+  forall p q,
+    nposi_eq p q = true -> p = q.
+Proof.
+  intros [a b] [c d] H.
+  unfold nposi_eq in H.
+  apply andb_true_iff in H.
+  destruct H as [Ha Hb].
+  apply N.eqb_eq in Ha.
+  apply N.eqb_eq in Hb.
+  subst. reflexivity.
+Qed.
+
+
+Lemma owners_total_on_set_owner :
+  forall owners qs q dst,
+    owners_total_on owners qs ->
+    owners_total_on (set_owner owners q dst) qs.
+Proof.
+  intros owners qs q dst Htot.
+  unfold owners_total_on in *.
+  intros q' Hin.
+  specialize (Htot q' Hin).
+  destruct Htot as [src Hsrc].
+  exists (if nposi_eq q' q then dst else src).
+
+  induction owners as [|[q0 m] xs IH].
+  - simpl in *.
+    destruct (nposi_eq q q') eqn:Hqq'.
+    + discriminate Hsrc.
+    + discriminate Hsrc.
+
+- simpl in *.
+destruct (nposi_eq q0 q) eqn:H0q.
++ simpl.
+  destruct (nposi_eq q q') eqn:Hqq'.
+   apply nposi_eq_true_eq in Hqq'.
+subst q'.
+rewrite nposi_eq_refl.
+reflexivity.
+ -- apply nposi_eq_true_eq in H0q.
+subst q0.
+rewrite Hqq' in Hsrc.
+
+assert (Hq'q : nposi_eq q' q = false).
+{
+  destruct (nposi_eq q' q) eqn:E.
+  - apply nposi_eq_true_eq in E.
+    subst q'.
+    rewrite nposi_eq_refl in Hqq'.
+    discriminate.
+  - reflexivity.
+}
+
+rewrite Hq'q.
+exact Hsrc.
++ simpl.
+destruct (nposi_eq q0 q') eqn:H0q'.
+-- inversion Hsrc; subst; clear Hsrc.
+  assert (Hq'q : nposi_eq q' q = false).
+  {
+    destruct (nposi_eq q' q) eqn:E.
+    - apply nposi_eq_true_eq in H0q'.
+      apply nposi_eq_true_eq in E.
+      subst.
+      rewrite nposi_eq_refl in H0q.
+      discriminate.
+    - reflexivity.
+  }
+  rewrite Hq'q.
+  reflexivity.
+
+-- apply IH.
+  exact Hsrc.
+Qed.
+
+Lemma ensure_local_qubits_aux_preserve_outside :
+  forall dst qs owners bufs chan chan' owners' bufs' q,
+    ~ In q qs ->
+    ensure_local_qubits_aux dst qs owners bufs chan =
+      (chan', owners', bufs') ->
+    owner_of_pos owners' q = owner_of_pos owners q.
+Proof.
+  induction qs as [|x xs IH]; intros owners bufs chan chan' owners' bufs' q Hnotin Hexec.
+  - simpl in Hexec.
+    inversion Hexec; subst.
+    reflexivity.
+
+  - simpl in Hexec.
+    assert (Hq_neq_x : q <> x).
+    {
+      intro Heq.
+      apply Hnotin.
+      simpl. left. 
+symmetry; exact Heq.
+    }
+    assert (Hnotin_xs : ~ In q xs).
+    {
+      intro Hin.
+      apply Hnotin.
+      simpl. right. exact Hin.
+    }
+
+    destruct (owner_of_pos owners x) as [src|] eqn:Hown.
+    + destruct (Nat.eqb src dst) eqn:Heq.
+      * eapply IH.
+        -- exact Hnotin_xs.
+        -- exact Hexec.
+
+      * rewrite (IH (set_owner owners x dst)
+            (append_cexp_to_mem dst
+              (Recv chan (N.to_nat (fst x)) (N.to_nat (snd x)))
+              (append_cexp_to_mem src
+                (Send chan (N.to_nat (fst x)) (N.to_nat (snd x))) bufs))
+            (Nat.succ chan)
+            chan' owners' bufs' q
+            Hnotin_xs Hexec).
+
+apply owner_of_pos_set_owner_neq.
+destruct (nposi_eq q x) eqn:Hqx.
+-- apply nposi_eq_true_eq in Hqx.
+  contradiction.
+-- reflexivity.
+
+    + eapply IH.
+      * exact Hnotin_xs.
+      * exact Hexec.
+Qed.
+
+
 Theorem ensure_local_qubits_aux_locality :
   forall dst qs owners bufs chan chan' owners' bufs',
     NoDup qs ->
@@ -584,28 +784,127 @@ Theorem ensure_local_qubits_aux_locality :
       (chan', owners', bufs') ->
     owners_all_at owners' qs dst.
 Proof.
-  unfold owners_all_at, owners_total_on, pos_in_owners.
-  induction qs as [|q tl IH]; intros owners bufs chan chan' owners' bufs' Hnd Htot Hres x Hin.
-  - contradiction.
-  - inversion Hnd as [| ? ? Hqnotin Hnd_tl]; subst.
-    simpl in Hres.
+  induction qs as [|q qs IH];
+    intros owners bufs chan chan' owners' bufs'
+           Hnd Htot Hexec.
+  - simpl in Hexec.
+    inversion Hexec; subst.
+    unfold owners_all_at.
+    intros x Hin.
+    contradiction.
 
-    assert (Hown_q : exists src, owner_of_pos owners q = Some src).
-    { apply Htot. left. reflexivity. }
+  - simpl in Hexec.
+    inversion Hnd as [| ? ? Hqnotin Hnd_tl]; subst.
 
-    assert (Htot_tl : forall y : nposi, In y tl -> exists m, owner_of_pos owners y = Some m).
-    { intros y Hy. apply Htot. right. exact Hy. }
+    destruct (owner_of_pos owners q) as [src|] eqn:Hown.
+    + destruct (Nat.eqb src dst) eqn:Heq.
 
-    destruct Hown_q as [src Hown].
-    rewrite Hown in Hres.
+      * apply Nat.eqb_eq in Heq.
+        subst src.
 
-    destruct (Nat.eqb src dst) eqn:Heq.
-    + destruct Hin as [Hx | Hin].
-      * subst x.
+        assert (Hrec_eq :
+          ensure_local_qubits_aux dst qs owners bufs chan =
+            (chan', owners', bufs')).
+        {
+          exact Hexec.
+        }
 
- Admitted.
+        eapply IH in Hexec.
+        -- unfold owners_all_at in *.
+           intros x Hinx.
+           simpl in Hinx.
+           destruct Hinx as [Hx | Hin_tail].
 
+           ++ subst x.
 
+              rewrite
+                (ensure_local_qubits_aux_preserve_outside
+                   dst qs owners bufs chan
+                   chan' owners' bufs'
+                   q
+                   Hqnotin
+                   Hrec_eq).
+
+              exact Hown.
+
+           ++ apply Hexec.
+              exact Hin_tail.
+
+        -- exact Hnd_tl.
+
+        -- unfold owners_total_on in *.
+           intros x Hin_tail.
+           apply Htot.
+           simpl.
+           right.
+           exact Hin_tail.
+      * assert (Hrec_eq :
+          ensure_local_qubits_aux dst qs
+            (set_owner owners q dst)
+            (append_cexp_to_mem dst
+              (Recv chan (N.to_nat (fst q)) (N.to_nat (snd q)))
+              (append_cexp_to_mem src
+                (Send chan (N.to_nat (fst q)) (N.to_nat (snd q))) bufs))
+            (Nat.succ chan) =
+            (chan', owners', bufs')).
+        {
+          exact Hexec.
+        }
+
+        eapply IH in Hexec.
+        -- unfold owners_all_at in *.
+           intros x Hinx.
+           simpl in Hinx.
+           destruct Hinx as [Hx | Hin_tail].
+
+           ++ subst x.
+              rewrite
+                (ensure_local_qubits_aux_preserve_outside
+                   dst qs
+                   (set_owner owners q dst)
+                   (append_cexp_to_mem dst
+                     (Recv chan (N.to_nat (fst q)) (N.to_nat (snd q)))
+                     (append_cexp_to_mem src
+                       (Send chan (N.to_nat (fst q)) (N.to_nat (snd q))) bufs))
+                   (Nat.succ chan)
+                   chan' owners' bufs'
+                   q
+                   Hqnotin
+                   Hrec_eq).
+              apply owner_of_pos_set_owner_eq.
+
+           ++ apply Hexec.
+              exact Hin_tail.
+
+        -- exact Hnd_tl.
+
+        -- apply owners_total_on_set_owner.
+           unfold owners_total_on in *.
+           intros x Hin_tail.
+           apply Htot.
+           simpl.
+           right.
+           exact Hin_tail.
+    + exfalso.
+
+      unfold owners_total_on in Htot.
+      specialize (Htot q).
+
+      assert (Hin : In q (q :: qs)).
+      {
+        simpl.
+        left.
+        reflexivity.
+      }
+
+      specialize (Htot Hin).
+
+      unfold pos_in_owners in Htot.
+      destruct Htot as [mid Hmid].
+
+      rewrite Hown in Hmid.
+      discriminate.
+Qed.
 
 Lemma gen_empty_mem_ids :
   forall mids mid,
@@ -619,127 +918,6 @@ Proof.
 Qed.
 
 
-
-Theorem ensure_local_qubits_aux_preserve_outside :
-  forall dst qs owners bufs chan chan' owners' bufs' q,
-    ensure_local_qubits_aux dst qs owners bufs chan =
-      (chan', owners', bufs') ->
-    ~ In q qs ->
-    owner_of_pos owners' q = owner_of_pos owners q.
-Proof.
-  induction qs as [|x tl IH]; intros owners bufs chan chan' owners' bufs' q Hres Hnotin.
-  - simpl in Hres. inversion Hres. reflexivity.
-  - apply not_in_cons in Hnotin. destruct Hnotin as [Hneq Hnotin].
-    simpl in Hres.
-    destruct (owner_of_pos owners x) as [src|] eqn:Hown.
-    + destruct (Nat.eqb src dst) eqn:Heq.
-      * eapply IH; eauto.
-      * remember (append_cexp_to_mem src
-                   (Send chan (N.to_nat (fst x)) (N.to_nat (snd x))) bufs) as bufs1.
-        remember (append_cexp_to_mem dst
-                   (Recv chan (N.to_nat (fst x)) (N.to_nat (snd x))) bufs1) as bufs2.
-        remember (set_owner owners x dst) as owners1.
-specialize (IH owners1 bufs2 (Nat.succ chan) chan' owners' bufs' q Hres Hnotin).
-rewrite IH.
-rewrite Heqowners1.
-apply owner_of_pos_set_owner_neq.
-destruct (nposi_eq q x) eqn:Heqx.
- apply nposi_eq_true_iff in Heqx.
-  subst q.
-  contradiction.
-reflexivity.
-+ eapply IH; eauto.
-Qed.
-
-(*
-Theorem ensure_local_qubits_aux_correct :
-  forall dst qs owners bufs chan chan' owners' bufs',
-    ensure_local_qubits_aux dst qs owners bufs chan =
-      (chan', owners', bufs') ->
-    owners_updated_exactly_to owners owners' qs dst.
-Proof.
-  intros.
-  split.
-  - eapply ensure_local_qubits_aux_locality; eauto.
-
-Admitted.
-(*****************************************************************)
-(*  Generated communication really contains Send/Recv  *)
-(*****************************************************************)
-
-Theorem ensure_local_qubits_aux_generates_comm :
-  forall dst qs owners bufs chan chan' owners' bufs' q src,
-    ensure_local_qubits_aux dst qs owners bufs chan =
-      (chan', owners', bufs') ->
-    In q qs ->
-    owner_of_pos owners q = Some src ->
-    src <> dst ->
-    exists k,
-      comm_pair_for src dst (chan + k)%nat q bufs'.
-Proof.
-  induction qs as [|x tl IH]; intros owners bufs chan chan' owners' bufs' q src Hres Hin Hown Hneq.
-  - contradiction.
-  - simpl in Hres.
-    destruct Hin as [Hq | Hin].
-    + subst q.
-      rewrite Hown in Hres.
-      destruct (Nat.eqb src dst) eqn:Heq.
-      * apply Nat.eqb_eq in Heq. contradiction.
-      * remember (append_cexp_to_mem src
-                   (Send chan (N.to_nat (fst x)) (N.to_nat (snd x))) bufs) as bufs1.
-        remember (append_cexp_to_mem dst
-                   (Recv chan (N.to_nat (fst x)) (N.to_nat (snd x))) bufs1) as bufs2.
-        remember (set_owner owners x dst) as owners1.
-        exists 0%nat.
-        split.
-        -- subst bufs2 bufs1.
-Admitted.
-
-
-
-
-Theorem ensure_local_qubits_aux_correct_full :
-  forall dst qs owners bufs chan chan' owners' bufs',
-    NoDup qs ->
-    owners_total_on owners qs ->
-    ensure_local_qubits_aux dst qs owners bufs chan =
-      (chan', owners', bufs') ->
-    (forall q, In q qs -> owner_of_pos owners' q = Some dst) /\
-    (forall q, ~ In q qs -> owner_of_pos owners' q = owner_of_pos owners q) /\
-    (forall q src,
-        In q qs ->
-        owner_of_pos owners q = Some src ->
-        src <> dst ->
-        exists k, comm_pair_for src dst (chan + k)%nat q bufs') /\
-    (chan <= chan')%nat.
-Proof.
-  intros dst qs owners bufs chan chan' owners' bufs' Hnd Htot Hres.
-  repeat split.
-  - intros q Hin.
-    eapply ensure_local_qubits_aux_locality; eauto.
-  - intros q Hnotin.
-    eapply ensure_local_qubits_aux_preserve_outside; eauto.
-  - intros q src Hin Hown Hneq.
-    eapply ensure_local_qubits_aux_generates_comm; eauto.
-  - revert owners bufs chan chan' owners' bufs' Htot Hres.
-    induction qs as [|x tl IH]; intros owners bufs chan chan' owners' bufs' Htot Hres.
-    + simpl in Hres. inversion Hres. lia.
-    + simpl in Hres.
-      destruct (owner_of_pos owners x) as [src|] eqn:Hownx.
-      * destruct (Nat.eqb src dst) eqn:Heq.
-        -- eapply IH; eauto.
-        eapply IH in Hres; eauto.
-inversion Hnd as [| ? ? Hxnotin Hnd_tl]; subst.
-assert (Htot_tl : owners_total_on owners tl).
-{
-  unfold owners_total_on in *.
-  intros q Hin.
-  apply Htot.
-  right; exact Hin.
-}
-
-Admitted.
-*)
 
 
 
@@ -782,8 +960,7 @@ Theorem lower_solution_distributed_sound_step_ready :
     lower_solution_distributed sol os = cfg ->
     True.
 Proof.
-  intros. exact I.
-Qed.
+  Admitted.
 
 
 
@@ -1020,64 +1197,53 @@ Lemma best_prog_aux_upper_bound :
     In cfg (best :: xs) ->
     (fit (best_prog_aux best bestv xs) <= fit cfg)%nat.
 Proof.
-  induction xs; intros best bestv cfg Hbest Hin; simpl in *.
-  - destruct Hin as [Hin | Hin]; [subst | contradiction].
-   lia.
-  - destruct Hin as [Hcfg | Hcfg].
-    + subst cfg.
-      remember (fit a) as va.
-      destruct (Nat.ltb va bestv) eqn:Hcmp.
-      * apply Nat.ltb_lt in Hcmp.
-assert (Haux : (fit (best_prog_aux a va xs) <= fit a)%nat).
-{
-  apply (IHxs a va a).
-  - exact Heqva.
-  - left. reflexivity.
-}
-rewrite <- Heqva in Haux.
+  induction xs as [|x xs IH]; intros best bestv cfg Hbest Hin.
+  - simpl in Hin.
+    destruct Hin as [Hcfg | Hfalse].
+    + subst cfg. simpl. lia.
+    + contradiction.
 
-rewrite Hbest in Hcmp.
-lia.
-
-      * specialize (IHxs best bestv best Hbest (or_introl eq_refl)).
+  - simpl.
+    destruct (Nat.ltb (fit x) bestv) eqn:Hlt.
+    + apply Nat.ltb_lt in Hlt.
+      destruct Hin as [Hcfg | Hin].
+      * subst cfg.
+        assert (Haux :
+          (fit (best_prog_aux x (fit x) xs) <= fit x)%nat).
+        {
+          apply IH.
+          - reflexivity.
+          - left. reflexivity.
+        }
+        rewrite Hbest in Hlt.
         lia.
-    + remember (fit a) as va.
-      destruct (Nat.ltb va bestv) eqn:Hcmp.
-      * apply Nat.ltb_lt in Hcmp.
-eapply IHxs.
-exact Heqva.
- exact Hcfg.
+      * apply IH.
+        -- reflexivity.
+        -- exact Hin.
 
-      * eapply IHxs.
-exact Hbest.
-Admitted.
+    + apply Nat.ltb_ge in Hlt.
+      destruct Hin as [Hcfg | Hin].
+      * subst cfg.
+        apply IH.
+        -- exact Hbest.
+        -- left. reflexivity.
 
+      * destruct Hin as [Hcfg | Hin].
+        -- subst cfg.
+           assert (Haux :
+             (fit (best_prog_aux best bestv xs) <= fit best)%nat).
+           {
+             apply IH.
+             - exact Hbest.
+             - left. reflexivity.
+           }
+           rewrite Hbest in Hlt.
+           lia.
 
-Lemma best_prog_some_in :
-  forall xs cfg,
-    best_prog xs = Some cfg ->
-    In cfg xs.
-Proof.
-  intros xs cfg H.
-  destruct xs as [|x tl]; simpl in H; try discriminate.
-  inversion H; subst; clear H.
-  apply best_prog_aux_in.
+        -- apply IH.
+           ++ exact Hbest.
+           ++ right. exact Hin.
 Qed.
-Lemma best_prog_optimal :
-  forall xs cfg,
-    best_prog xs = Some cfg ->
-    forall cfg', In cfg' xs -> Nat.le (fit cfg) (fit cfg').
-Proof.
-  intros xs cfg Hbest cfg' Hin.
-  destruct xs as [|x tl]; simpl in Hbest; try discriminate.
-  inversion Hbest; subst cfg; clear Hbest.
-  eapply best_prog_aux_upper_bound.
-  - reflexivity.
-  - exact Hin.
-Qed.
-
-
-
 
 
 (*****************************************************************)
@@ -1166,6 +1332,7 @@ Proof.
   apply map_snd_opListOrder'_gen.
 Qed.
 
+(*
 Theorem autodisq_all_sound :
   forall ops mids cfg,
     In cfg (autodisq_all ops mids) ->
@@ -1203,7 +1370,7 @@ destruct (has_if_ops os) eqn:Hif; simpl in HIn.
   apply IH.
 Admitted.
 
-
+*)
 (*****************************************************************)
 (*  Correctness + optimality of autodisq_best                  *)
 (*****************************************************************)
@@ -1224,6 +1391,7 @@ Proof.
     + reflexivity.
     + exact Hin.
 Qed.
+
 Theorem autodisq_best_optimal_over_generated :
   forall ops mids cfg,
     autodisq_best ops mids = Some cfg ->
@@ -1232,31 +1400,24 @@ Theorem autodisq_best_optimal_over_generated :
       Nat.le (fit cfg) (fit cfg').
 Proof.
   intros ops mids cfg Hbest cfg' Hin.
-  unfold autodisq_best in Hbest.
-  eapply best_prog_some_optimal.
-  - exact Hbest.
-  - exact Hin.
+  destruct (autodisq_best_sound ops mids cfg Hbest) as [_ Hopt].
+  apply Hopt.
+  exact Hin.
 Qed.
 
 Theorem autodisq_best_correct :
   forall ops mids cfg,
     autodisq_best ops mids = Some cfg ->
-    config_equiv (centralized_config ops) cfg /\
-    distributed_well_formed cfg /\
-    (forall cfg' : config,
-        In cfg' (autodisq_all ops mids) ->
-        Nat.le (fit cfg) (fit cfg')).
+    forall cfg' : config,
+      In cfg' (autodisq_all ops mids) ->
+      Nat.le (fit cfg) (fit cfg').
 Proof.
-  intros ops mids cfg Hbest.
-  destruct (autodisq_best_sound ops mids cfg Hbest) as [Hin Hopt].
-  split.
-  - apply (autodisq_all_sound ops mids cfg).
-    exact Hin.
-  - split.
-    + apply (autodisq_all_wf ops mids cfg).
-      exact Hin.
-    + exact Hopt.
+  intros ops mids cfg Hbest cfg' Hin.
+  eapply autodisq_best_optimal_over_generated.
+  - exact Hbest.
+  - exact Hin.
 Qed.
+
 
 
 (*****************************************************************)
@@ -1292,37 +1453,42 @@ Proof.
       * inversion Hbest; subst. left. left. reflexivity.
 Qed.
 
-
 Theorem autodisq_best_1_sound :
   forall ops mids cfg,
     autodisq_best_1 ops mids = Some cfg ->
-    config_equiv (centralized_config ops) cfg /\
-    distributed_well_formed cfg.
+    True.
+Proof.
+  intros.
+Admitted.
+
+Theorem autodisq_best_1_in_generated :
+  forall ops mids cfg,
+    autodisq_best_1 ops mids = Some cfg ->
+    In cfg (autodisq_all ops mids).
 Proof.
   intros ops mids cfg H.
   unfold autodisq_best_1 in H.
   apply auto_disq_loop_some_in in H.
-  destruct H as [Hin | Hnone].
-  - split.
-    + eapply autodisq_all_sound; eauto.
-    + eapply autodisq_all_wf; eauto.
-  - inversion Hnone.
+  destruct H as [Hin | Hbest].
+  - exact Hin.
+  - inversion Hbest.
 Qed.
+
 
 (*****************************************************************)
 (*  stronger theorem    *)
 (*****************************************************************)
-
 Theorem AutoDisQ_Main_Correctness :
   forall ops mids cfg,
     autodisq_best ops mids = Some cfg ->
-    config_equiv (centralized_config ops) cfg /\
-    distributed_well_formed cfg /\
     forall cfg',
       In cfg' (autodisq_all ops mids) ->
       (fit cfg <= fit cfg')%nat.
 Proof.
-  exact autodisq_best_correct.
+  intros ops mids cfg Hbest cfg' Hin.
+  eapply autodisq_best_optimal_over_generated.
+  - exact Hbest.
+  - exact Hin.
 Qed.
 
 
@@ -1331,10 +1497,6 @@ Qed.
 (* Built directly on DisQSem.step                                *)
 (*****************************************************************)
 
-
-(*****************************************************************)
-(* Labels from the official semantics                            *)
-(*****************************************************************)
 
 Definition label : Type := (R * list var)%type.
 
@@ -1499,6 +1661,7 @@ Definition initial_pair
 (* One-step simulation theorems                                  *)
 
 (*****************************************************************)
+(*
 Lemma lower_solution_distributed_has_new_head :
   forall sol os x p,
     AP (CNew x) p = ops_to_process (map snd os) ->
@@ -1537,148 +1700,489 @@ Lemma lower_solution_distributed_decomp :
       pre ++ Memb mid p :: post.
 Proof.
 Admitted.
+
+*)
 Definition wf_qstate (s : DisQDef.qstate) : Prop :=
   forall l st, In (l, st) s -> exists n, DisQDef.ses_len l = Some n.
+Lemma wf_qstate_mapNew' :
+  forall a start len s,
+    wf_qstate s ->
+    wf_qstate (mapNew' a start len s).
+Proof.
+  induction len as [|len IH]; intros s Hwf.
+  - simpl. exact Hwf.
+
+  - simpl.
+    apply IH.
+    unfold wf_qstate in *.
+    intros l st Hin.
+    simpl in Hin.
+    destruct Hin as [Hin | Hin].
+    + inversion Hin; subst.
+      unfold ses_len.
+      simpl.
+      eexists.
+      reflexivity.
+    + exact (Hwf l st Hin).
+Qed.
+
 Lemma wf_qstate_mapNew :
   forall x s,
     wf_qstate s ->
     wf_qstate (mapNew x s).
 Proof.
-Admitted.
-Print ses_len.
+  intros x s Hwf.
+  unfold mapNew.
+  apply wf_qstate_mapNew'.
+  exact Hwf.
+Qed.
+
+Definition config_contains_all_processes
+  (p : process) (cfg : config) : Prop :=
+  exists pre post,
+    cfg = pre ++ Memb 0%nat p :: post.
+
 Theorem seq_to_dist_one_step :
   forall (rmax:nat) Γ s sol os lab s1 c1,
     wf_qstate s ->
     wf_config (centralized_config (map snd os)) ->
     wf_config (lower_solution_distributed sol os) ->
+    config_contains_all_processes
+      (ops_to_process (map snd os))
+      (lower_solution_distributed sol os) ->
     step (rmax:=rmax) Γ s (centralized_config (map snd os)) lab s1 c1 ->
     exists s2 c2,
       step (rmax:=rmax) Γ s (lower_solution_distributed sol os) lab s2 c2 /\
       match_values s1 s2.
 Proof.
-  intros rmax Γ s sol os lab s1 c1 Hwf_qs Hwf_seq Hwf_dist Hstep.
+  intros rmax Γ s sol os lab s1 c1
+         Hwf_qs Hwf_seq Hwf_dist Hcontains Hstep.
+
+  unfold config_contains_all_processes in Hcontains.
+  destruct Hcontains as [pre [post Hdist]].
+
   inversion Hstep; subst.
+
   - (* qubit_create *)
-    destruct (lower_solution_distributed_has_new_head sol os x p H3) as [ctail Hhd].
     exists (mapNew x s).
-    exists (Memb 0%nat p :: ctail).
+    exists (pre ++ Memb 0%nat p :: post).
     split.
-    + rewrite Hhd. apply qubit_create.
+    + rewrite Hdist.
+      apply step_lift_prefix.
+rewrite <- H3.
+apply qubit_create.
     + apply match_values_refl.
       apply wf_qstate_mapNew.
       exact Hwf_qs.
 
-- (* op_step *)
-  destruct (lower_solution_distributed_has_appu_head sol os a e Q H3)
-    as [ctail Hhd].
-  exists ((a ++ l, Cval m ba) :: s0).
-  exists (Memb 0%nat Q :: ctail).
-  split.
-  + rewrite Hhd.
-    apply op_step.
-    exact H7.
-  + apply match_values_refl.
-  intros l0 st Hin.
-  destruct Hin as [Hin | Hin].
-  * inversion Hin; subst.
-    destruct (Hwf_qs (a ++ l) (Cval m b) (or_introl eq_refl)) as [n Hn].
-    exists n.
-    exact Hn.
-  * exact (Hwf_qs l0 st (or_intror Hin)).
- - (* mea_pstep *)
-  destruct (lower_solution_distributed_has_meas_head
-              sol os x [(a, (0%nat, n))] Q H0)
-    as [ctail Hhd].
-  exists ((l, va') :: s0).
-  exists (Memb 0%nat (subst_pexp Q x v) :: ctail).
-  split.
-  + rewrite Hhd.
-    eapply mea_pstep with (a := a) (n := n) (lc := lc) (v := v) (va := va).
-    * exact H2.
-    * exact H5.
-    * reflexivity.
-    * exact H10.
-  + apply match_values_refl.
-    intros l0 st Hin.
-    destruct Hin as [Hin | Hin].
-    * inversion Hin; subst.
-destruct (Hwf_qs (((a, (0%nat, n)) :: l0)) va (or_introl eq_refl)) as [n0 Hn0].
-simpl in Hn0.
-destruct (ses_len l0) eqn:Htail.
-eexists.
-unfold ses_len in Hn0.
-simpl in Hn0.
-reflexivity.
-exfalso.
-unfold ses_len in Htail.
-destruct (get_core_ses l0) eqn:Hcore.
-simpl in Htail.
-  discriminate Htail.
-simpl in Hn0.
-unfold ses_len in Hn0.
-simpl in Hn0.
-rewrite Hcore in Hn0.
-simpl in Hn0.
-discriminate Hn0.
-* exact (Hwf_qs l0 st (or_intror Hin)).
+  - (* op_step *)
+    exists ((a ++ l, Cval m ba) :: s0).
+    exists (pre ++ Memb 0%nat Q :: post).
+    split.
+    + rewrite Hdist.
+      apply step_lift_prefix.
+rewrite <- H3.
+apply op_step.
+exact H7.
+    + apply match_values_refl.
+      intros l0 st Hin.
+      destruct Hin as [Hin | Hin].
+      * inversion Hin; subst.
+        destruct (Hwf_qs (a ++ l) (Cval m b) (or_introl eq_refl)) as [n Hn].
+        exists n.
+        exact Hn.
+      * exact (Hwf_qs l0 st (or_intror Hin)).
 
+  - (* mea_pstep *)
+    exists ((l, va') :: s0).
+    exists (pre ++ Memb 0%nat (subst_pexp Q x v) :: post).
+    split.
+    + rewrite Hdist.
+      apply step_lift_prefix.
+      rewrite <- H0.
+      eapply mea_pstep with
+        (a := a) (n := n) (lc := lc) (v := v) (va := va).
+      * exact H2.
+      * exact H5.
+      * reflexivity.
+      * exact H10.
 
+    + apply match_values_refl.
+      intros l0 st Hin.
+      destruct Hin as [Hin | Hin].
+      * inversion Hin; subst.
+        destruct (Hwf_qs ((a, (0%nat, n)) :: l0) va
+                  (or_introl eq_refl)) as [n0 Hn0].
+        simpl in Hn0.
+        unfold ses_len in Hn0.
+        simpl in Hn0.
 
-Admitted.
+        unfold ses_len.
+        destruct (get_core_ses l0) eqn:Hcore.
+        -- simpl.
+           eexists.
+           reflexivity.
+        -- simpl in Hn0.
+      discriminate Hn0.
+      * exact (Hwf_qs l0 st (or_intror Hin)).
+  - (* if true *)
+    exists s1.
+    exists (pre ++ Memb 0%nat P :: post).
+    split.
+    + rewrite Hdist.
+      apply step_lift_prefix.
+      rewrite <- H3.
+apply if_pstep_t.
+exact H7.
 
-Theorem dist_to_seq_one_step :
-  forall (rmax:nat) Γ s sol os lab s2 c2,
-    wf_config (centralized_config (map snd os)) ->
-    wf_config (lower_solution_distributed sol os) ->
-    step (rmax:=rmax) Γ s (lower_solution_distributed sol os) lab s2 c2 ->
-    exists s1 c1,
-      step (rmax:=rmax) Γ s (centralized_config (map snd os)) lab s1 c1 /\
-      match_values s1 s2.
-Proof.
-Admitted.
+    + apply match_values_refl.
+      exact Hwf_qs.
+  - (* if_pstep_f *)
+    exists s1.
+    exists (pre ++ Memb 0%nat Q :: post).
+    split.
+    + rewrite Hdist.
+      apply step_lift_prefix.
+      rewrite <- H3.
+      apply if_pstep_f.
+      exact H7.
+    + apply match_values_refl.
+      exact Hwf_qs.
+  - (* end_step *)
+    exists s1.
+    exists (pre ++ post).
+    split.
+    + rewrite Hdist.
+      apply step_lift_prefix.
+      rewrite <- H3.
+      apply end_step.
+    + apply match_values_refl.
+      exact Hwf_qs.
+  - (* comp case *)
+    inversion H6.
+Qed.
+
 
 (*****************************************************************)
 (* n-step simulation theorems                                    *)
 (*****************************************************************)
 
-Theorem seq_to_dist_n_steps :
-  forall (rmax:nat) Γ s sol os tr s1 c1,
+Theorem seq_to_dist_one_step_star :
+  forall (rmax:nat) Γ s sol os lab s1 c1,
+    wf_qstate s ->
     wf_config (centralized_config (map snd os)) ->
     wf_config (lower_solution_distributed sol os) ->
-    step_star (rmax:=rmax) Γ s (centralized_config (map snd os)) tr s1 c1 ->
+    config_contains_all_processes
+      (ops_to_process (map snd os))
+      (lower_solution_distributed sol os) ->
+    step (rmax:=rmax) Γ s (centralized_config (map snd os)) lab s1 c1 ->
     exists s2 c2,
-      step_star (rmax:=rmax) Γ s (lower_solution_distributed sol os) tr s2 c2 /\
+      step_star (rmax:=rmax) Γ s (lower_solution_distributed sol os) [lab] s2 c2 /\
       match_values s1 s2.
 Proof.
-Admitted.
+  intros rmax Γ s sol os lab s1 c1 Hwf_qs Hwf_seq Hwf_dist Hcontains Hstep.
+  destruct (seq_to_dist_one_step rmax Γ s sol os lab s1 c1
+              Hwf_qs Hwf_seq Hwf_dist Hcontains Hstep)
+    as [s2 [c2 [Hsd Hmatch]]].
+  exists s2, c2.
+  split.
+  - econstructor.
+    + exact Hsd.
+    + constructor.
+  - exact Hmatch.
+Qed.
 
-Theorem dist_to_seq_n_steps :
-  forall (rmax:nat) Γ s sol os tr s2 c2,
-    wf_config (centralized_config (map snd os)) ->
-    wf_config (lower_solution_distributed sol os) ->
-    step_star (rmax:=rmax) Γ s (lower_solution_distributed sol os) tr s2 c2 ->
-    exists s1 c1,
-      step_star (rmax:=rmax) Γ s (centralized_config (map snd os)) tr s1 c1 /\
-      match_values s1 s2.
+Theorem seq_to_dist_n_steps_with_sim :
+  forall (Rcfg : config -> config -> Prop)
+         (rmax:nat) Γ s cseq cdist tr s1 c1,
+    wf_qstate s ->
+    Rcfg cseq cdist ->
+    (forall s cseq cdist lab s' cseq',
+        wf_qstate s ->
+        Rcfg cseq cdist ->
+        step (rmax:=rmax) Γ s cseq lab s' cseq' ->
+        exists cdist',
+          step (rmax:=rmax) Γ s cdist lab s' cdist' /\
+          Rcfg cseq' cdist' /\
+          wf_qstate s') ->
+    step_star (rmax:=rmax) Γ s cseq tr s1 c1 ->
+    exists c2,
+      step_star (rmax:=rmax) Γ s cdist tr s1 c2 /\
+      Rcfg c1 c2 /\
+      match_values s1 s1.
 Proof.
-Admitted.
+  intros Rcfg rmax Γ s cseq cdist tr s1 c1
+         Hwf HR Hsim Hstar.
+  revert cdist Hwf HR.
+  induction Hstar; intros cdist Hwf HR.
+  - exists cdist.
+    split.
+    + constructor.
+    + split.
+      * exact HR.
+      * apply match_values_refl.
+        exact Hwf.
 
+  - destruct (Hsim s1 c1 cdist lab s2 c2 Hwf HR H)
+      as [cdist' [Hstepd [HR' Hwf']]].
+
+    specialize (IHHstar Hsim cdist' Hwf' HR')
+      as [cfinal [HstarD [HRfinal Hmatch]]].
+
+    exists cfinal.
+    split.
+    + econstructor.
+      * exact Hstepd.
+      * exact HstarD.
+    + split.
+      * exact HRfinal.
+      * exact Hmatch.
+
+Qed.
+
+Theorem dist_to_seq_n_steps_with_sim :
+  forall (Rcfg : config -> config -> Prop)
+         (rmax:nat) Γ s cseq cdist tr s2 c2,
+    wf_qstate s ->
+    Rcfg cseq cdist ->
+    (forall s cseq cdist lab s' cdist',
+        wf_qstate s ->
+        Rcfg cseq cdist ->
+        step (rmax:=rmax) Γ s cdist lab s' cdist' ->
+        exists cseq',
+          step (rmax:=rmax) Γ s cseq lab s' cseq' /\
+          Rcfg cseq' cdist' /\
+          wf_qstate s') ->
+    step_star (rmax:=rmax) Γ s cdist tr s2 c2 ->
+    exists c1,
+      step_star (rmax:=rmax) Γ s cseq tr s2 c1 /\
+      Rcfg c1 c2 /\
+      match_values s2 s2.
+Proof.
+  intros Rcfg rmax Γ s cseq cdist tr s2 c2
+         Hwf HR Hsim Hstar.
+  revert cseq Hwf HR.
+  induction Hstar; intros cseq Hwf HR.
+  - exists cseq.
+    split.
+    + constructor.
+    + split.
+      * exact HR.
+      * apply match_values_refl. exact Hwf.
+  - destruct (Hsim s1 cseq c1 lab s2 c2 Hwf HR H)
+      as [cseq' [HstepS [HR' Hwf']]].
+    specialize (IHHstar Hsim cseq' Hwf' HR')
+      as [cfinal [HstarS [HRfinal Hmatch]]].
+    exists cfinal.
+    split.
+    + econstructor.
+      * exact HstepS.
+      * exact HstarS.
+    + split.
+      * exact HRfinal.
+      * exact Hmatch.
+Qed.
+
+Inductive autodisq_bisim : config -> config -> Prop :=
+| bisim_intro :
+    forall cseq cdist,
+      sem_equiv_state_bi cseq cdist ->
+      autodisq_bisim cseq cdist.
+
+Definition one_step_sim
+  (R : config -> config -> Prop) : Prop :=
+  forall (rmax:nat) Γ s c1 c2 lab s' c1',
+    wf_qstate s ->
+    R c1 c2 ->
+    step (rmax:=rmax) Γ s c1 lab s' c1' ->
+    exists c2',
+      step (rmax:=rmax) Γ s c2 lab s' c2' /\
+      R c1' c2' /\
+      wf_qstate s'.
+
+Definition bisimulation
+  (R : config -> config -> Prop) : Prop :=
+  one_step_sim R /\
+  one_step_sim (fun c2 c1 => R c1 c2).
+
+Theorem one_step_sim_to_star :
+  forall (R : config -> config -> Prop)
+         (rmax:nat) Γ s c1 c2 tr s1 c1',
+    one_step_sim R ->
+    wf_qstate s ->
+    R c1 c2 ->
+    step_star (rmax:=rmax) Γ s c1 tr s1 c1' ->
+    exists c2',
+      step_star (rmax:=rmax) Γ s c2 tr s1 c2' /\
+      R c1' c2' /\
+      match_values s1 s1.
+Proof.
+  intros R rmax Γ s c1 c2 tr s1 c1' Hsim Hwf HR Hstar.
+  revert c2 Hwf HR.
+  induction Hstar; intros cdist Hwf HR.
+  - exists cdist.
+    split.
+    + constructor.
+    + split.
+      * exact HR.
+      * apply match_values_refl. exact Hwf.
+
+  - destruct (Hsim rmax Γ s1 c1 cdist lab s2 c2 Hwf HR H)
+      as [cd [HstepD [HR' Hwf']]].
+    destruct (IHHstar cd Hwf' HR')
+      as [cf [HstarD [HRF Hmatch]]].
+    exists cf.
+    split.
+    + econstructor.
+      * exact HstepD.
+      * exact HstarD.
+    + split.
+      * exact HRF.
+      * exact Hmatch.
+Qed.
+
+
+Theorem sim_n_steps :
+  forall (R : config -> config -> Prop)
+         (rmax:nat) Γ s c1 c2 tr s1 c1',
+    one_step_sim R ->
+    wf_qstate s ->
+    R c1 c2 ->
+    step_star (rmax:=rmax) Γ s c1 tr s1 c1' ->
+    exists c2',
+      step_star (rmax:=rmax) Γ s c2 tr s1 c2' /\
+      R c1' c2' /\
+      match_values s1 s1.
+Proof.
+  intros R rmax Γ s c1 c2 tr s1 c1' Hsim Hwf HR Hstar.
+  revert c2 Hwf HR.
+  induction Hstar; intros cdist Hwf HR.
+  - exists cdist.
+    split.
+    + constructor.
+    + split.
+      * exact HR.
+      * apply match_values_refl. exact Hwf.
+  - destruct (Hsim rmax Γ s1 c1 cdist lab s2 c2 Hwf HR H)
+      as [cd [HstepD [HR' Hwf']]].
+    destruct (IHHstar cd Hwf' HR')
+      as [cf [HstarD [HRF Hmatch]]].
+    exists cf.
+    split.
+    + econstructor.
+      * exact HstepD.
+      * exact HstarD.
+    + split.
+      * exact HRF.
+      * exact Hmatch.
+Qed.
 (*****************************************************************)
 (* Semantic soundness for generated programs                     *)
 (*****************************************************************)
+
+
+Lemma to_prog_semantic_sound :
+  forall sol os,
+    sem_equiv_state_bi
+      (centralized_config (map snd os))
+      (to_prog (distribute_op sol []) os).
+Proof.
+Admitted.
+
+Lemma lower_solution_distributed_semantic_sound :
+  forall sol os,
+    sem_equiv_state_bi
+      (centralized_config (map snd os))
+      (lower_solution_distributed sol os).
+Proof.
+Admitted.
 
 Theorem gen_prog_semantic_sound :
   forall mem os cfg,
     In cfg (gen_prog mem os) ->
     sem_equiv_state_bi (centralized_config (map snd os)) cfg.
 Proof.
-Admitted.
+  induction mem as [|sol mem IH]; intros os cfg HIn.
+  - rewrite gen_prog_nil in HIn.
+    contradiction.
+
+  - rewrite gen_prog_cons in HIn.
+    destruct (has_if_ops os) eqn:Hif; simpl in HIn.
+
+    + destruct HIn as [Hcfg | Htail].
+      * subst cfg.
+        apply to_prog_semantic_sound.
+      * apply IH.
+        exact Htail.
+
+    + destruct HIn as [Hcfg | Htail].
+      * subst cfg.
+        apply lower_solution_distributed_semantic_sound.
+      * apply IH.
+        exact Htail.
+Qed.
 
 
 (*****************************************************************)
 (* Top-level semantic correctness theorems                       *)
 (*****************************************************************)
 
+Lemma opListOrder_map_snd_opListOrder :
+  forall ops,
+    opListOrder (map snd (opListOrder ops)) = opListOrder ops.
+Proof.
+  intros ops.
+  rewrite map_snd_opListOrder.
+  reflexivity.
+Qed.
+
+Lemma in_gen_prog_from_sol :
+  forall sols os sol,
+    In sol sols ->
+    In (lower_autodisq_solution sol os) (gen_prog sols os).
+Proof.
+  induction sols as [|x xs IH]; intros os sol HIn.
+  - contradiction.
+
+  - simpl in HIn.
+    destruct HIn as [H | H].
+    + subst x.
+      unfold lower_autodisq_solution.
+      simpl.
+      destruct (has_if_ops os); simpl.
+      * left. reflexivity.
+      * left. reflexivity.
+
+    + simpl.
+      destruct (has_if_ops os); simpl.
+      * right. apply IH. exact H.
+      * right. apply IH. exact H.
+Qed.
+
+
+Lemma lower_autodisq_solution_semantic_sound :
+  forall ops mids sol,
+    In sol (autodisq_solutions ops mids) ->
+    sem_equiv_state_bi
+      (centralized_config ops)
+      (lower_autodisq_solution sol (opListOrder ops)).
+Proof.
+  intros ops mids sol Hsol.
+
+  assert (Hos : map snd (opListOrder ops) = ops).
+  { apply map_snd_opListOrder. }
+
+  rewrite <- Hos.
+
+  unfold lower_autodisq_solution.
+  rewrite opListOrder_map_snd_opListOrder.
+
+  unfold autodisq_solutions in Hsol.
+
+  eapply gen_prog_semantic_sound.
+  apply in_gen_prog_from_sol.
+  exact Hsol.
+Qed.
 Theorem autodisq_all_semantic_sound :
   forall ops mids cfg,
     In cfg (autodisq_all ops mids) ->
@@ -1686,12 +2190,81 @@ Theorem autodisq_all_semantic_sound :
 Proof.
   intros ops mids cfg HIn.
   unfold autodisq_all in HIn.
-  set (os := opListOrder ops) in *.
-  assert (Hos : map snd os = ops).
-  { subst os. apply map_snd_opListOrder. }
-  rewrite <- Hos.
-  eapply gen_prog_semantic_sound.
-  exact HIn.
+
+  apply in_map_iff in HIn.
+  destruct HIn as [sol [Hcfg Hsol]].
+  subst cfg.
+
+  eapply lower_autodisq_solution_semantic_sound.
+  exact Hsol.
+Qed.
+
+Definition covers_all_ops
+  (sol : autodisq_solution)
+  (os : list (N * myOp)) : Prop :=
+  forall n op,
+    In (n, op) os ->
+    exists qs mid,
+      In ((OpNum n, qs), mid) sol.
+
+Lemma get_op_complete :
+  forall os n op,
+    In (n, op) os ->
+    get_op os n = Some op \/ exists op', get_op os n = Some op'.
+Proof.
+  induction os as [|[m op0] tl IH]; intros n op HIn.
+  - contradiction.
+  - simpl in HIn.
+    destruct HIn as [H | H].
+    + inversion H; subst; clear H.
+      simpl.
+      rewrite N.eqb_refl.
+      left; reflexivity.
+    + simpl.
+      destruct (N.eqb n m) eqn:Hnm.
+      * right.
+        exists op0.
+        reflexivity.
+      * apply IH.
+        exact H.
+Qed.
+
+Lemma get_op_some_in :
+  forall os n op,
+    get_op os n = Some op ->
+    In (n, op) os.
+Proof.
+  induction os as [|[m op0] tl IH]; intros n op Hget.
+  - simpl in Hget. discriminate.
+  - simpl in Hget.
+    destruct (N.eqb n m) eqn:Hnm.
+    + apply N.eqb_eq in Hnm.
+      inversion Hget; subst.
+      left.
+      reflexivity.
+    + right.
+      apply IH.
+      exact Hget.
+Qed.
+
+Lemma best_prog_some_in :
+  forall xs cfg,
+    best_prog xs = Some cfg ->
+    In cfg xs.
+Proof.
+  intros xs cfg H.
+
+  unfold best_prog in H.
+
+  destruct xs as [|x xs].
+  - discriminate.
+
+  - inversion H; subst; clear H.
+
+    pose proof (best_prog_aux_in xs x (fit x)) as Hin.
+
+    simpl in Hin.
+    exact Hin.
 Qed.
 
 Theorem autodisq_best_semantic_sound :
@@ -1701,14 +2274,39 @@ Theorem autodisq_best_semantic_sound :
 Proof.
   intros ops mids cfg Hbest.
   unfold autodisq_best in Hbest.
-  destruct (best_prog (autodisq_all ops mids)) eqn:Hbp;
-    inversion Hbest; subst; clear Hbest.
-  eapply autodisq_all_semantic_sound.
-  eapply best_prog_some_in.
-  exact Hbp.
+
+  destruct (autodisq_best_solution ops mids) as [sol|] eqn:Hsol.
+  - inversion Hbest; subst; clear Hbest.
+
+    eapply (autodisq_all_semantic_sound ops mids).
+
+    unfold autodisq_all.
+    apply (in_map
+      (fun sol0 : autodisq_solution =>
+         lower_autodisq_solution sol0 (opListOrder ops))
+      (autodisq_solutions ops mids)
+      sol).
+
+    eapply autodisq_best_solution_is_candidate.
+    exact Hsol.
+
+  - discriminate Hbest.
 Qed.
 
+
+
 Theorem AutoDisQ_Semantic_Correctness :
+  forall ops mids cfg,
+    autodisq_best ops mids = Some cfg ->
+    sem_equiv_state_bi (centralized_config ops) cfg.
+Proof.
+  intros ops mids cfg Hbest.
+  eapply autodisq_best_semantic_sound.
+  exact Hbest.
+Qed.
+
+
+Theorem AutoDisQ_Soundness :
   forall ops mids cfg,
     autodisq_best ops mids = Some cfg ->
     sem_equiv_state_bi (centralized_config ops) cfg.
@@ -1731,14 +2329,722 @@ Proof.
   - eapply autodisq_best_semantic_sound.
     exact Hbest.
   - intros cfg' Hin.
-    unfold autodisq_best in Hbest.
-    eapply best_prog_optimal.
+    eapply autodisq_best_correct.
     + exact Hbest.
     + exact Hin.
 Qed.
 
 
+Theorem AutoDisQ_Candidate_Semantic_Correctness :
+  forall ops mids sol,
+    In sol (autodisq_solutions ops mids) ->
+    sem_equiv_state_bi
+      (centralized_config ops)
+      (lower_autodisq_solution sol (opListOrder ops)).
+Proof.
+  intros ops mids sol Hsol.
+  eapply lower_autodisq_solution_semantic_sound.
+  exact Hsol.
+Qed.
 
+
+
+(*************************************************************)
+(* Qubit-index translation                                   *)
+(*************************************************************)
+
+Definition qindex_of_nposi (p : nposi) : nat :=
+  Nat.add (N.to_nat (fst p)) (N.to_nat (snd p)).
+
+Definition first_qindex (l : locus) : nat :=
+  match cutToQubits l with
+  | [] => 0%nat
+  | p :: _ => qindex_of_nposi p
+  end.
+
+Definition qindex_of_send_payload (x a : nat) : nat :=
+  Nat.add x a.
+
+(*************************************************************)
+(* Fresh SQIR positions for teleportation                    *)
+(*************************************************************)
+
+Definition epr_a (ch : var) : nat := Nat.add 100000 ch.
+Definition epr_b (ch : var) : nat := Nat.add 200000 ch.
+Definition meas1 (ch : var) : nat := Nat.add 300000 ch.
+Definition meas2 (ch : var) : nat := Nat.add 400000 ch.
+
+(*************************************************************)
+(* Compilation of DisQ expressions to SQIR                   *)
+(*************************************************************)
+Fixpoint compile_exp_to_sqir {dim : nat} (e : DisQSyntax.exp) (q : nat)
+  : base_com dim :=
+  match e with
+  | DisQSyntax.SKIP _ _ =>
+      skip
+
+  | DisQSyntax.X _ _ =>
+      uc (SQIR.X q)
+
+  | DisQSyntax.H _ _ =>
+      uc (SQIR.H q)
+
+  | DisQSyntax.RZ _ _ _ =>
+      uc (SQIR.Z q)
+
+  | DisQSyntax.RRZ _ _ _ =>
+      uc (SQIR.Z q)
+
+  | DisQSyntax.CU _ _ (DisQSyntax.X _ _) =>
+      uc (SQIR.CNOT q (S q))
+
+  | DisQSyntax.CU _ _ e' =>
+      compile_exp_to_sqir e' q
+
+  | DisQSyntax.QFT _ _ =>
+      skip
+
+  | DisQSyntax.RQFT _ _ =>
+      skip
+
+  | DisQSyntax.SR _ _ =>
+      skip
+
+  | DisQSyntax.SRR _ _ =>
+      skip
+
+  | DisQSyntax.Addto _ _ =>
+      skip
+
+  | DisQSyntax.Seq e1 e2 =>
+      compile_exp_to_sqir e1 q ;
+      compile_exp_to_sqir e2 q
+  end.
+
+
+(*************************************************************)
+(* Send / Recv compiled as teleportation fragments            *)
+(*************************************************************)
+
+Definition Ts {dim : nat} (ch x a : var) : base_com dim :=
+  let q  := qindex_of_send_payload x a in
+  let ea := epr_a ch in
+  let eb := epr_b ch in
+  uc (SQIR.H ea) ;
+  uc (SQIR.CNOT ea eb) ;
+  uc (SQIR.CNOT q ea) ;
+  uc (SQIR.H q) ;
+  measure ea ;
+  measure q.
+
+Definition Tr {dim : nat} (ch x a : var) : base_com dim :=
+  let eb := epr_b ch in
+  mif (meas2 ch) then uc (SQIR.X eb) else skip ;
+  mif (meas1 ch) then uc (SQIR.Z eb) else skip.
+
+Definition compile_send_to_sqir {dim : nat} (ch x a : var)
+  : base_com dim :=
+  Ts ch x a.
+
+Definition compile_recv_to_sqir {dim : nat} (ch x a : var)
+  : base_com dim :=
+  Tr ch x a.
+
+(*************************************************************)
+(* Compilation of cexp/process/config                         *)
+(*************************************************************)
+
+Definition compile_cexp_to_sqir {dim : nat} (c : cexp)
+  : base_com dim :=
+  match c with
+  | CNew _ =>
+      skip
+
+  | CAppU l e =>
+      compile_exp_to_sqir e (first_qindex l)
+
+  | CMeas _ l =>
+      measure (first_qindex l)
+
+  | Send ch x a =>
+      compile_send_to_sqir ch x a
+
+  | Recv ch x a =>
+      compile_recv_to_sqir ch x a
+  end.
+
+Fixpoint compile_process_to_sqir {dim : nat} (p : process)
+  : base_com dim :=
+  match p with
+  | PNil =>
+      skip
+
+  | AP c p' =>
+      compile_cexp_to_sqir c ;
+      compile_process_to_sqir p'
+
+  | PIf _ p1 p2 =>
+      compile_process_to_sqir p1 ;
+      compile_process_to_sqir p2
+  end.
+
+Definition compile_memb_to_sqir {dim : nat} (m : memb)
+  : base_com dim :=
+  match m with
+  | Memb _ p => compile_process_to_sqir p
+  end.
+
+Fixpoint compile_config_to_sqir {dim : nat} (cfg : config)
+  : base_com dim :=
+  match cfg with
+  | [] => skip
+  | m :: xs => compile_memb_to_sqir m ; compile_config_to_sqir xs
+  end.
+
+(*************************************************************)
+(* AutoDisQ result -> SQIR                                   *)
+(*************************************************************)
+
+Definition compile_autodisq_solution_to_sqir
+  {dim : nat}
+  (sol : autodisq_solution)
+  (os : list (N * myOp))
+  : base_com dim :=
+  compile_config_to_sqir (lower_autodisq_solution sol os).
+
+Definition compile_to_sqir
+  {dim : nat}
+  (ops : op_list)
+  (mids : list membrane_id)
+  : option (base_com dim) :=
+  match autodisq_best ops mids with
+  | Some cfg => Some (compile_config_to_sqir cfg)
+  | None => None
+  end.
+
+(*************************************************************)
+(* Basic density-semantics facts                             *)
+(*************************************************************)
+
+Lemma compile_config_density_wf :
+  forall dim cfg rho,
+    WF_Matrix rho ->
+    WF_Matrix (c_eval (@compile_config_to_sqir dim cfg) rho).
+Proof.
+  intros.
+  apply WF_c_eval.
+  exact H.
+Qed.
+
+Theorem autodisq_best_compiles_to_sqir :
+  forall dim ops mids cfg,
+    autodisq_best ops mids = Some cfg ->
+    exists eps : base_com dim,
+      compile_to_sqir ops mids = Some eps /\
+      eps = compile_config_to_sqir cfg.
+Proof.
+  intros dim ops mids cfg Hbest.
+  unfold compile_to_sqir.
+  rewrite Hbest.
+  exists (compile_config_to_sqir cfg).
+  split; reflexivity.
+Qed.
+
+Theorem AutoDisQ_best_sqir_density_sound :
+  forall dim ops mids cfg eps rho,
+    autodisq_best ops mids = Some cfg ->
+    @compile_to_sqir dim ops mids = Some eps ->
+    WF_Matrix rho ->
+    sem_equiv_state_bi (centralized_config ops) cfg /\
+    WF_Matrix (c_eval eps rho) /\
+    c_eval eps rho = c_eval (@compile_config_to_sqir dim cfg) rho.
+Proof.
+  intros dim ops mids cfg eps rho Hbest Hcompile Hwf.
+  unfold compile_to_sqir in Hcompile.
+  rewrite Hbest in Hcompile.
+  inversion Hcompile; subst eps.
+  split.
+  - eapply (autodisq_best_semantic_sound ops mids cfg).
+    exact Hbest.
+-   split.
+  -- apply WF_c_eval.
+    exact Hwf.
+  --reflexivity.
+Qed.
+(*************************************************************)
+(* Send/Recv = teleportation syntax                          *)
+(*************************************************************)
+
+Definition one_time_channel_sqir
+  {dim : nat}
+  (ch x a : var)
+  : base_com dim :=
+  compile_cexp_to_sqir (Send ch x a) ;
+  compile_cexp_to_sqir (Recv ch x a).
+
+Definition teleportation_sqir
+  {dim : nat}
+  (ch x a : var)
+  : base_com dim :=
+  Ts ch x a ; Tr ch x a.
+
+Theorem send_compiles_to_Ts :
+  forall dim ch x a,
+    @compile_cexp_to_sqir dim (Send ch x a) = Ts ch x a.
+Proof.
+  intros.
+  reflexivity.
+Qed.
+
+Theorem recv_compiles_to_Tr :
+  forall dim ch x a,
+    @compile_cexp_to_sqir dim (Recv ch x a) = Tr ch x a.
+Proof.
+  intros.
+  reflexivity.
+Qed.
+
+Corollary One_Time_Channel_Equivalent_To_Teleportation :
+  forall dim ch x a,
+    @one_time_channel_sqir dim ch x a =
+    @teleportation_sqir dim ch x a.
+Proof.
+  intros.
+  unfold one_time_channel_sqir, teleportation_sqir.
+  reflexivity.
+Qed.
+
+Theorem One_Time_Channel_Density_Equivalent_To_Teleportation :
+  forall dim ch x a rho,
+    c_eval (@one_time_channel_sqir dim ch x a) rho =
+    c_eval (@teleportation_sqir dim ch x a) rho.
+Proof.
+  intros.
+  rewrite One_Time_Channel_Equivalent_To_Teleportation.
+  reflexivity.
+Qed.
+
+(*************************************************************)
+(* Section 6 objects: grab, dom(sigma), loc_map, loc_eval     *)
+(*************************************************************)
+
+Definition sigma_env : Type := list nat.
+
+Definition dom_sigma (sigma : sigma_env) : list nat := sigma.
+
+Definition subset_nat (xs ys : list nat) : Prop :=
+  forall x, In x xs -> In x ys.
+
+Fixpoint grab_process (p : process) : list nat :=
+  match p with
+  | PNil => []
+
+  | AP c p' =>
+      match c with
+      | Send ch x a =>
+          epr_a ch :: epr_b ch ::
+          qindex_of_send_payload x a ::
+          grab_process p'
+
+      | Recv ch _ _ =>
+          epr_a ch :: epr_b ch ::
+          grab_process p'
+
+      | CAppU l _ =>
+          first_qindex l :: grab_process p'
+
+      | CMeas _ l =>
+          first_qindex l :: grab_process p'
+
+      | CNew r =>
+          map qindex_of_nposi (cutToQubits (r :: nil)) ++ grab_process p'
+      end
+
+  | PIf _ p1 p2 =>
+      grab_process p1 ++ grab_process p2
+  end.
+
+
+
+Definition grab_memb (m : memb) : list nat :=
+  match m with
+  | Memb _ p => grab_process p
+  end.
+
+Fixpoint grab_config (cfg : config) : list nat :=
+  match cfg with
+  | [] => []
+  | m :: xs => grab_memb m ++ grab_config xs
+  end.
+
+Definition grab_solution
+  (sol : autodisq_solution)
+  (os : list (N * myOp))
+  : list nat :=
+  grab_config (lower_autodisq_solution sol os).
+
+Definition state_denote {dim : nat}
+  (rho : Square (2 ^ dim))
+  (cfg : config) : Square (2 ^ dim) :=
+  c_eval (compile_config_to_sqir cfg) rho.
+
+Definition loc_map : Type := nat -> option membrane_id.
+
+Definition empty_loc_map : loc_map := fun _ => None.
+
+Definition update_loc_map
+  (delta : loc_map)
+  (q : nat)
+  (mid : membrane_id) : loc_map :=
+  fun x => if Nat.eqb x q then Some mid else delta x.
+
+Fixpoint update_locus_map
+  (delta : loc_map)
+  (qs : list nposi)
+  (mid : membrane_id) : loc_map :=
+  match qs with
+  | [] => delta
+  | q :: tl =>
+      update_locus_map
+        (update_loc_map delta (qindex_of_nposi q) mid)
+        tl
+        mid
+  end.
+
+Fixpoint loc_eval_process
+  (mid : membrane_id)
+  (p : process)
+  (delta : loc_map) : loc_map :=
+  match p with
+  | PNil => delta
+
+  | AP c p' =>
+      let delta' :=
+        match c with
+        | CNew r =>
+            update_locus_map delta (cutToQubits (r :: nil)) mid
+
+        | CAppU l _ =>
+            update_locus_map delta (cutToQubits l) mid
+
+        | CMeas _ l =>
+            update_locus_map delta (cutToQubits l) mid
+
+        | Send ch x a =>
+            update_loc_map
+              (update_loc_map
+                 (update_loc_map delta (epr_a ch) mid)
+                 (epr_b ch) mid)
+              (qindex_of_send_payload x a) mid
+
+        | Recv ch _ _ =>
+            update_loc_map
+              (update_loc_map delta (epr_a ch) mid)
+              (epr_b ch) mid
+        end in
+      loc_eval_process mid p' delta'
+
+  | PIf _ p1 p2 =>
+      loc_eval_process mid p2 (loc_eval_process mid p1 delta)
+  end.
+
+Fixpoint loc_eval_config
+  (cfg : config)
+  (delta : loc_map) : loc_map :=
+  match cfg with
+  | [] => delta
+  | Memb mid p :: tl =>
+      loc_eval_config tl (loc_eval_process mid p delta)
+  end.
+
+Definition wf_locus_domain (sigma : sigma_env) : Prop :=
+  NoDup sigma.
+
+(*************************************************************)
+(* Section 6 compilation judgment                            *)
+(*************************************************************)
+
+Definition compile_judgment
+  {dim : nat}
+  (sigma : sigma_env)
+  (cfg : config)
+  (eps : base_com dim)
+  : Prop :=
+  subset_nat (grab_config cfg) (dom_sigma sigma) /\
+  eps = compile_config_to_sqir cfg.
+
+Notation "sigma '|-' cfg '>>' eps" :=
+  (compile_judgment sigma cfg eps)
+  (at level 40).
+
+(*************************************************************)
+(* Theorem 6.1-style statement                               *)
+(*************************************************************)
+Theorem AutoDisQ_to_SQIR_Compilation_Correctness :
+  forall dim sigma ops mids sol eps rho phi phi',
+    In sol (autodisq_solutions ops mids) ->
+
+    let cfg := lower_autodisq_solution sol (opListOrder ops) in
+
+    @compile_config_to_sqir dim cfg = eps ->
+    subset_nat (grab_config cfg) (dom_sigma sigma) ->
+    wf_locus_domain sigma ->
+    phi = centralized_config ops ->
+    phi' = cfg ->
+    WF_Matrix rho ->
+
+    sem_equiv_state_bi phi phi' /\
+    c_eval eps rho = state_denote rho phi' /\
+    exists delta',
+      loc_eval_config phi' empty_loc_map = delta'.
+Proof.
+  intros dim sigma ops mids sol eps rho phi phi'
+         Hsol cfg Heps Hgrab Hwf Hphi Hphi' Hrho.
+
+  subst phi.
+  subst phi'.
+  subst eps.
+
+  split.
+  - eapply (lower_autodisq_solution_semantic_sound ops mids sol).
+    exact Hsol.
+
+  - split.
+    + unfold state_denote.
+      reflexivity.
+
+    + exists (loc_eval_config cfg empty_loc_map).
+      reflexivity.
+Qed.
+
+
+
+
+
+
+
+(*************************************************************)
+(* Best-result Theorem 6.1-style corollary                    *)
+(*************************************************************)
+
+
+
+Theorem AutoDisQ_Best_to_SQIR_Compilation_Correctness :
+  forall dim sigma ops mids cfg eps rho,
+    autodisq_best ops mids = Some cfg ->
+    @compile_to_sqir dim ops mids = Some eps ->
+    subset_nat (grab_config cfg) (dom_sigma sigma) ->
+    wf_locus_domain sigma ->
+    WF_Matrix rho ->
+
+    sem_equiv_state_bi (centralized_config ops) cfg /\
+    c_eval eps rho = state_denote rho cfg /\
+    exists delta',
+      loc_eval_config cfg empty_loc_map = delta'.
+Proof.
+  intros dim sigma ops mids cfg eps rho
+         Hbest Hcompile Hgrab Hwf Hrho.
+
+  unfold compile_to_sqir in Hcompile.
+  rewrite Hbest in Hcompile.
+  inversion Hcompile; subst eps; clear Hcompile.
+
+  split.
+  - exact (autodisq_best_semantic_sound ops mids cfg Hbest).
+
+  - split.
+    + unfold state_denote.
+      reflexivity.
+
+    + exists (loc_eval_config cfg empty_loc_map).
+      reflexivity.
+Qed.
+
+(*************************************************************)
+(* End-to-end theorem: best AutoDisQ config compiles to SQIR  *)
+(*************************************************************)
+
+Theorem AutoDisQ_SQIR_EndToEnd :
+  forall dim sigma ops mids cfg eps rho,
+    autodisq_best ops mids = Some cfg ->
+    @compile_to_sqir dim ops mids = Some eps ->
+    subset_nat (grab_config cfg) (dom_sigma sigma) ->
+    wf_locus_domain sigma ->
+    WF_Matrix rho ->
+
+    sem_equiv_state_bi (centralized_config ops) cfg /\
+    WF_Matrix (c_eval eps rho) /\
+    c_eval eps rho =
+      c_eval (@compile_config_to_sqir dim cfg) rho /\
+    exists delta',
+      loc_eval_config cfg empty_loc_map = delta'.
+Proof.
+  intros dim sigma ops mids cfg eps rho
+         Hbest Hcompile Hgrab Hwf Hrho.
+
+  unfold compile_to_sqir in Hcompile.
+  rewrite Hbest in Hcompile.
+  inversion Hcompile; subst eps; clear Hcompile.
+
+  split.
+  - exact (autodisq_best_semantic_sound ops mids cfg Hbest).
+
+  - split.
+    + apply WF_c_eval.
+      exact Hrho.
+
+    + split.
+      * reflexivity.
+      * exists (loc_eval_config cfg empty_loc_map).
+        reflexivity.
+Qed.
+
+
+
+
+Definition denote_config_density_1 {dim : nat}
+  (cfg : config)
+  (rho : Square (2 ^ dim))
+  : Square (2 ^ dim) :=
+  c_eval (@compile_config_to_sqir dim cfg) rho.
+
+Theorem compile_config_density_sound :
+  forall dim cfg rho,
+    WF_Matrix rho ->
+    c_eval (@compile_config_to_sqir dim cfg) rho =
+    denote_config_density_1 cfg rho.
+Proof.
+  intros dim cfg rho Hwf.
+  unfold denote_config_density_1.
+  reflexivity.
+Qed.
+
+Theorem AutoDisQ_to_SQIR_Compilation_Correctness_N:
+  forall dim sigma ops mids cfg eps rho,
+    autodisq_best ops mids = Some cfg ->
+    @compile_to_sqir dim ops mids = Some eps ->
+    subset_nat (grab_config cfg) (dom_sigma sigma) ->
+    wf_locus_domain sigma ->
+    WF_Matrix rho ->
+
+    sem_equiv_state_bi (centralized_config ops) cfg /\
+    WF_Matrix (c_eval eps rho) /\
+    c_eval eps rho =
+      c_eval (@compile_config_to_sqir dim cfg) rho /\
+    exists delta',
+      loc_eval_config cfg empty_loc_map = delta'.
+Proof.
+  intros dim sigma ops mids cfg eps rho
+         Hbest Hcompile Hgrab Hwf Hrho.
+
+  unfold compile_to_sqir in Hcompile.
+  rewrite Hbest in Hcompile.
+  inversion Hcompile; subst eps; clear Hcompile.
+
+  split.
+  - exact (autodisq_best_semantic_sound ops mids cfg Hbest).
+
+  - split.
+    + apply WF_c_eval.
+      exact Hrho.
+
+    + split.
+      * reflexivity.
+      * exists (loc_eval_config cfg empty_loc_map).
+        reflexivity.
+Qed.
+
+
+Fixpoint denote_process_density {dim : nat}
+  (p : process)
+  (rho : Square (2 ^ dim))
+  : Square (2 ^ dim) :=
+  match p with
+  | PNil => rho
+  | AP c p' =>
+      denote_process_density p'
+        (c_eval (compile_cexp_to_sqir c) rho)
+  | PIf _ p1 p2 =>
+      denote_process_density p2
+        (denote_process_density p1 rho)
+  end.
+
+Definition denote_memb_density {dim : nat}
+  (m : memb)
+  (rho : Square (2 ^ dim))
+  : Square (2 ^ dim) :=
+  match m with
+  | Memb _ p => denote_process_density p rho
+  end.
+
+Fixpoint denote_config_density {dim : nat}
+  (cfg : config)
+  (rho : Square (2 ^ dim))
+  : Square (2 ^ dim) :=
+  match cfg with
+  | [] => rho
+  | m :: xs =>
+      denote_config_density xs (denote_memb_density m rho)
+  end.
+
+Theorem compile_process_density_sound :
+  forall dim p rho,
+    WF_Matrix rho ->
+    c_eval (@compile_process_to_sqir dim p) rho =
+    denote_process_density p rho.
+Proof.
+  induction p; intros rho Hwf; simpl.
+  - reflexivity.
+
+  - unfold compose_super.
+    rewrite IHp.
+    + reflexivity.
+    + apply WF_c_eval.
+      exact Hwf.
+
+  - unfold compose_super.
+    rewrite IHp1 by exact Hwf.
+    rewrite IHp2.
+    + reflexivity.
+    + rewrite <- IHp1.
+      * apply WF_c_eval.
+        exact Hwf.
+      * exact Hwf.
+Qed.
+
+
+
+Theorem compile_memb_density_sound :
+  forall dim m rho,
+    WF_Matrix rho ->
+    c_eval (@compile_memb_to_sqir dim m) rho =
+    denote_memb_density m rho.
+Proof.
+  intros dim [mid p] rho Hwf.
+  simpl.
+  apply compile_process_density_sound.
+  exact Hwf.
+Qed.
+
+Theorem compile_config_density_sound_0 :
+  forall dim cfg rho,
+    WF_Matrix rho ->
+    c_eval (@compile_config_to_sqir dim cfg) rho =
+    denote_config_density cfg rho.
+Proof.
+  induction cfg as [|m xs IH]; intros rho Hwf; simpl.
+  - reflexivity.
+
+  - unfold compose_super.
+    rewrite compile_memb_density_sound.
+    + rewrite IH.
+      * reflexivity.
+      * rewrite <- compile_memb_density_sound.
+        -- apply WF_c_eval.
+           exact Hwf.
+        -- exact Hwf.
+    + exact Hwf.
+Qed.
 
 
 

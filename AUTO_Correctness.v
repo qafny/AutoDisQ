@@ -10,6 +10,7 @@ Require Import DisQ.BasicUtility.
 Require Import DisQ.DisQSyntax.
 Require Import DisQ.AUTO.
 
+
 Local Open Scope nat_scope.
 Local Open Scope list_scope.
 Local Open Scope bool_scope.
@@ -284,6 +285,27 @@ Proof.
   - inversion Hbest.
 Qed.
 
+
+
+Theorem best_config_is_from_candidate :
+  forall ops mids cfg,
+    autodisq_best ops mids = Some cfg ->
+    exists sol,
+      In sol (autodisq_solutions ops mids) /\
+      lower_autodisq_solution sol (opListOrder ops) = cfg.
+Proof.
+  intros ops mids cfg Hbest.
+  apply autodisq_correct_solution_level in Hbest.
+  destruct Hbest as [sol [_ [Hcand Hlow]]].
+  exists sol.
+  split.
+  - exact Hcand.
+  - exact Hlow.
+Qed.
+
+
+
+
 (*************************************************************)
 (* Optimality over generated configs                         *)
 (*************************************************************)
@@ -377,10 +399,6 @@ Proof.
   - apply autodisq_best_optimal_over_generated.
     exact Hbest.
 Qed.
-
-
-
-
 
 
 

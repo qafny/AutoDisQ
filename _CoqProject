@@ -11,4 +11,8 @@ DisQDef.v
 DisQKind.v
 DisQSem.v
 AUTO.v
-AUTO_Test.v
+TeleportationCompilerCore.v 
+AUTO_Correctness.v 
+AUTO_PROOF.v
+
+
