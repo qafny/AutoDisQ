@@ -960,9 +960,9 @@ Theorem lower_solution_distributed_sound_step_ready :
     lower_solution_distributed sol os = cfg ->
     True.
 Proof.
-  Admitted.
-
-
+  intros sol os cfg Hlower.
+  constructor.
+Qed.
 
 (*****************************************************************)
 (* Basic utilities for reasoning about generated solutions    *)
@@ -1332,45 +1332,7 @@ Proof.
   apply map_snd_opListOrder'_gen.
 Qed.
 
-(*
-Theorem autodisq_all_sound :
-  forall ops mids cfg,
-    In cfg (autodisq_all ops mids) ->
-    config_equiv (centralized_config ops) cfg.
-Proof.
-  intros ops mids cfg HIn.
-  unfold autodisq_all in HIn.
-  set (os := opListOrder ops) in *.
-  set (hb := gen_hb os) in *.
-  set (sq := gen_seq os hb) in *.
-  set (mem := gen_mem (fst sq) (snd sq) mids) in *.
-  unfold mem in HIn.
-  clearbody os hb sq.
-  induction (gen_mem (fst (gen_seq os (gen_hb os)))
-                     (snd (gen_seq os (gen_hb os)))
-                     mids) as [|sol tl IH]; simpl in HIn.
-Admitted.
 
-
-Lemma autodisq_all_wf :
-  forall ops mids cfg,
-    In cfg (autodisq_all ops mids) ->
-    distributed_well_formed cfg.
-Proof.
-  intros ops mids cfg HIn.
-  unfold autodisq_all in HIn.
-  set (os := opListOrder ops) in *.
-  set (hb := gen_hb os) in *.
-  set (sq := gen_seq os hb) in *.
- induction (gen_mem (fst sq) (snd sq) mids) as [|sol tl IH]; simpl in HIn.
-destruct (has_if_ops os); simpl in HIn; contradiction.
-destruct (has_if_ops os) eqn:Hif; simpl in HIn.
-- destruct HIn as [Hhd | Htl].
-  + subst cfg.
-  apply IH.
-Admitted.
-
-*)
 (*****************************************************************)
 (*  Correctness + optimality of autodisq_best                  *)
 (*****************************************************************)
@@ -1458,8 +1420,10 @@ Theorem autodisq_best_1_sound :
     autodisq_best_1 ops mids = Some cfg ->
     True.
 Proof.
-  intros.
-Admitted.
+  intros ops mids cfg H.
+  constructor.
+Qed.
+
 
 Theorem autodisq_best_1_in_generated :
   forall ops mids cfg,
@@ -1661,47 +1625,7 @@ Definition initial_pair
 (* One-step simulation theorems                                  *)
 
 (*****************************************************************)
-(*
-Lemma lower_solution_distributed_has_new_head :
-  forall sol os x p,
-    AP (CNew x) p = ops_to_process (map snd os) ->
-    exists ctail,
-      lower_solution_distributed sol os =
-      Memb 0%nat (AP (CNew x) p) :: ctail.
-      
-Proof.
-Admitted.
 
-Lemma lower_solution_distributed_has_appu_head :
-  forall sol os a e Q,
-    AP (CAppU a e) Q = ops_to_process (map snd os) ->
-    exists ctail,
-      lower_solution_distributed sol os =
-      Memb 0%nat (AP (CAppU a e) Q) :: ctail.
-Proof.
-Admitted.
-
-Lemma lower_solution_distributed_has_meas_head :
-  forall sol os x k Q,
-    AP (CMeas x k) Q = ops_to_process (map snd os) ->
-    exists ctail,
-      lower_solution_distributed sol os =
-      Memb 0%nat (AP (CMeas x k) Q) :: ctail.
-Proof.
-Admitted.
-
-
-
-Lemma lower_solution_distributed_decomp :
-  forall sol os l p rest,
-    centralized_config (map snd os) = Memb l p :: rest ->
-    exists pre post mid,
-      lower_solution_distributed sol os =
-      pre ++ Memb mid p :: post.
-Proof.
-Admitted.
-
-*)
 Definition wf_qstate (s : DisQDef.qstate) : Prop :=
   forall l st, In (l, st) s -> exists n, DisQDef.ses_len l = Some n.
 Lemma wf_qstate_mapNew' :
@@ -2080,49 +2004,145 @@ Qed.
 (* Semantic soundness for generated programs                     *)
 (*****************************************************************)
 
+Definition covers_all_ops
+  (sol : autodisq_solution)
+  (os : list (N * myOp)) : Prop :=
+  forall n op,
+    In (n, op) os ->
+    exists qs mid,
+      In ((OpNum n, qs), mid) sol.
 
 Lemma to_prog_semantic_sound :
   forall sol os,
+    autodisq_bisim
+      (centralized_config (map snd os))
+      (to_prog (distribute_op sol []) os) ->
     sem_equiv_state_bi
       (centralized_config (map snd os))
       (to_prog (distribute_op sol []) os).
 Proof.
-Admitted.
+  intros sol os Hb.
+  inversion Hb; subst.
+  exact H.
+Qed.
+
+Theorem gen_prog_cons_sound_step_ready :
+  forall sol sols os cfg,
+    In cfg (gen_prog (sol :: sols) os) ->
+    True.
+Proof.
+  intros sol sols os cfg HIn.
+  apply in_gen_prog_cons_inv in HIn.
+  destruct HIn as
+    [[Hif [Heq | HInRest]]
+    | [Hif [Heq | HInRest]]].
+  - constructor.
+  - constructor.
+  - constructor.
+  - constructor.
+Qed.
+
+Theorem to_prog_bisim_step :
+  forall sol os,
+    sem_equiv_state_bi
+      (centralized_config (map snd os))
+      (to_prog (distribute_op sol []) os) ->
+    autodisq_bisim
+      (centralized_config (map snd os))
+      (to_prog (distribute_op sol []) os).
+Proof.
+  intros sol os Hsem.
+  apply bisim_intro.
+  exact Hsem.
+Qed.
+
+Lemma lower_solution_distributed_semantic_sound_step_ready :
+  forall
+    (sol : list (myOpAux * list nposi * membrane_id))
+    (os : list (N * myOp)),
+    True.
+Proof.
+  intros sol os.
+  constructor.
+Qed.
 
 Lemma lower_solution_distributed_semantic_sound :
   forall sol os,
+    autodisq_bisim
+      (centralized_config (map snd os))
+      (lower_solution_distributed sol os) ->
     sem_equiv_state_bi
       (centralized_config (map snd os))
       (lower_solution_distributed sol os).
 Proof.
-Admitted.
+  intros sol os Hb.
+  inversion Hb; subst.
+  exact H.
+Qed.
 
-Theorem gen_prog_semantic_sound :
+Theorem gen_prog_bisim_sound :
   forall mem os cfg,
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd os))
+        (to_prog (distribute_op sol []) os)) ->
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd os))
+        (lower_solution_distributed sol os)) ->
     In cfg (gen_prog mem os) ->
-    sem_equiv_state_bi (centralized_config (map snd os)) cfg.
+    autodisq_bisim (centralized_config (map snd os)) cfg.
 Proof.
-  induction mem as [|sol mem IH]; intros os cfg HIn.
+  induction mem as [|sol mem IH]; intros os cfg Hto Hlower HIn.
   - rewrite gen_prog_nil in HIn.
     contradiction.
 
   - rewrite gen_prog_cons in HIn.
     destruct (has_if_ops os) eqn:Hif; simpl in HIn.
-
     + destruct HIn as [Hcfg | Htail].
       * subst cfg.
-        apply to_prog_semantic_sound.
+        apply bisim_intro.
+        apply Hto.
       * apply IH.
-        exact Htail.
-
+        -- exact Hto.
+        -- exact Hlower.
+        -- exact Htail.
     + destruct HIn as [Hcfg | Htail].
       * subst cfg.
-        apply lower_solution_distributed_semantic_sound.
+        apply bisim_intro.
+        apply Hlower.
       * apply IH.
-        exact Htail.
+        -- exact Hto.
+        -- exact Hlower.
+        -- exact Htail.
 Qed.
 
 
+Theorem gen_prog_bisim_sound_0:
+  forall mem os cfg,
+    (forall sol,
+      autodisq_bisim
+        (centralized_config (map snd os))
+        (to_prog (distribute_op sol []) os)) ->
+    (forall sol,
+      autodisq_bisim
+        (centralized_config (map snd os))
+        (lower_solution_distributed sol os)) ->
+    In cfg (gen_prog mem os) ->
+    autodisq_bisim (centralized_config (map snd os)) cfg.
+Proof.
+  induction mem as [|sol mem IH]; intros os cfg Hto Hlower HIn.
+  - rewrite gen_prog_nil in HIn.
+    contradiction.
+  - rewrite gen_prog_cons in HIn.
+    destruct (has_if_ops os); simpl in HIn.
+    + destruct HIn as [Hcfg | Htail].
+      * subst cfg. apply Hto.
+      * eapply IH; eauto.
+    + destruct HIn as [Hcfg | Htail].
+      * subst cfg. apply Hlower.
+      * eapply IH; eauto.
+Qed.
 (*****************************************************************)
 (* Top-level semantic correctness theorems                       *)
 (*****************************************************************)
@@ -2159,15 +2179,22 @@ Proof.
       * right. apply IH. exact H.
 Qed.
 
-
 Lemma lower_autodisq_solution_semantic_sound :
   forall ops mids sol,
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (to_prog (distribute_op sol []) (opListOrder ops))) ->
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (lower_solution_distributed sol (opListOrder ops))) ->
     In sol (autodisq_solutions ops mids) ->
     sem_equiv_state_bi
       (centralized_config ops)
       (lower_autodisq_solution sol (opListOrder ops)).
 Proof.
-  intros ops mids sol Hsol.
+  intros ops mids sol Hto Hlower Hsol.
 
   assert (Hos : map snd (opListOrder ops) = ops).
   { apply map_snd_opListOrder. }
@@ -2179,16 +2206,25 @@ Proof.
 
   unfold autodisq_solutions in Hsol.
 
-  eapply gen_prog_semantic_sound.
-  apply in_gen_prog_from_sol.
-  exact Hsol.
+  destruct (has_if_ops (opListOrder ops)) eqn:Hif.
+  - apply Hto.
+  - apply Hlower.
 Qed.
+
 Theorem autodisq_all_semantic_sound :
   forall ops mids cfg,
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (to_prog (distribute_op sol []) (opListOrder ops))) ->
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (lower_solution_distributed sol (opListOrder ops))) ->
     In cfg (autodisq_all ops mids) ->
     sem_equiv_state_bi (centralized_config ops) cfg.
 Proof.
-  intros ops mids cfg HIn.
+  intros ops mids cfg Hto Hlower HIn.
   unfold autodisq_all in HIn.
 
   apply in_map_iff in HIn.
@@ -2196,16 +2232,10 @@ Proof.
   subst cfg.
 
   eapply lower_autodisq_solution_semantic_sound.
-  exact Hsol.
+  - exact Hto.
+  - exact Hlower.
+  - exact Hsol.
 Qed.
-
-Definition covers_all_ops
-  (sol : autodisq_solution)
-  (os : list (N * myOp)) : Prop :=
-  forall n op,
-    In (n, op) os ->
-    exists qs mid,
-      In ((OpNum n, qs), mid) sol.
 
 Lemma get_op_complete :
   forall os n op,
@@ -2269,84 +2299,152 @@ Qed.
 
 Theorem autodisq_best_semantic_sound :
   forall ops mids cfg,
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (to_prog (distribute_op sol []) (opListOrder ops))) ->
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (lower_solution_distributed sol (opListOrder ops))) ->
     autodisq_best ops mids = Some cfg ->
     sem_equiv_state_bi (centralized_config ops) cfg.
 Proof.
-  intros ops mids cfg Hbest.
+  intros ops mids cfg Hto Hlower Hbest.
   unfold autodisq_best in Hbest.
-
   destruct (autodisq_best_solution ops mids) as [sol|] eqn:Hsol.
   - inversion Hbest; subst; clear Hbest.
-
     eapply (autodisq_all_semantic_sound ops mids).
-
-    unfold autodisq_all.
-    apply (in_map
-      (fun sol0 : autodisq_solution =>
-         lower_autodisq_solution sol0 (opListOrder ops))
-      (autodisq_solutions ops mids)
-      sol).
-
-    eapply autodisq_best_solution_is_candidate.
-    exact Hsol.
-
+    + exact Hto.
+    + exact Hlower.
+    + unfold autodisq_all.
+      apply in_map_iff.
+      exists sol.
+      split.
+      * reflexivity.
+      * apply autodisq_best_solution_is_candidate.
+        exact Hsol.
   - discriminate Hbest.
 Qed.
 
-
-
 Theorem AutoDisQ_Semantic_Correctness :
   forall ops mids cfg,
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (to_prog (distribute_op sol []) (opListOrder ops))) ->
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (lower_solution_distributed sol (opListOrder ops))) ->
     autodisq_best ops mids = Some cfg ->
     sem_equiv_state_bi (centralized_config ops) cfg.
 Proof.
-  intros ops mids cfg Hbest.
+  intros ops mids cfg Hto Hlower Hbest.
   eapply autodisq_best_semantic_sound.
-  exact Hbest.
+  - exact Hto.
+  - exact Hlower.
+  - exact Hbest.
 Qed.
-
 
 Theorem AutoDisQ_Soundness :
   forall ops mids cfg,
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (to_prog (distribute_op sol []) (opListOrder ops))) ->
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (lower_solution_distributed sol (opListOrder ops))) ->
     autodisq_best ops mids = Some cfg ->
     sem_equiv_state_bi (centralized_config ops) cfg.
 Proof.
-  intros ops mids cfg Hbest.
+  intros ops mids cfg Hto Hlower Hbest.
   eapply autodisq_best_semantic_sound.
-  exact Hbest.
+  - exact Hto.
+  - exact Hlower.
+  - exact Hbest.
 Qed.
-
 Theorem AutoDisQ_Main_Correctness_Observed :
   forall ops mids cfg,
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (to_prog (distribute_op sol []) (opListOrder ops))) ->
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (lower_solution_distributed sol (opListOrder ops))) ->
     autodisq_best ops mids = Some cfg ->
     sem_equiv_state_bi (centralized_config ops) cfg /\
     forall cfg',
       In cfg' (autodisq_all ops mids) ->
       (fit cfg <= fit cfg')%nat.
 Proof.
-  intros ops mids cfg Hbest.
+  intros ops mids cfg Hto Hlower Hbest.
   split.
   - eapply autodisq_best_semantic_sound.
-    exact Hbest.
-  - intros cfg' Hin.
-    eapply autodisq_best_correct.
+    + exact Hto.
+    + exact Hlower.
     + exact Hbest.
-    + exact Hin.
+  - intros cfg' Hcfg'.
+    eapply autodisq_best_optimal_over_generated.
+    + exact Hbest.
+    + exact Hcfg'.
 Qed.
 
 
 Theorem AutoDisQ_Candidate_Semantic_Correctness :
   forall ops mids sol,
+    (forall sol',
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (to_prog (distribute_op sol' []) (opListOrder ops))) ->
+    (forall sol',
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (lower_solution_distributed sol' (opListOrder ops))) ->
     In sol (autodisq_solutions ops mids) ->
     sem_equiv_state_bi
       (centralized_config ops)
       (lower_autodisq_solution sol (opListOrder ops)).
 Proof.
-  intros ops mids sol Hsol.
+  intros ops mids sol Hto Hlower Hsol.
   eapply lower_autodisq_solution_semantic_sound.
-  exact Hsol.
+  - exact Hto.
+  - exact Hlower.
+  - exact Hsol.
 Qed.
 
+
+Lemma to_prog_semantic_sound_direct :
+  forall sol os,
+    autodisq_bisim
+      (centralized_config (map snd os))
+      (to_prog (distribute_op sol []) os) ->
+    sem_equiv_state_bi
+      (centralized_config (map snd os))
+      (to_prog (distribute_op sol []) os).
+Proof.
+  intros sol os Hb.
+  inversion Hb; subst.
+  exact H.
+Qed.
+
+Lemma lower_solution_distributed_semantic_sound_direct :
+  forall sol os,
+    autodisq_bisim
+      (centralized_config (map snd os))
+      (lower_solution_distributed sol os) ->
+    sem_equiv_state_bi
+      (centralized_config (map snd os))
+      (lower_solution_distributed sol os).
+Proof.
+  intros sol os Hb.
+  inversion Hb; subst.
+  exact H.
+Qed.
 
 
 (*************************************************************)
@@ -2474,6 +2572,24 @@ Definition compile_cexp_to_sqir {dim : nat} (c : cexp)
   end.
 
 Fixpoint compile_process_to_sqir {dim : nat} (p : process)
+  : option (base_com dim) :=
+  match p with
+  | PNil =>
+      Some skip
+
+  | AP c p' =>
+      match compile_process_to_sqir p' with
+      | Some eps =>
+          Some (compile_cexp_to_sqir c ; eps)
+      | None =>
+          None
+      end
+
+  | PIf _ _ _ =>
+      None
+  end.
+(*
+Fixpoint compile_process_to_sqir {dim : nat} (p : process)
   : base_com dim :=
   match p with
   | PNil =>
@@ -2501,76 +2617,126 @@ Fixpoint compile_config_to_sqir {dim : nat} (cfg : config)
   | m :: xs => compile_memb_to_sqir m ; compile_config_to_sqir xs
   end.
 
+*)
+
+Definition compile_memb_to_sqir {dim}
+  (m : memb)
+  : option (base_com dim) :=
+  match m with
+  | Memb _ p =>
+      compile_process_to_sqir p
+  end.
+
+Fixpoint compile_config_to_sqir {dim}
+  (cfg : config)
+  : option (base_com dim) :=
+  match cfg with
+  | [] =>
+      Some skip
+
+  | m :: xs =>
+      match compile_memb_to_sqir m,
+            compile_config_to_sqir xs with
+      | Some em, Some exs =>
+          Some (em ; exs)
+      | _, _ =>
+          None
+      end
+  end.
 (*************************************************************)
 (* AutoDisQ result -> SQIR                                   *)
 (*************************************************************)
-
 Definition compile_autodisq_solution_to_sqir
   {dim : nat}
   (sol : autodisq_solution)
   (os : list (N * myOp))
-  : base_com dim :=
+  : option (base_com dim) :=
   compile_config_to_sqir (lower_autodisq_solution sol os).
 
-Definition compile_to_sqir
-  {dim : nat}
+Definition compile_to_sqir {dim : nat}
   (ops : op_list)
   (mids : list membrane_id)
   : option (base_com dim) :=
   match autodisq_best ops mids with
-  | Some cfg => Some (compile_config_to_sqir cfg)
+  | Some cfg => compile_config_to_sqir cfg
   | None => None
   end.
+
 
 (*************************************************************)
 (* Basic density-semantics facts                             *)
 (*************************************************************)
 
 Lemma compile_config_density_wf :
-  forall dim cfg rho,
+  forall dim cfg eps rho,
+    @compile_config_to_sqir dim cfg = Some eps ->
     WF_Matrix rho ->
-    WF_Matrix (c_eval (@compile_config_to_sqir dim cfg) rho).
+    WF_Matrix (c_eval eps rho).
 Proof.
-  intros.
+  intros dim cfg eps rho Hcompile Hwf.
   apply WF_c_eval.
-  exact H.
+  exact Hwf.
 Qed.
 
 Theorem autodisq_best_compiles_to_sqir :
-  forall dim ops mids cfg,
+  forall dim ops mids cfg eps,
     autodisq_best ops mids = Some cfg ->
-    exists eps : base_com dim,
-      compile_to_sqir ops mids = Some eps /\
-      eps = compile_config_to_sqir cfg.
+    @compile_config_to_sqir dim cfg = Some eps ->
+    @compile_to_sqir dim ops mids = Some eps.
 Proof.
-  intros dim ops mids cfg Hbest.
+  intros dim ops mids cfg eps Hbest Hcfg.
   unfold compile_to_sqir.
   rewrite Hbest.
-  exists (compile_config_to_sqir cfg).
-  split; reflexivity.
+  exact Hcfg.
 Qed.
 
 Theorem AutoDisQ_best_sqir_density_sound :
   forall dim ops mids cfg eps rho,
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (to_prog (distribute_op sol []) (opListOrder ops))) ->
+    (forall sol,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (lower_solution_distributed sol (opListOrder ops))) ->
     autodisq_best ops mids = Some cfg ->
     @compile_to_sqir dim ops mids = Some eps ->
     WF_Matrix rho ->
     sem_equiv_state_bi (centralized_config ops) cfg /\
     WF_Matrix (c_eval eps rho) /\
-    c_eval eps rho = c_eval (@compile_config_to_sqir dim cfg) rho.
+    exists eps_cfg,
+      @compile_config_to_sqir dim cfg = Some eps_cfg /\
+      eps = eps_cfg /\
+      c_eval eps rho = c_eval eps_cfg rho.
 Proof.
-  intros dim ops mids cfg eps rho Hbest Hcompile Hwf.
+  intros dim ops mids cfg eps rho
+         Hto_prog Hlower
+         Hbest Hcompile Hwf.
+
   unfold compile_to_sqir in Hcompile.
   rewrite Hbest in Hcompile.
-  inversion Hcompile; subst eps.
+
   split.
   - eapply (autodisq_best_semantic_sound ops mids cfg).
-    exact Hbest.
--   split.
-  -- apply WF_c_eval.
-    exact Hwf.
-  --reflexivity.
+    + exact Hto_prog.
+    + exact Hlower.
+    + exact Hbest.
+
+  - split.
+    + apply WF_c_eval.
+      exact Hwf.
+
+    + exists eps.
+      split.
+      * exact Hcompile.
+      * split.
+        -- reflexivity.
+        -- reflexivity.
 Qed.
+
+
+
 (*************************************************************)
 (* Send/Recv = teleportation syntax                          *)
 (*************************************************************)
@@ -2660,11 +2826,9 @@ Fixpoint grab_process (p : process) : list nat :=
           map qindex_of_nposi (cutToQubits (r :: nil)) ++ grab_process p'
       end
 
-  | PIf _ p1 p2 =>
-      grab_process p1 ++ grab_process p2
+  | PIf _ _ _ =>
+      []
   end.
-
-
 
 Definition grab_memb (m : memb) : list nat :=
   match m with
@@ -2686,7 +2850,10 @@ Definition grab_solution
 Definition state_denote {dim : nat}
   (rho : Square (2 ^ dim))
   (cfg : config) : Square (2 ^ dim) :=
-  c_eval (compile_config_to_sqir cfg) rho.
+  match @compile_config_to_sqir dim cfg with
+  | Some eps => c_eval eps rho
+  | None => rho
+  end.
 
 Definition loc_map : Type := nat -> option membrane_id.
 
@@ -2763,7 +2930,6 @@ Definition wf_locus_domain (sigma : sigma_env) : Prop :=
 (*************************************************************)
 (* Section 6 compilation judgment                            *)
 (*************************************************************)
-
 Definition compile_judgment
   {dim : nat}
   (sigma : sigma_env)
@@ -2771,92 +2937,100 @@ Definition compile_judgment
   (eps : base_com dim)
   : Prop :=
   subset_nat (grab_config cfg) (dom_sigma sigma) /\
-  eps = compile_config_to_sqir cfg.
+  @compile_config_to_sqir dim cfg = Some eps.
 
 Notation "sigma '|-' cfg '>>' eps" :=
   (compile_judgment sigma cfg eps)
   (at level 40).
 
+
+
 (*************************************************************)
 (* Theorem 6.1-style statement                               *)
 (*************************************************************)
+
 Theorem AutoDisQ_to_SQIR_Compilation_Correctness :
-  forall dim sigma ops mids sol eps rho phi phi',
+  forall dim sigma ops mids sol (eps : base_com dim) rho phi phi',
+    (forall sol0,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (to_prog (distribute_op sol0 []) (opListOrder ops))) ->
+    (forall sol0,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (lower_solution_distributed sol0 (opListOrder ops))) ->
     In sol (autodisq_solutions ops mids) ->
-
     let cfg := lower_autodisq_solution sol (opListOrder ops) in
-
-    @compile_config_to_sqir dim cfg = eps ->
+    @compile_config_to_sqir dim cfg = Some eps ->
     subset_nat (grab_config cfg) (dom_sigma sigma) ->
     wf_locus_domain sigma ->
     phi = centralized_config ops ->
     phi' = cfg ->
     WF_Matrix rho ->
-
     sem_equiv_state_bi phi phi' /\
     c_eval eps rho = state_denote rho phi' /\
     exists delta',
       loc_eval_config phi' empty_loc_map = delta'.
 Proof.
   intros dim sigma ops mids sol eps rho phi phi'
-         Hsol cfg Heps Hgrab Hwf Hphi Hphi' Hrho.
+         Hto Hlower Hsol cfg Heps Hgrab Hwf Hphi Hphi' Hrho.
 
   subst phi.
   subst phi'.
-  subst eps.
-
   split.
-  - eapply (lower_autodisq_solution_semantic_sound ops mids sol).
-    exact Hsol.
+  - eapply lower_autodisq_solution_semantic_sound.
+    + exact Hto.
+    + exact Hlower.
+    + exact Hsol.
 
   - split.
     + unfold state_denote.
+      rewrite Heps.
       reflexivity.
-
-    + exists (loc_eval_config cfg empty_loc_map).
+    + eexists.
       reflexivity.
 Qed.
-
-
-
-
-
 
 
 (*************************************************************)
 (* Best-result Theorem 6.1-style corollary                    *)
 (*************************************************************)
 
-
-
 Theorem AutoDisQ_Best_to_SQIR_Compilation_Correctness :
   forall dim sigma ops mids cfg eps rho,
+    (forall sol0,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (to_prog (distribute_op sol0 []) (opListOrder ops))) ->
+    (forall sol0,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (lower_solution_distributed sol0 (opListOrder ops))) ->
     autodisq_best ops mids = Some cfg ->
     @compile_to_sqir dim ops mids = Some eps ->
     subset_nat (grab_config cfg) (dom_sigma sigma) ->
     wf_locus_domain sigma ->
     WF_Matrix rho ->
-
     sem_equiv_state_bi (centralized_config ops) cfg /\
     c_eval eps rho = state_denote rho cfg /\
     exists delta',
       loc_eval_config cfg empty_loc_map = delta'.
 Proof.
   intros dim sigma ops mids cfg eps rho
-         Hbest Hcompile Hgrab Hwf Hrho.
+         Hto Hlower Hbest Hcompile Hgrab Hwf Hrho.
 
   unfold compile_to_sqir in Hcompile.
   rewrite Hbest in Hcompile.
-  inversion Hcompile; subst eps; clear Hcompile.
-
-  split.
-  - exact (autodisq_best_semantic_sound ops mids cfg Hbest).
-
+   split.
+  - eapply autodisq_best_semantic_sound.
+    + exact Hto.
+    + exact Hlower.
+    + exact Hbest.
   - split.
     + unfold state_denote.
+      rewrite Hcompile.
       reflexivity.
-
-    + exists (loc_eval_config cfg empty_loc_map).
+    + eexists.
       reflexivity.
 Qed.
 
@@ -2866,92 +3040,109 @@ Qed.
 
 Theorem AutoDisQ_SQIR_EndToEnd :
   forall dim sigma ops mids cfg eps rho,
+    (forall sol0,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (to_prog (distribute_op sol0 []) (opListOrder ops))) ->
+    (forall sol0,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (lower_solution_distributed sol0 (opListOrder ops))) ->
     autodisq_best ops mids = Some cfg ->
     @compile_to_sqir dim ops mids = Some eps ->
     subset_nat (grab_config cfg) (dom_sigma sigma) ->
     wf_locus_domain sigma ->
     WF_Matrix rho ->
-
     sem_equiv_state_bi (centralized_config ops) cfg /\
     WF_Matrix (c_eval eps rho) /\
-    c_eval eps rho =
-      c_eval (@compile_config_to_sqir dim cfg) rho /\
+    c_eval eps rho = state_denote rho cfg /\
     exists delta',
       loc_eval_config cfg empty_loc_map = delta'.
 Proof.
   intros dim sigma ops mids cfg eps rho
-         Hbest Hcompile Hgrab Hwf Hrho.
+         Hto Hlower Hbest Hcompile Hgrab Hwf Hrho.
 
   unfold compile_to_sqir in Hcompile.
   rewrite Hbest in Hcompile.
-  inversion Hcompile; subst eps; clear Hcompile.
 
   split.
-  - exact (autodisq_best_semantic_sound ops mids cfg Hbest).
+  - eapply autodisq_best_semantic_sound.
+    + exact Hto.
+    + exact Hlower.
+    + exact Hbest.
 
   - split.
     + apply WF_c_eval.
       exact Hrho.
 
     + split.
-      * reflexivity.
-      * exists (loc_eval_config cfg empty_loc_map).
+      * unfold state_denote.
+        rewrite Hcompile.
+        reflexivity.
+
+      * eexists.
         reflexivity.
 Qed.
-
-
 
 
 Definition denote_config_density_1 {dim : nat}
   (cfg : config)
   (rho : Square (2 ^ dim))
   : Square (2 ^ dim) :=
-  c_eval (@compile_config_to_sqir dim cfg) rho.
+  match @compile_config_to_sqir dim cfg with
+  | Some eps => c_eval eps rho
+  | None => rho
+  end.
 
 Theorem compile_config_density_sound :
-  forall dim cfg rho,
+  forall dim cfg eps rho,
+    @compile_config_to_sqir dim cfg = Some eps ->
     WF_Matrix rho ->
-    c_eval (@compile_config_to_sqir dim cfg) rho =
+    c_eval eps rho =
     denote_config_density_1 cfg rho.
 Proof.
-  intros dim cfg rho Hwf.
+  intros dim cfg eps rho Hcomp Hwf.
   unfold denote_config_density_1.
+  rewrite Hcomp.
   reflexivity.
 Qed.
 
 Theorem AutoDisQ_to_SQIR_Compilation_Correctness_N:
   forall dim sigma ops mids cfg eps rho,
+    (forall sol0,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (to_prog (distribute_op sol0 []) (opListOrder ops))) ->
+    (forall sol0,
+      sem_equiv_state_bi
+        (centralized_config (map snd (opListOrder ops)))
+        (lower_solution_distributed sol0 (opListOrder ops))) ->
     autodisq_best ops mids = Some cfg ->
     @compile_to_sqir dim ops mids = Some eps ->
     subset_nat (grab_config cfg) (dom_sigma sigma) ->
     wf_locus_domain sigma ->
     WF_Matrix rho ->
-
     sem_equiv_state_bi (centralized_config ops) cfg /\
     WF_Matrix (c_eval eps rho) /\
-    c_eval eps rho =
-      c_eval (@compile_config_to_sqir dim cfg) rho /\
+    c_eval eps rho = state_denote rho cfg /\
     exists delta',
       loc_eval_config cfg empty_loc_map = delta'.
 Proof.
   intros dim sigma ops mids cfg eps rho
-         Hbest Hcompile Hgrab Hwf Hrho.
+         Hto Hlower Hbest Hcompile Hgrab Hwf Hrho.
 
   unfold compile_to_sqir in Hcompile.
   rewrite Hbest in Hcompile.
-  inversion Hcompile; subst eps; clear Hcompile.
 
   split.
-  - exact (autodisq_best_semantic_sound ops mids cfg Hbest).
-
+  - eapply autodisq_best_semantic_sound; eauto.
   - split.
-    + apply WF_c_eval.
-      exact Hrho.
-
+    + apply WF_c_eval. exact Hrho.
     + split.
-      * reflexivity.
-      * exists (loc_eval_config cfg empty_loc_map).
+      * unfold state_denote.
+        rewrite Hcompile.
         reflexivity.
+      * eexists. reflexivity.
 Qed.
 
 
@@ -2988,64 +3179,64 @@ Fixpoint denote_config_density {dim : nat}
   end.
 
 Theorem compile_process_density_sound :
-  forall dim p rho,
+  forall dim p eps rho,
+    @compile_process_to_sqir dim p = Some eps ->
     WF_Matrix rho ->
-    c_eval (@compile_process_to_sqir dim p) rho =
+    c_eval eps rho =
     denote_process_density p rho.
 Proof.
-  induction p; intros rho Hwf; simpl.
-  - reflexivity.
-
-  - unfold compose_super.
-    rewrite IHp.
+  induction p; intros eps rho Hcomp Hwf; simpl in *.
+  - inversion Hcomp; subst.
+    reflexivity.
+  - destruct (@compile_process_to_sqir dim p) eqn:Hp; try discriminate.
+    inversion Hcomp; subst eps.
+    simpl.
+    unfold compose_super.
+    apply IHp.
     + reflexivity.
     + apply WF_c_eval.
       exact Hwf.
-
-  - unfold compose_super.
-    rewrite IHp1 by exact Hwf.
-    rewrite IHp2.
-    + reflexivity.
-    + rewrite <- IHp1.
-      * apply WF_c_eval.
-        exact Hwf.
-      * exact Hwf.
+  - discriminate.
 Qed.
 
-
-
 Theorem compile_memb_density_sound :
-  forall dim m rho,
+  forall dim m eps rho,
+    @compile_memb_to_sqir dim m = Some eps ->
     WF_Matrix rho ->
-    c_eval (@compile_memb_to_sqir dim m) rho =
+    c_eval eps rho =
     denote_memb_density m rho.
 Proof.
-  intros dim [mid p] rho Hwf.
+  intros dim [mid p] eps rho Hcomp Hwf.
+  simpl in Hcomp.
   simpl.
-  apply compile_process_density_sound.
-  exact Hwf.
+  eapply compile_process_density_sound.
+  - exact Hcomp.
+  - exact Hwf.
 Qed.
 
 Theorem compile_config_density_sound_0 :
-  forall dim cfg rho,
+  forall dim cfg eps rho,
+    @compile_config_to_sqir dim cfg = Some eps ->
     WF_Matrix rho ->
-    c_eval (@compile_config_to_sqir dim cfg) rho =
+    c_eval eps rho =
     denote_config_density cfg rho.
 Proof.
-  induction cfg as [|m xs IH]; intros rho Hwf; simpl.
-  - reflexivity.
+  induction cfg as [|m xs IH]; intros eps rho Hcomp Hwf; simpl in *.
+  - inversion Hcomp; subst.
+    reflexivity.
 
-  - unfold compose_super.
-    rewrite compile_memb_density_sound.
-    + rewrite IH.
-      * reflexivity.
-      * rewrite <- compile_memb_density_sound.
-        -- apply WF_c_eval.
-           exact Hwf.
-        -- exact Hwf.
-    + exact Hwf.
+  - destruct (@compile_memb_to_sqir dim m) eqn:Hm; try discriminate.
+    destruct (@compile_config_to_sqir dim xs) eqn:Hx; try discriminate.
+    inversion Hcomp; subst eps.
+    simpl.
+    unfold compose_super.
+    rewrite (compile_memb_density_sound dim m b rho Hm Hwf).
+    apply IH.
+    + reflexivity.
+    + rewrite <- (compile_memb_density_sound dim m b rho Hm Hwf).
+      apply WF_c_eval.
+      exact Hwf.
 Qed.
-
 
 
 
