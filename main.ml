@@ -133,6 +133,13 @@ let ghz128_prog : op_list =
   @ [OpAP (CAppU ([sub_range 0 0], H (0, Num 0)))]
   @ cnot_chain ghz128_qs
 
+let ghz256_n = 256
+let ghz256_qs : var list = seq 0 ghz256_n
+let ghz256_prog : op_list =
+  alloc_qubits_from ghz256_qs
+  @ [OpAP (CAppU ([sub_range 0 0], H (0, Num 0)))]
+  @ cnot_chain ghz256_qs
+
 (* ============================================================ *)
 (* Shor-style skeleton benchmarks (NO measurement)              *)
 (* ============================================================ *)
@@ -172,6 +179,15 @@ let shor128_prog : op_list =
   @ apply_H_all_from 0 0 128
   @ controlled_x_chain_from 0 1 0 128
   @ [OpAP (CAppU ([full_range 0 128], QFT (0, 128)))]
+
+let shor256_prog : op_list =
+  [
+    OpAP (CNew (0, (0, 256)));
+    OpAP (CNew (1, (0, 256)));
+  ]
+  @ apply_H_all_from 0 0 256
+  @ controlled_x_chain_from 0 1 0 256
+  @ [OpAP (CAppU ([full_range 0 256], QFT (0, 256)))]
 
 (* ============================================================ *)
 (* QFT-based Adder (8 qubits)                                   *)
@@ -227,11 +243,24 @@ let qftAdder128 : op_list =
     OpAP (CNew (qfta128_y, (0, qfta128_n)));
     OpAP (CAppU ([(qfta128_y, (0, qfta128_n))], QFT (qfta128_y, qfta128_n)));
   ]
-  @ rz_full_adder qfta128_x qfta16_n qfta128_y
+  @ rz_full_adder qfta128_x qfta128_n qfta128_y
   @ [OpAP (CAppU ([(qfta128_y, (0, qfta128_n))], RQFT (qfta128_y, qfta128_n)))]
+
+let qfta128_n = 128
+let qfta128_x = 0
+let qfta128_y = 1
+
+let qftAdder256 : op_list =
+  [
+    OpAP (CNew (qfta256_x, (0, qfta256_n)));
+    OpAP (CNew (qfta256_y, (0, qfta256_n)));
+    OpAP (CAppU ([(qfta256_y, (0, qfta256_n))], QFT (qfta256_y, qfta256_n)));
+  ]
+  @ rz_full_adder qfta256_x qfta256_n qfta256_y
+  @ [OpAP (CAppU ([(qfta256_y, (0, qfta256_n))], RQFT (qfta256_y, qfta256_n)))]
   
   
-  (* ------------------------------------------------------------ *)
+(* ------------------------------------------------------------ *)
 (* Reversed-version QFT                                         *)
 (* x[n-1]: H; CRZ(x[0],x[n-1]); ... ; CRZ(x[n-2],x[n-1])        *)
 (* x[n-2]: H; CRZ(x[0],x[n-2]); ... ; CRZ(x[n-3],x[n-2])        *)
@@ -304,6 +333,18 @@ let qft128_x = 0
 let qft128_only_seq : op_list =
   [OpAP (CNew (qft128_x, (0, qft128_n)))]
   @ qft qft128_x qft128_n
+
+(* ------------------------------------------------------------ *)
+(* QFT-256                                                       *)
+(* ------------------------------------------------------------ *)
+
+let qft256_n = 256
+let qft256_x = 0
+
+let qft256_only_seq : op_list =
+  [OpAP (CNew (qft256_x, (0, qft256_n)))]
+  @ qft qft256_x qft256_n
+
 
 (*
 (* ============================================================ *)
@@ -435,10 +476,38 @@ let ampEst128Seq : op_list =
     OpAP (CNew (ae128_x, (0, ae128_n)));
     OpAP (CNew (ae128_y, (0, ae128_n)));
   ]
-  @ applyH ae16_x ae128_n
-  @ applyH ae16_y ae128_n
-  @ control_Qs16 ae128_x ae128_y ae128_n
+  @ applyH ae128_x ae128_n
+  @ applyH ae128_y ae128_n
+  @ control_Qs128 ae128_x ae128_y ae128_n
   @ [OpAP (CAppU ([full_range ae128_x ae128_n], RQFT (ae128_x, ae128_n)))]
+
+(* ============================================================ *)
+(* Amplitude Estimation (256 qubits)                             *)
+(* ============================================================ *)
+
+let ae256_n = 256
+let ae256_x = 0
+let ae256_y = 1
+
+let rec control_Qs256 (x : var) (y : var) (k : int) : op_list =
+  match k with
+  | 0 -> []
+  | _ ->
+      OpAP
+        (CAppU
+           ([sub_range x (k - 1); full_range y ae256_n],
+            CU (x, Num (k - 1), qop y)))
+      :: control_Qs256 x y (k - 1)
+
+let ampEst256Seq : op_list =
+  [
+    OpAP (CNew (ae256_x, (0, ae256_n)));
+    OpAP (CNew (ae256_y, (0, ae256_n)));
+  ]
+  @ applyH ae256_x ae256_n
+  @ applyH ae256_y ae256_n
+  @ control_Qs256 ae256_x ae256_y ae256_n
+  @ [OpAP (CAppU ([full_range ae256_x ae256_n], RQFT (ae256_x, ae256_n)))]
 
 (* ============================================================ *)
 (* Ripple-Carry Adder (general n qubits)                        *)
@@ -515,6 +584,19 @@ let rippleCarry128 : op_list =
   ]
   @ ripple_adder rc128_n rc128_x rc128_y rc128_c
 
+let rc256_n = 256
+let rc256_c = 0
+let rc256_y = 1
+let rc256_x = 2
+
+let rippleCarry256 : op_list =
+  [
+    OpAP (CNew (rc256_c, (0, 1)));
+    OpAP (CNew (rc256_y, (0, rc256_n)));
+    OpAP (CNew (rc256_x, (0, rc256_n)));
+  ]
+  @ ripple_adder rc256_n rc256_x rc256_y rc256_c
+
 
 (* ============================================================ *)
 (* Discrete Log (8 qubits)                                      *)
@@ -585,10 +667,30 @@ let discreteLog128Seq : op_list =
   @ apply_H_all_from dlog128_x 0 dlog128_n
   @ apply_H_all_from dlog128_y 0 dlog128_n
   @ controlled_x_chain_from dlog128_x dlog128_z 0 dlog128_n
-  @ controlled_x_chain_from dlog128_y dlog16_z 0 dlog128_n
+  @ controlled_x_chain_from dlog128_y dlog128_z 0 dlog128_n
   @ [
       OpAP (CAppU ([full_range dlog128_x dlog128_n], QFT (dlog128_x, dlog128_n)));
       OpAP (CAppU ([full_range dlog128_y dlog128_n], QFT (dlog128_y, dlog128_n)));
+    ]
+
+let dlog256_n = 256
+let dlog256_x = 0
+let dlog256_y = 1
+let dlog256_z = 2
+
+let discreteLog256Seq : op_list =
+  [
+    OpAP (CNew (dlog256_x, (0, dlog256_n)));
+    OpAP (CNew (dlog256_y, (0, dlog256_n)));
+    OpAP (CNew (dlog256_z, (0, dlog256_n)));
+  ]
+  @ apply_H_all_from dlog256_x 0 dlog256_n
+  @ apply_H_all_from dlog256_y 0 dlog256_n
+  @ controlled_x_chain_from dlog256_x dlog256_z 0 dlog256_n
+  @ controlled_x_chain_from dlog256_y dlog256_z 0 dlog256_n
+  @ [
+      OpAP (CAppU ([full_range dlog256_x dlog256_n], QFT (dlog256_x, dlog256_n)));
+      OpAP (CAppU ([full_range dlog256_y dlog256_n], QFT (dlog256_y, dlog256_n)));
     ]
 
 
@@ -1250,6 +1352,210 @@ let () =
   print_summary ();
   print_load_chart ();
   ()
+
+(**
+let () =
+  Printexc.record_backtrace true;
+
+  (* ========================================================== *)
+  (* GHZ 256                                                      *)
+  (* ========================================================== *)
+  report_unit "opListOrder GHZ256 [0;1]"
+    (protect_unit (fun () -> test_opListOrder ghz256_prog));
+
+  report_unit "gen_hb GHZ256 [0;1]"
+    (protect_unit (fun () -> test_gen_hb ghz256_prog));
+
+  report_unit "gen_seq GHZ256 [0;1]"
+    (protect_unit (fun () -> test_gen_seq ghz256_prog));
+
+  report_unit "gen_mem GHZ256 [0;1]"
+    (protect_unit (fun () -> test_gen_mem ghz256_prog mids_2));
+
+  report_unit "gen_prog GHZ256 [0;1]"
+    (protect_unit (fun () -> test_gen_prog ghz256_prog mids_2));
+
+  test_num_mem_configs ghz256_prog mids_2;
+  test_num_final_configs ghz256_prog mids_2;
+
+  report_best "autodisq_first GHZ256 [0;1]"
+    (protect_bench (fun () -> autodisq_first ghz256_prog mids_2));
+
+  report_best "autodisq_best GHZ256 [0;1]"
+    (protect_bench (fun () -> autodisq_best ghz256_prog mids_2));
+
+  report_best "autodisq_best_1 GHZ256 [0;1]"
+    (protect_bench (fun () -> autodisq_best_1 ghz256_prog mids_2));
+
+  (* ========================================================== *)
+  (* SHOR 256                                                     *)
+  (* ========================================================== *)
+  report_unit "opListOrder SHOR256 [0;1]"
+    (protect_unit (fun () -> test_opListOrder shor256_prog));
+
+  report_unit "gen_hb SHOR256 [0;1]"
+    (protect_unit (fun () -> test_gen_hb shor256_prog));
+
+  report_unit "gen_seq SHOR256 [0;1]"
+    (protect_unit (fun () -> test_gen_seq shor256_prog));
+
+  report_unit "gen_mem SHOR256 [0;1]"
+    (protect_unit (fun () -> test_gen_mem shor256_prog mids_2));
+
+  report_unit "gen_prog SHOR256 [0;1]"
+    (protect_unit (fun () -> test_gen_prog shor256_prog mids_2));
+
+  report_best "autodisq_first SHOR256 [0;1]"
+    (protect_bench (fun () -> autodisq_first shor256_prog mids_2));
+
+  report_best "autodisq_best SHOR256 [0;1]"
+    (protect_bench (fun () -> autodisq_best shor256_prog mids_2));
+
+  report_best "autodisq_best_1 SHOR256 [0;1]"
+    (protect_bench (fun () -> autodisq_best_1 shor256_prog mids_2));
+
+  (* ========================================================== *)
+  (* Ripple-Carry Adder 256                                       *)
+  (* ========================================================== *)
+  report_unit "opListOrder RippleCarry256 [0;1]"
+    (protect_unit (fun () -> test_opListOrder rippleCarry256));
+
+  report_unit "gen_hb RippleCarry256 [0;1]"
+    (protect_unit (fun () -> test_gen_hb rippleCarry256));
+
+  report_unit "gen_seq RippleCarry256 [0;1]"
+    (protect_unit (fun () -> test_gen_seq rippleCarry256));
+
+  report_unit "gen_mem RippleCarry256 [0;1]"
+    (protect_unit (fun () -> test_gen_mem rippleCarry256 mids_2));
+
+  report_unit "gen_prog RippleCarry256 [0;1]"
+    (protect_unit (fun () -> test_gen_prog rippleCarry256 mids_2));
+
+  report_best "autodisq_first RippleCarry256 [0;1]"
+    (protect_bench (fun () -> autodisq_first rippleCarry256 mids_2));
+
+  report_best "autodisq_best RippleCarry256 [0;1]"
+    (protect_bench (fun () -> autodisq_best rippleCarry256 mids_2));
+
+  report_best "autodisq_best_1 RippleCarry256 [0;1]"
+    (protect_bench (fun () -> autodisq_best_1 rippleCarry256 mids_2));
+
+  (* ========================================================== *)
+  (* QFT Adder 256                                                *)
+  (* ========================================================== *)
+  report_unit "opListOrder QFTAdder256 [0;1]"
+    (protect_unit (fun () -> test_opListOrder qftAdder256));
+
+  report_unit "gen_hb QFTAdder256 [0;1]"
+    (protect_unit (fun () -> test_gen_hb qftAdder256));
+
+  report_unit "gen_seq QFTAdder256 [0;1]"
+    (protect_unit (fun () -> test_gen_seq qftAdder256));
+
+  report_unit "gen_mem QFTAdder256 [0;1]"
+    (protect_unit (fun () -> test_gen_mem qftAdder256 mids_2));
+
+  report_unit "gen_prog QFTAdder256 [0;1]"
+    (protect_unit (fun () -> test_gen_prog qftAdder256 mids_2));
+
+  report_best "autodisq_first QFTAdder256 [0;1]"
+    (protect_bench (fun () -> autodisq_first qftAdder256 mids_2));
+
+  report_best "autodisq_best QFTAdder256 [0;1]"
+    (protect_bench (fun () -> autodisq_best qftAdder256 mids_2));
+
+  report_best "autodisq_best_1 QFTAdder256 [0;1]"
+    (protect_bench (fun () -> autodisq_best_1 qftAdder256 mids_2));
+
+  (* ========================================================== *)
+  (* QFT 256                                                      *)
+  (* ========================================================== *)
+  report_unit "opListOrder QFT256 [0;1]"
+    (protect_unit (fun () -> test_opListOrder qft256_only_seq));
+
+  report_unit "gen_hb QFT256 [0;1]"
+    (protect_unit (fun () -> test_gen_hb qft256_only_seq));
+
+  report_unit "gen_seq QFT256 [0;1]"
+    (protect_unit (fun () -> test_gen_seq qft256_only_seq));
+
+  report_unit "gen_mem QFT256 [0;1]"
+    (protect_unit (fun () -> test_gen_mem qft256_only_seq mids_2));
+
+  report_unit "gen_prog QFT256 [0;1]"
+    (protect_unit (fun () -> test_gen_prog qft256_only_seq mids_2));
+
+  report_best "autodisq_first QFT256 [0;1]"
+    (protect_bench (fun () -> autodisq_first qft256_only_seq mids_2));
+
+  report_best "autodisq_best QFT256 [0;1]"
+    (protect_bench (fun () -> autodisq_best qft256_only_seq mids_2));
+
+  report_best "autodisq_best_1 QFT256 [0;1]"
+    (protect_bench (fun () -> autodisq_best_1 qft256_only_seq mids_2));
+
+  (* ========================================================== *)
+  (* Amplitude Estimation 256                                   *)
+  (* ========================================================== *)
+  report_unit "opListOrder AmpEst256 [0;1]"
+    (protect_unit (fun () -> test_opListOrder ampEst256Seq));
+
+  report_unit "gen_hb AmpEst256 [0;1]"
+    (protect_unit (fun () -> test_gen_hb ampEst256Seq));
+
+  report_unit "gen_seq AmpEst256 [0;1]"
+    (protect_unit (fun () -> test_gen_seq ampEst256Seq));
+
+  report_unit "gen_mem AmpEst256 [0;1]"
+    (protect_unit (fun () -> test_gen_mem ampEst256Seq mids_2));
+
+  report_unit "gen_prog AmpEst256 [0;1]"
+    (protect_unit (fun () -> test_gen_prog ampEst256Seq mids_2));
+
+  report_best "autodisq_first AmpEst256 [0;1]"
+    (protect_bench (fun () -> autodisq_first ampEst256Seq mids_2));
+
+  report_best "autodisq_best AmpEst256 [0;1]"
+    (protect_bench (fun () -> autodisq_best ampEst256Seq mids_2));
+
+  report_best "autodisq_best_1 AmpEst256 [0;1]"
+    (protect_bench (fun () -> autodisq_best_1 ampEst256Seq mids_2));
+
+  (* ========================================================== *)
+  (* Discrete Log 256                                             *)
+  (* ========================================================== *)
+  report_unit "opListOrder DiscreteLog256 [0;1]"
+    (protect_unit (fun () -> test_opListOrder discreteLog256Seq));
+
+  report_unit "gen_hb DiscreteLog256 [0;1]"
+    (protect_unit (fun () -> test_gen_hb discreteLog256Seq));
+
+  report_unit "gen_seq DiscreteLog256 [0;1]"
+    (protect_unit (fun () -> test_gen_seq discreteLog256Seq));
+
+  report_unit "gen_mem DiscreteLog256 [0;1]"
+    (protect_unit (fun () -> test_gen_mem discreteLog256Seq mids_2));
+
+  report_unit "gen_prog DiscreteLog256 [0;1]"
+    (protect_unit (fun () -> test_gen_prog discreteLog256Seq mids_2));
+
+  report_best "autodisq_first DiscreteLog256 [0;1]"
+    (protect_bench (fun () -> autodisq_first discreteLog256Seq mids_2));
+
+  report_best "autodisq_best DiscreteLog256 [0;1]"
+    (protect_bench (fun () -> autodisq_best discreteLog256Seq mids_2));
+
+  report_best "autodisq_best_1 DiscreteLog256 [0;1]"
+    (protect_bench (fun () -> autodisq_best_1 discreteLog256Seq mids_2));
+
+  (* ---- summary output ---- *)
+  print_summary ();
+  print_load_chart ();
+  ()
+
+**)
+
 
 (**
 let () =
