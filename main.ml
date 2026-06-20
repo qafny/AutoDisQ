@@ -246,9 +246,9 @@ let qftAdder128 : op_list =
   @ rz_full_adder qfta128_x qfta128_n qfta128_y
   @ [OpAP (CAppU ([(qfta128_y, (0, qfta128_n))], RQFT (qfta128_y, qfta128_n)))]
 
-let qfta128_n = 128
-let qfta128_x = 0
-let qfta128_y = 1
+let qfta256_n = 256
+let qfta256_x = 0
+let qfta256_y = 1
 
 let qftAdder256 : op_list =
   [
