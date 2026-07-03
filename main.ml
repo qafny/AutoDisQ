@@ -484,7 +484,7 @@ let rec control_Qs32 (x : var) (y : var) (k : int) : op_list =
             CU (x, Num (k - 1), qop y)))
       :: control_Qs32 x y (k - 1)
 
-let ampEst16Seq : op_list =
+let ampEst32Seq : op_list =
   [
     OpAP (CNew (ae32_x, (0, ae32_n)));
     OpAP (CNew (ae32_y, (0, ae32_n)));
@@ -1280,22 +1280,22 @@ let () =
   (* SHOR 32                                                    *)
   (* ========================================================== *)
   report_unit "opListOrder SHOR32 [0;1]"
-    (protect_unit (fun () -> test_opListOrder (shor32_prog 32)));
+    (protect_unit (fun () -> test_opListOrder (shor32_prog)));
 
   report_unit "gen_hb SHOR32 [0;1]"
-    (protect_unit (fun () -> test_gen_hb (shor32_prog 32)));
+    (protect_unit (fun () -> test_gen_hb (shor32_prog)));
 
   report_unit "gen_seq SHOR32 [0;1]"
-    (protect_unit (fun () -> test_gen_seq (shor32_prog 32)));
+    (protect_unit (fun () -> test_gen_seq (shor32_prog)));
 
   report_unit "gen_mem SHOR32 [0;1]"
-    (protect_unit (fun () -> test_gen_mem (shor32_prog 32) mids_2));
+    (protect_unit (fun () -> test_gen_mem (shor32_prog) mids_2));
 
   report_unit "gen_prog SHOR32 [0;1]"
-    (protect_unit (fun () -> test_gen_prog (shor32_prog 32) mids_2));
+    (protect_unit (fun () -> test_gen_prog (shor32_prog) mids_2));
 
   report_best "autodisq_best_1 SHOR32 [0;1]"
-    (protect_bench (fun () -> autodisq_best_1 (shor32_prog 32) mids_2));
+    (protect_bench (fun () -> autodisq_best_1 (shor32_prog) mids_2));
 
   (* ========================================================== *)
   (* Ripple-Carry Adder 32                                      *)
@@ -1319,7 +1319,7 @@ let () =
     (protect_bench (fun () -> autodisq_best_1 rippleCarry32 mids_2));
 
   (* ========================================================== *)
-  (* QFT Adder 16                                               *)
+  (* QFT Adder 32                                               *)
   (* ========================================================== *)
   report_unit "opListOrder QFTAdder32 [0;1]"
     (protect_unit (fun () -> test_opListOrder qftAdder32));
