@@ -1255,6 +1255,145 @@ let () =
   (* ========================================================== *)
   (* GHZ 32                                                     *)
   (* ========================================================== *)
+  report_unit "opListOrder GHZ32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_opListOrder ghz32_prog));
+
+  report_unit "gen_hb GHZ32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_hb ghz32_prog));
+
+  report_unit "gen_seq GHZ32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_seq ghz32_prog));
+
+  report_unit "gen_mem GHZ32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_mem ghz32_prog mids_5));
+
+  report_unit "gen_prog GHZ32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_prog ghz32_prog mids_5));
+
+  test_num_mem_configs ghz32_prog mids_5;
+  test_num_final_configs ghz32_prog mids_5;
+
+  report_best "autodisq_best_1 GHZ32 [0;1;2;3;4]"
+    (protect_bench (fun () -> autodisq_best_1 ghz32_prog mids_5));
+
+  (* ========================================================== *)
+  (* SHOR 32                                                    *)
+  (* ========================================================== *)
+  report_unit "opListOrder SHOR32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_opListOrder (shor32_prog)));
+
+  report_unit "gen_hb SHOR32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_hb (shor32_prog)));
+
+  report_unit "gen_seq SHOR32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_seq (shor32_prog)));
+
+  report_unit "gen_mem SHOR32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_mem (shor32_prog) mids_5));
+
+  report_unit "gen_prog SHOR32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_prog (shor32_prog) mids_5));
+
+  report_best "autodisq_best_1 SHOR32 [0;1;2;3;4]"
+    (protect_bench (fun () -> autodisq_best_1 (shor32_prog) mids_5));
+
+  (* ========================================================== *)
+  (* Ripple-Carry Adder 32                                      *)
+  (* ========================================================== *)
+  report_unit "opListOrder RippleCarry32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_opListOrder rippleCarry32));
+
+  report_unit "gen_hb RippleCarry32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_hb rippleCarry32));
+
+  report_unit "gen_seq RippleCarry32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_seq rippleCarry32));
+
+  report_unit "gen_mem RippleCarry32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_mem rippleCarry32 mids_5));
+
+  report_unit "gen_prog RippleCarry32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_prog rippleCarry32 mids_5));
+
+  report_best "autodisq_best_1 RippleCarry32 [0;1;2;3;4]"
+    (protect_bench (fun () -> autodisq_best_1 rippleCarry32 mids_5));
+
+  (* ========================================================== *)
+  (* QFT Adder 32                                               *)
+  (* ========================================================== *)
+  report_unit "opListOrder QFTAdder32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_opListOrder qftAdder32));
+
+  report_unit "gen_hb QFTAdder32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_hb qftAdder32));
+
+  report_unit "gen_seq QFTAdder32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_seq qftAdder32));
+
+  report_unit "gen_mem QFTAdder32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_mem qftAdder32 mids_5));
+
+  report_unit "gen_prog QFTAdder32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_prog qftAdder32 mids_5));
+
+  report_best "autodisq_best_1 QFTAdder32 [0;1;2;3;4]"
+    (protect_bench (fun () -> autodisq_best_1 qftAdder32 mids_5));
+
+
+  (* ========================================================== *)
+  (* Amplitude Estimation 32                                    *)
+  (* ========================================================== *)
+  report_unit "opListOrder AmpEst32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_opListOrder ampEst32Seq));
+
+  report_unit "gen_hb AmpEst32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_hb ampEst32Seq));
+
+  report_unit "gen_seq AmpEst32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_seq ampEst32Seq));
+
+  report_unit "gen_mem AmpEst32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_mem ampEst32Seq mids_5));
+
+  report_unit "gen_prog AmpEst32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_prog ampEst32Seq mids_5));
+
+  report_best "autodisq_best_1 AmpEst32 [0;1;2;3;4]"
+    (protect_bench (fun () -> autodisq_best_1 ampEst32Seq mids_5));
+
+  (* ========================================================== *)
+  (* Discrete Log 32                                            *)
+  (* ========================================================== *)
+  report_unit "opListOrder DiscreteLog32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_opListOrder discreteLog32Seq));
+
+  report_unit "gen_hb DiscreteLog32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_hb discreteLog32Seq));
+
+  report_unit "gen_seq DiscreteLog32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_seq discreteLog32Seq));
+
+  report_unit "gen_mem DiscreteLog32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_mem discreteLog32Seq mids_5));
+
+  report_unit "gen_prog DiscreteLog32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_prog discreteLog32Seq mids_5));
+
+  report_best "autodisq_best_1 DiscreteLog32 [0;1;2;3;4]"
+    (protect_bench (fun () -> autodisq_best_1 discreteLog32Seq mids_5));
+
+  (* ---- summary output ---- *)
+  print_summary ();
+  print_load_chart ();
+  ()
+
+(**
+let () =
+  Printexc.record_backtrace true;
+
+  (* ========================================================== *)
+  (* GHZ 32                                                     *)
+  (* ========================================================== *)
   report_unit "opListOrder GHZ32 [0;1;2]"
     (protect_unit (fun () -> test_opListOrder ghz32_prog));
 
@@ -1387,7 +1526,6 @@ let () =
   print_load_chart ();
   ()
 
-(**
 
 let () =
   Printexc.record_backtrace true;
