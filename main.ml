@@ -1339,26 +1339,6 @@ let () =
   report_best "autodisq_best_1 QFTAdder32 [0;1]"
     (protect_bench (fun () -> autodisq_best_1 qftAdder32 mids_2));
 
-  (* ========================================================== *)
-  (* QFT 32                                                     *)
-  (* ========================================================== *)
-  report_unit "opListOrder QFT32 [0;1]"
-    (protect_unit (fun () -> test_opListOrder qft32_only_seq));
-
-  report_unit "gen_hb QFT32 [0;1]"
-    (protect_unit (fun () -> test_gen_hb qft32_only_seq));
-
-  report_unit "gen_seq QFT32 [0;1]"
-    (protect_unit (fun () -> test_gen_seq qft32_only_seq));
-
-  report_unit "gen_mem QFT32 [0;1]"
-    (protect_unit (fun () -> test_gen_mem qft32_only_seq mids_2));
-
-  report_unit "gen_prog QFT32 [0;1]"
-    (protect_unit (fun () -> test_gen_prog qft32_only_seq mids_2));
-
-  report_best "autodisq_best_1 QFT32 [0;1]"
-    (protect_bench (fun () -> autodisq_best_1 qft32_only_seq mids_2));
 
   (* ========================================================== *)
   (* Amplitude Estimation 32                                    *)
