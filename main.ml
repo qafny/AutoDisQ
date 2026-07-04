@@ -1253,6 +1253,123 @@ let () =
   Printexc.record_backtrace true;
 
   (* ========================================================== *)
+  (* GHZ 256                                                      *)
+  (* ========================================================== *)
+  report_unit "opListOrder GHZ256 [0;1;2]"
+    (protect_unit (fun () -> test_opListOrder ghz256_prog));
+
+  report_unit "gen_hb GHZ256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_hb ghz256_prog));
+
+  report_unit "gen_seq GHZ256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_seq ghz256_prog));
+
+  report_unit "gen_mem GHZ256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_mem ghz256_prog mids_3));
+
+  report_unit "gen_prog GHZ256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_prog ghz256_prog mids_3));
+
+  test_num_mem_configs ghz256_prog mids_3;
+  test_num_final_configs ghz256_prog mids_3;
+
+  report_best "autodisq_best_1 GHZ256 [0;1;2]"
+    (protect_bench (fun () -> autodisq_best_1 ghz256_prog mids_3));
+
+  (* ========================================================== *)
+  (* SHOR 256                                                     *)
+  (* ========================================================== *)
+  report_unit "opListOrder SHOR256 [0;1;2]"
+    (protect_unit (fun () -> test_opListOrder shor256_prog));
+
+  report_unit "gen_hb SHOR256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_hb shor256_prog));
+
+  report_unit "gen_seq SHOR256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_seq shor256_prog));
+
+  report_unit "gen_mem SHOR256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_mem shor256_prog mids_3));
+
+  report_unit "gen_prog SHOR256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_prog shor256_prog mids_3));
+
+  report_best "autodisq_best_1 SHOR256 [0;1;2]"
+    (protect_bench (fun () -> autodisq_best_1 shor256_prog mids_3));
+
+  (* ========================================================== *)
+  (* Ripple-Carry Adder 256                                       *)
+  (* ========================================================== *)
+  report_unit "opListOrder RippleCarry256 [0;1;2]"
+    (protect_unit (fun () -> test_opListOrder rippleCarry256));
+
+  report_unit "gen_hb RippleCarry256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_hb rippleCarry256));
+
+  report_unit "gen_seq RippleCarry256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_seq rippleCarry256));
+
+  report_unit "gen_mem RippleCarry256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_mem rippleCarry256 mids_3));
+
+  report_unit "gen_prog RippleCarry256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_prog rippleCarry256 mids_3));
+
+  report_best "autodisq_best_1 RippleCarry256 [0;1;2]"
+    (protect_bench (fun () -> autodisq_best_1 rippleCarry256 mids_3));
+
+  (* ========================================================== *)
+  (* QFT Adder 256                                                *)
+  (* ========================================================== *)
+  report_unit "opListOrder QFTAdder256 [0;1;2]"
+    (protect_unit (fun () -> test_opListOrder qftAdder256));
+
+  report_unit "gen_hb QFTAdder256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_hb qftAdder256));
+
+  report_unit "gen_seq QFTAdder256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_seq qftAdder256));
+
+  report_unit "gen_mem QFTAdder256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_mem qftAdder256 mids_3));
+
+  report_unit "gen_prog QFTAdder256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_prog qftAdder256 mids_3));
+
+  report_best "autodisq_best_1 QFTAdder256 [0;1;2]"
+    (protect_bench (fun () -> autodisq_best_1 qftAdder256 mids_3));
+
+  (* ========================================================== *)
+  (* Amplitude Estimation 256                                   *)
+  (* ========================================================== *)
+  report_unit "opListOrder AmpEst256 [0;1;2]"
+    (protect_unit (fun () -> test_opListOrder ampEst256Seq));
+
+  report_unit "gen_hb AmpEst256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_hb ampEst256Seq));
+
+  report_unit "gen_seq AmpEst256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_seq ampEst256Seq));
+
+  report_unit "gen_mem AmpEst256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_mem ampEst256Seq mids_3));
+
+  report_unit "gen_prog AmpEst256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_prog ampEst256Seq mids_3));
+
+  report_best "autodisq_best_1 AmpEst256 [0;1;2]"
+    (protect_bench (fun () -> autodisq_best_1 ampEst256Seq mids_3));
+
+  (* ---- summary output ---- *)
+  print_summary ();
+  print_load_chart ();
+  ()
+
+(**
+let () =
+  Printexc.record_backtrace true;
+
+  (* ========================================================== *)
   (* GHZ 32                                                     *)
   (* ========================================================== *)
   report_unit "opListOrder GHZ32 [0;1;2;3;4]"
@@ -1387,7 +1504,6 @@ let () =
   print_load_chart ();
   ()
 
-(**
 let () =
   Printexc.record_backtrace true;
 
@@ -1665,121 +1781,6 @@ let () =
   print_load_chart ();
   ()
 
-let () =
-  Printexc.record_backtrace true;
-
-  (* ========================================================== *)
-  (* GHZ 256                                                      *)
-  (* ========================================================== *)
-  report_unit "opListOrder GHZ256 [0;1;2]"
-    (protect_unit (fun () -> test_opListOrder ghz256_prog));
-
-  report_unit "gen_hb GHZ256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_hb ghz256_prog));
-
-  report_unit "gen_seq GHZ256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_seq ghz256_prog));
-
-  report_unit "gen_mem GHZ256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_mem ghz256_prog mids_3));
-
-  report_unit "gen_prog GHZ256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_prog ghz256_prog mids_3));
-
-  test_num_mem_configs ghz256_prog mids_3;
-  test_num_final_configs ghz256_prog mids_3;
-
-  report_best "autodisq_best_1 GHZ256 [0;1;2]"
-    (protect_bench (fun () -> autodisq_best_1 ghz256_prog mids_3));
-
-  (* ========================================================== *)
-  (* SHOR 256                                                     *)
-  (* ========================================================== *)
-  report_unit "opListOrder SHOR256 [0;1;2]"
-    (protect_unit (fun () -> test_opListOrder shor256_prog));
-
-  report_unit "gen_hb SHOR256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_hb shor256_prog));
-
-  report_unit "gen_seq SHOR256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_seq shor256_prog));
-
-  report_unit "gen_mem SHOR256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_mem shor256_prog mids_3));
-
-  report_unit "gen_prog SHOR256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_prog shor256_prog mids_3));
-
-  report_best "autodisq_best_1 SHOR256 [0;1;2]"
-    (protect_bench (fun () -> autodisq_best_1 shor256_prog mids_3));
-
-  (* ========================================================== *)
-  (* Ripple-Carry Adder 256                                       *)
-  (* ========================================================== *)
-  report_unit "opListOrder RippleCarry256 [0;1;2]"
-    (protect_unit (fun () -> test_opListOrder rippleCarry256));
-
-  report_unit "gen_hb RippleCarry256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_hb rippleCarry256));
-
-  report_unit "gen_seq RippleCarry256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_seq rippleCarry256));
-
-  report_unit "gen_mem RippleCarry256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_mem rippleCarry256 mids_3));
-
-  report_unit "gen_prog RippleCarry256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_prog rippleCarry256 mids_3));
-
-  report_best "autodisq_best_1 RippleCarry256 [0;1;2]"
-    (protect_bench (fun () -> autodisq_best_1 rippleCarry256 mids_3));
-
-  (* ========================================================== *)
-  (* QFT Adder 256                                                *)
-  (* ========================================================== *)
-  report_unit "opListOrder QFTAdder256 [0;1;2]"
-    (protect_unit (fun () -> test_opListOrder qftAdder256));
-
-  report_unit "gen_hb QFTAdder256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_hb qftAdder256));
-
-  report_unit "gen_seq QFTAdder256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_seq qftAdder256));
-
-  report_unit "gen_mem QFTAdder256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_mem qftAdder256 mids_3));
-
-  report_unit "gen_prog QFTAdder256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_prog qftAdder256 mids_3));
-
-  report_best "autodisq_best_1 QFTAdder256 [0;1;2]"
-    (protect_bench (fun () -> autodisq_best_1 qftAdder256 mids_3));
-
-  (* ========================================================== *)
-  (* Amplitude Estimation 256                                   *)
-  (* ========================================================== *)
-  report_unit "opListOrder AmpEst256 [0;1;2]"
-    (protect_unit (fun () -> test_opListOrder ampEst256Seq));
-
-  report_unit "gen_hb AmpEst256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_hb ampEst256Seq));
-
-  report_unit "gen_seq AmpEst256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_seq ampEst256Seq));
-
-  report_unit "gen_mem AmpEst256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_mem ampEst256Seq mids_3));
-
-  report_unit "gen_prog AmpEst256 [0;1;2]"
-    (protect_unit (fun () -> test_gen_prog ampEst256Seq mids_3));
-
-  report_best "autodisq_best_1 AmpEst256 [0;1;2]"
-    (protect_bench (fun () -> autodisq_best_1 ampEst256Seq mids_3));
-
-  (* ---- summary output ---- *)
-  print_summary ();
-  print_load_chart ();
-  ()
 
 let () =
   Printexc.record_backtrace true;
