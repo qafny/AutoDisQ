@@ -1249,6 +1249,74 @@ let print_load_chart () =
 (* Main                                                         *)
 (* ============================================================ *)
 
+let () = 
+  (* ========================================================== *)
+  (* Discrete Log 256                                            *)
+  (* ========================================================== *)
+  report_unit "opListOrder DiscreteLog256 [0;1]"
+    (protect_unit (fun () -> test_opListOrder discreteLog256Seq));
+
+  report_unit "gen_hb DiscreteLog256 [0;1]"
+    (protect_unit (fun () -> test_gen_hb discreteLog256Seq));
+
+  report_unit "gen_seq DiscreteLog256 [0;1]"
+    (protect_unit (fun () -> test_gen_seq discreteLog256Seq));
+
+  report_unit "gen_mem DiscreteLog256 [0;1]"
+    (protect_unit (fun () -> test_gen_mem discreteLog256Seq mids_2));
+
+  report_unit "gen_prog DiscreteLog256 [0;1]"
+    (protect_unit (fun () -> test_gen_prog discreteLog256Seq mids_2));
+
+  report_best "autodisq_best_1 DiscreteLog256 [0;1]"
+    (protect_bench (fun () -> autodisq_best_1 discreteLog256Seq mids_2));
+
+  (* 3 membranes *)
+
+  report_unit "opListOrder DiscreteLog256 [0;1;2]"
+    (protect_unit (fun () -> test_opListOrder discreteLog256Seq));
+
+  report_unit "gen_hb DiscreteLog256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_hb discreteLog256Seq));
+
+  report_unit "gen_seq DiscreteLog256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_seq discreteLog256Seq));
+
+  report_unit "gen_mem DiscreteLog256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_mem discreteLog256Seq mids_3));
+
+  report_unit "gen_prog DiscreteLog256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_prog discreteLog256Seq mids_3));
+
+  report_best "autodisq_best_1 DiscreteLog256 [0;1;2]"
+    (protect_bench (fun () -> autodisq_best_1 discreteLog256Seq mids_3));
+
+  (* 5 membranes *)
+
+  report_unit "opListOrder DiscreteLog256 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_opListOrder discreteLog256Seq));
+
+  report_unit "gen_hb DiscreteLog256 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_hb discreteLog256Seq));
+
+  report_unit "gen_seq DiscreteLog256 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_seq discreteLog256Seq));
+
+  report_unit "gen_mem DiscreteLog256 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_mem discreteLog256Seq mids_5));
+
+  report_unit "gen_prog DiscreteLog256 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_prog discreteLog256Seq mids_5));
+
+  report_best "autodisq_best_1 DiscreteLog256 [0;1;2;3;4]"
+    (protect_bench (fun () -> autodisq_best_1 discreteLog256Seq mids_5));
+
+  (* ---- summary output ---- *)
+  print_summary ();
+  print_load_chart ();
+  ()
+
+(** 
 let () =
   Printexc.record_backtrace true;
 
@@ -1365,7 +1433,6 @@ let () =
   print_load_chart ();
   ()
 
-(**
 let () =
   Printexc.record_backtrace true;
 
