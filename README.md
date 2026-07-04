@@ -1,5 +1,5 @@
 # DisQ
-To compile DisQ, you will need [Coq](https://coq.inria.fr/). We recommend using [opam](https://opam.ocaml.org/doc/Install.html) to install Coq and `opam switch` to manage Coq versions. We currently support Coq **versions 8.16**.
+To compile AutoDisQ, you will need [Coq](https://coq.inria.fr/). We recommend using [opam](https://opam.ocaml.org/doc/Install.html) to install Coq and `opam switch` to manage Coq versions. We currently support Coq **versions 8.16**.
 
 
 ## Environment Setup
@@ -8,7 +8,7 @@ To compile DisQ, you will need [Coq](https://coq.inria.fr/). We recommend using 
 opam init -a  
 
 # create a switch named qblue and import the environment
-opam switch create qblue
+opam switch create autodisq
 opam switch import opam-switch.export
 
 # check if the switch and packages are right
@@ -18,7 +18,7 @@ opam list
 
 ## Setup
 
-To compile Qafny, you will need [Coq](https://coq.inria.fr/) and [QuickChick](https://github.com/QuickChick/QuickChick). We strongly recommend using [opam](https://opam.ocaml.org/doc/Install.html) to install Coq and `opam switch` to manage Coq versions. We currently support Coq **versions 8.16**.
+To compile AutoDisQ, you will need [Coq](https://coq.inria.fr/) and [QuickChick](https://github.com/QuickChick/QuickChick). We strongly recommend using [opam](https://opam.ocaml.org/doc/Install.html) to install Coq and `opam switch` to manage Coq versions. We currently support Coq **versions 8.16**.
 
 Assuming you have opam installed (following the instructions in the link above), follow the steps below to set up your environment.
 ```
@@ -58,19 +58,25 @@ To pull subsequent updates, run opam install coq-sqir.
 To import SQIR files, use Require Import SQIR.FILENAME
 
 
-## Compile & Running DisQ
+## Compile & Running AutoDisQ
 1. Generate Makefile if it is the first time, run `coq_makefile -f _CoqProject -o Makefile`.
 
 2. Compile, run `make` in the current directory. 
 
+3. Then, please push the ml code to the ml directory. The directory contains the 'script' file. Users can simply run ./script to see the execution of AutoDisQ on different programs.
 
 ## Directory Contents
 
-* DisQSyntax.v - The DisQ language syntax.
+* DisQSyntax.v - The AutoDisQ language syntax.
 * DisQDef.v - Locus and state syntax and equation rules.
-* DisQKind.v - The DisQ Kind system and action level semantics.
-* DisQType.v - The DisQ Type system.
-* DisQSem.v - The DisQ language semantics.
+* DisQKind.v - The AutoDisQ Kind system and action level semantics.
+* DisQType.v - The AutoDisQ Type system.
+* DisQSem.v - The AutoDisQ language semantics.
+* AUTO.v - The AutoDisQ algorithm.
+* DisQProof.v - The AutoDisQ theorem files containing the proof for the main theorem 4.3.
+* AUTO_Test.v - The AutoDisQ examples.
+* Extract.v - Extract AutoDisQ to Ocaml.
+* ml/* - The directory contain Ocaml extracted code for running the AutoDisQ algorithm.
 
 
 

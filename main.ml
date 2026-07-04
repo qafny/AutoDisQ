@@ -282,7 +282,7 @@ let qftAdder256 : op_list =
 (* x[0]  : H                                                    *)
 (* ------------------------------------------------------------ *)
 
-(* rotations from x[0] up to x[i-1] *)
+(* rotations from x[0] up to x[i-1] 
 let rec qft_rotations_rev (x : var) (i : int) (j : int) : op_list =
   if j >= i then []
   else
@@ -291,17 +291,25 @@ let rec qft_rotations_rev (x : var) (i : int) (j : int) : op_list =
          ([sub_range x j; sub_range x i],
           CU (x, Num j, RZ (i - j + 1, x, Num i))))
     :: qft_rotations_rev x i (j + 1)
+*)
+
+let rec qft_rz x i size =
+  if size <= 0 then SKIP (x,0) else Seq (qft_rz x i (size-1),RZ (i+size+1,x,Num size-1))
 
 (* main reversed QFT *)
 let rec qft_rev' (x : var) (i : int) : op_list =
-  if i < 0 then []
+qft_rev' x (i - 1) @
+  (if i < 0 then []
   else
     [OpAP (CAppU ([sub_range x i], H (x, Num i)))]
-    @ qft_rotations_rev x i 0
-    @ qft_rev' x (i - 1)
+    @ [OpAP
+         (CAppU
+           ([(x, (0, i+2))],
+             CU (x, Num (i+1), qft_rz x (i+1) (i+1))))])
+    
 
 let qft (x : var) (size : int) : op_list =
-  qft_rev' x (size - 1)
+  qft_rev' x (size - 2) @ [OpAP (CAppU ([sub_range x (size-1)], H (x, Num (size-1))))]
 
 (* ------------------------------------------------------------ *)
 (* QFT-8                                                        *)
