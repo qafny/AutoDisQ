@@ -298,11 +298,11 @@ let rec qft_rz x i size =
 
 (* main reversed QFT *)
 let rec qft_rev' (x : var) (i : int) : op_list =
+if i < 0 then []
+else
 qft_rev' x (i - 1) @
-  (if i < 0 then []
-  else
-    [OpAP (CAppU ([sub_range x i], H (x, Num i)))]
-    @ [OpAP
+  (OpAP (CAppU ([sub_range x i], H (x, Num i)))
+    :: [OpAP
          (CAppU
            ([(x, (0, i+2))],
              CU (x, Num (i+1), qft_rz x (i+1) (i+1))))])
