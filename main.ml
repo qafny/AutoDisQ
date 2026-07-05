@@ -294,7 +294,7 @@ let rec qft_rotations_rev (x : var) (i : int) (j : int) : op_list =
 *)
 
 let rec qft_rz x i size =
-  if size <= 0 then SKIP (x,0) else Seq (qft_rz x i (size-1),RZ (i+size+1,x,Num size-1))
+  if size <= 0 then SKIP (x,Num 0) else Seq (qft_rz x i (size-1),RZ (i+size+1,x,Num (size-1)))
 
 (* main reversed QFT *)
 let rec qft_rev' (x : var) (i : int) : op_list =
