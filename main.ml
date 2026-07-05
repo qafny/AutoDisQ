@@ -1261,6 +1261,141 @@ let () =
   Printexc.record_backtrace true;
 
   (* ========================================================== *)
+  (* QFT 32                                                     *)
+  (* ========================================================== *)
+  report_unit "opListOrder QFT32 [0;1]"
+    (protect_unit (fun () -> test_opListOrder qft32_only_seq));
+
+  report_unit "gen_hb QFT32 [0;1]"
+    (protect_unit (fun () -> test_gen_hb qft32_only_seq));
+
+  report_unit "gen_seq QFT32 [0;1]"
+    (protect_unit (fun () -> test_gen_seq qft32_only_seq));
+
+  report_unit "gen_mem QFT32 [0;1]"
+    (protect_unit (fun () -> test_gen_mem qft32_only_seq mids_2));
+
+  report_unit "gen_prog QFT32 [0;1]"
+    (protect_unit (fun () -> test_gen_prog qft32_only_seq mids_2));
+
+  report_best "autodisq_best_1 QFT32 [0;1]"
+    (protect_bench (fun () -> autodisq_best_1 qft32_only_seq mids_2));
+  
+  (* ========================================================== *)
+  (* QFT 32                                                     *)
+  (* ========================================================== *)
+  report_unit "opListOrder QFT32 [0;1;2]"
+    (protect_unit (fun () -> test_opListOrder qft32_only_seq));
+
+  report_unit "gen_hb QFT32 [0;1;2]"
+    (protect_unit (fun () -> test_gen_hb qft32_only_seq));
+
+  report_unit "gen_seq QFT32 [0;1;2]"
+    (protect_unit (fun () -> test_gen_seq qft32_only_seq));
+
+  report_unit "gen_mem QFT32 [0;1;2]"
+    (protect_unit (fun () -> test_gen_mem qft32_only_seq mids_3));
+
+  report_unit "gen_prog QFT32 [0;1;2]"
+    (protect_unit (fun () -> test_gen_prog qft32_only_seq mids_3));
+
+  report_best "autodisq_best_1 QFT32 [0;1;2]"
+    (protect_bench (fun () -> autodisq_best_1 qft32_only_seq mids_3));
+
+  (* ========================================================== *)
+  (* QFT 32                                                     *)
+  (* ========================================================== *)
+  report_unit "opListOrder QFT32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_opListOrder qft32_only_seq));
+
+  report_unit "gen_hb QFT32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_hb qft32_only_seq));
+
+  report_unit "gen_seq QFT32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_seq qft32_only_seq));
+
+  report_unit "gen_mem QFT32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_mem qft32_only_seq mids_5));
+
+  report_unit "gen_prog QFT32 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_prog qft32_only_seq mids_5));
+
+  report_best "autodisq_best_1 QFT32 [0;1;2;3;4]"
+    (protect_bench (fun () -> autodisq_best_1 qft32_only_seq mids_5));
+
+  (* ========================================================== *)
+  (* QFT 256                                                     *)
+  (* ========================================================== *)
+  report_unit "opListOrder QFT256 [0;1]"
+    (protect_unit (fun () -> test_opListOrder qft256_only_seq));
+
+  report_unit "gen_hb QFT256 [0;1]"
+    (protect_unit (fun () -> test_gen_hb qft256_only_seq));
+
+  report_unit "gen_seq QFT256 [0;1]"
+    (protect_unit (fun () -> test_gen_seq qft256_only_seq));
+
+  report_unit "gen_mem QFT256 [0;1]"
+    (protect_unit (fun () -> test_gen_mem qft256_only_seq mids_2));
+
+  report_unit "gen_prog QFT256 [0;1]"
+    (protect_unit (fun () -> test_gen_prog qft256_only_seq mids_2));
+
+  report_best "autodisq_best_1 QFT256 [0;1]"
+    (protect_bench (fun () -> autodisq_best_1 qft256_only_seq mids_2));
+  
+  (* ========================================================== *)
+  (* QFT 256                                                     *)
+  (* ========================================================== *)
+  report_unit "opListOrder QFT256 [0;1;2]"
+    (protect_unit (fun () -> test_opListOrder qft256_only_seq));
+
+  report_unit "gen_hb QFT256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_hb qft256_only_seq));
+
+  report_unit "gen_seq QFT256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_seq qft256_only_seq));
+
+  report_unit "gen_mem QFT256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_mem qft256_only_seq mids_3));
+
+  report_unit "gen_prog QFT256 [0;1;2]"
+    (protect_unit (fun () -> test_gen_prog qft256_only_seq mids_3));
+
+  report_best "autodisq_best_1 QFT256 [0;1;2]"
+    (protect_bench (fun () -> autodisq_best_1 qft256_only_seq mids_3));
+
+  (* ========================================================== *)
+  (* QFT 256                                                     *)
+  (* ========================================================== *)
+  report_unit "opListOrder QFT256 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_opListOrder qft256_only_seq));
+
+  report_unit "gen_hb QFT256 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_hb qft_only_seq));
+
+  report_unit "gen_seq QFT256 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_seq qft256_only_seq));
+
+  report_unit "gen_mem QFT256 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_mem qft256_only_seq mids_5));
+
+  report_unit "gen_prog QFT256 [0;1;2;3;4]"
+    (protect_unit (fun () -> test_gen_prog qft256_only_seq mids_5));
+
+  report_best "autodisq_best_1 QFT32 [0;1;2;3;4]"
+    (protect_bench (fun () -> autodisq_best_1 qft256_only_seq mids_5));
+
+  (* ---- summary output ---- *)
+  print_summary ();
+  print_load_chart ();
+  ()
+
+(**
+let () =
+  Printexc.record_backtrace true;
+
+  (* ========================================================== *)
   (* GHZ 256                                                      *)
   (* ========================================================== *)
   report_unit "opListOrder GHZ256 [0;1;2;3;4]"
@@ -1375,7 +1510,6 @@ let () =
   ()
 
 
-(**
 let () = 
   (* ========================================================== *)
   (* Discrete Log 256                                            *)
