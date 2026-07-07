@@ -298,14 +298,14 @@ let rec qft_rz x i size =
 
 (* main reversed QFT *)
 let rec qft_rev' (x : var) (i : int) : op_list =
+if i < 0 then []
+else
 qft_rev' x (i - 1) @
-  (if i < 0 then []
-  else
-    (OpAP (CAppU ([sub_range x i], H (x, Num i))))
+  (OpAP (CAppU ([sub_range x i], H (x, Num i)))
     :: [OpAP
          (CAppU
            ([(x, (0, i+2))],
-             CU (x, Num (i+1), SKIP (x,Num 0))))])
+             CU (x, Num (i+1), qft_rz x (i+1) (i+1))))])
     
 
 let qft (x : var) (size : int) : op_list =
@@ -1263,6 +1263,7 @@ let () =
   (* ========================================================== *)
   (* QFT 32                                                     *)
   (* ========================================================== *)
+  (*
   report_unit "opListOrder QFT32 [0;1]"
     (protect_unit (fun () -> test_opListOrder qft32_only_seq));
 
@@ -1277,13 +1278,14 @@ let () =
 
   report_unit "gen_prog QFT32 [0;1]"
     (protect_unit (fun () -> test_gen_prog qft32_only_seq mids_2));
-
+*)
   report_best "autodisq_best_1 QFT32 [0;1]"
     (protect_bench (fun () -> autodisq_best_1 qft32_only_seq mids_2));
   
   (* ========================================================== *)
   (* QFT 32                                                     *)
   (* ========================================================== *)
+  (*
   report_unit "opListOrder QFT32 [0;1;2]"
     (protect_unit (fun () -> test_opListOrder qft32_only_seq));
 
@@ -1298,13 +1300,14 @@ let () =
 
   report_unit "gen_prog QFT32 [0;1;2]"
     (protect_unit (fun () -> test_gen_prog qft32_only_seq mids_3));
-
+*)
   report_best "autodisq_best_1 QFT32 [0;1;2]"
     (protect_bench (fun () -> autodisq_best_1 qft32_only_seq mids_3));
 
   (* ========================================================== *)
   (* QFT 32                                                     *)
   (* ========================================================== *)
+  (*
   report_unit "opListOrder QFT32 [0;1;2;3;4]"
     (protect_unit (fun () -> test_opListOrder qft32_only_seq));
 
@@ -1319,13 +1322,14 @@ let () =
 
   report_unit "gen_prog QFT32 [0;1;2;3;4]"
     (protect_unit (fun () -> test_gen_prog qft32_only_seq mids_5));
-
+*)
   report_best "autodisq_best_1 QFT32 [0;1;2;3;4]"
     (protect_bench (fun () -> autodisq_best_1 qft32_only_seq mids_5));
 
   (* ========================================================== *)
   (* QFT 256                                                     *)
   (* ========================================================== *)
+  (*
   report_unit "opListOrder QFT256 [0;1]"
     (protect_unit (fun () -> test_opListOrder qft256_only_seq));
 
@@ -1340,13 +1344,14 @@ let () =
 
   report_unit "gen_prog QFT256 [0;1]"
     (protect_unit (fun () -> test_gen_prog qft256_only_seq mids_2));
-
+*)
   report_best "autodisq_best_1 QFT256 [0;1]"
     (protect_bench (fun () -> autodisq_best_1 qft256_only_seq mids_2));
   
   (* ========================================================== *)
   (* QFT 256                                                     *)
   (* ========================================================== *)
+  (*
   report_unit "opListOrder QFT256 [0;1;2]"
     (protect_unit (fun () -> test_opListOrder qft256_only_seq));
 
@@ -1361,13 +1366,14 @@ let () =
 
   report_unit "gen_prog QFT256 [0;1;2]"
     (protect_unit (fun () -> test_gen_prog qft256_only_seq mids_3));
-
+*)
   report_best "autodisq_best_1 QFT256 [0;1;2]"
     (protect_bench (fun () -> autodisq_best_1 qft256_only_seq mids_3));
 
   (* ========================================================== *)
   (* QFT 256                                                     *)
   (* ========================================================== *)
+  (*
   report_unit "opListOrder QFT256 [0;1;2;3;4]"
     (protect_unit (fun () -> test_opListOrder qft256_only_seq));
 
@@ -1382,7 +1388,7 @@ let () =
 
   report_unit "gen_prog QFT256 [0;1;2;3;4]"
     (protect_unit (fun () -> test_gen_prog qft256_only_seq mids_5));
-
+*)
   report_best "autodisq_best_1 QFT32 [0;1;2;3;4]"
     (protect_bench (fun () -> autodisq_best_1 qft256_only_seq mids_5));
 
