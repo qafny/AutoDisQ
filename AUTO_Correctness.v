@@ -372,7 +372,7 @@ Qed.
 
 
 (*************************************************************)
-(*                                                           *)
+(*    AutoDisQ Algorithm Correctness.                        *)
 (*************************************************************)
 Theorem AutoDisQ_Main_Correctness :
   forall ops mids cfg,

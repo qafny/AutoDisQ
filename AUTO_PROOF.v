@@ -1367,6 +1367,7 @@ Proof.
   exact Hin.
 Qed.
 
+(* Always output the best solution theorem. *)
 Theorem autodisq_best_correct :
   forall ops mids cfg,
     autodisq_best ops mids = Some cfg ->
@@ -1666,6 +1667,7 @@ Definition config_contains_all_processes
   exists pre post,
     cfg = pre ++ Memb 0%nat p :: post.
 
+(* One Step compilation correctness. *)
 Theorem seq_to_dist_one_step :
   forall (rmax:nat) Γ s sol os lab s1 c1,
     wf_qstate s ->

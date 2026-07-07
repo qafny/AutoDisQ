@@ -1,5 +1,5 @@
-# DisQ
-To compile DisQ, you will need [Coq](https://coq.inria.fr/). We recommend using [opam](https://opam.ocaml.org/doc/Install.html) to install Coq and `opam switch` to manage Coq versions. We currently support Coq **versions 8.16**.
+# AutoDisQ
+To compile AutoDisQ, you will need [Coq](https://coq.inria.fr/). We recommend using [opam](https://opam.ocaml.org/doc/Install.html) to install Coq and `opam switch` to manage Coq versions. We currently support Coq **versions 8.16**.
 
 
 ## Environment Setup
@@ -18,7 +18,7 @@ opam list
 
 ## Setup
 
-To compile Qafny, you will need [Coq](https://coq.inria.fr/) and [QuickChick](https://github.com/QuickChick/QuickChick). We strongly recommend using [opam](https://opam.ocaml.org/doc/Install.html) to install Coq and `opam switch` to manage Coq versions. We currently support Coq **versions 8.16**.
+To compile AutoDisQ, you will need [Coq](https://coq.inria.fr/) and [QuickChick](https://github.com/QuickChick/QuickChick). We strongly recommend using [opam](https://opam.ocaml.org/doc/Install.html) to install Coq and `opam switch` to manage Coq versions. We currently support Coq **versions 8.16**.
 
 Assuming you have opam installed (following the instructions in the link above), follow the steps below to set up your environment.
 ```
@@ -58,7 +58,7 @@ To pull subsequent updates, run opam install coq-sqir.
 To import SQIR files, use Require Import SQIR.FILENAME
 
 
-## Compile & Running DisQ
+## Compile & Running AutoDisQ
 1. Generate Makefile if it is the first time, run `coq_makefile -f _CoqProject -o Makefile`.
 
 2. Compile, run `make` in the current directory. 
@@ -66,11 +66,13 @@ To import SQIR files, use Require Import SQIR.FILENAME
 
 ## Directory Contents
 
-* DisQSyntax.v - The DisQ language syntax.
+* DisQSyntax.v - The AutoDisQ language syntax.
 * DisQDef.v - Locus and state syntax and equation rules.
-* DisQKind.v - The DisQ Kind system and action level semantics.
-* DisQType.v - The DisQ Type system.
-* DisQSem.v - The DisQ language semantics.
-
+* DisQKind.v - The AutoDisQ Kind system and action level semantics.
+* DisQType.v - The AutoDisQ Type system.
+* DisQSem.v - The AutoDisQ language semantics.
+* AUTO.v - The AutoDisQ supporting theorem.
+* AUTO_Correctness.v - The AutoDisQ algorithm well-formedness theorem.
+* AUTO_Proof.v - The AutoDisQ algorithm bi-simulation theorem (sim_n_steps) and compiler correctness (compile_config_density_sound_0).
 
 
