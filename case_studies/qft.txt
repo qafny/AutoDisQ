@@ -1,0 +1,40 @@
+------------------------------------------------------------
+autodisq_best_1 QFT32 [0;1] = Some
+[
+  Memb 0 { len=64; CNew(0,(0,32)) ; CAppU([(0,(0,1))],H(0,Num 0)) ; CAppU([(0,(0,2))],CU(0,Num 1,Seq(SKIP(0,Num 0),RZ(3,0,Num 0)))) ; CAppU([(0,(1,2))],H(0,Num 1)) ; CAppU([(0,(0,3))],CU(0,Num 2,Seq(Seq(SKIP(0,Num 0),RZ(4,0,Num 0)),RZ(5,0,Num 1)))) ; CAppU([(0,(2,3))],H(0,Num 2)) ; CAppU([(0,(0,4))],CU(0,Num 3,Seq(Seq(Seq(SKIP(0,Num 0),RZ(5,0,Num 0)),RZ(6,0,Num 1)),RZ(7,0,Num 2)))) ; CAppU([(0,(3,4))],H(0,Num 3)) ; CAppU([(0,(0,5))],CU(0,Num 4,Seq(Seq(Seq(Seq(SKIP(0,Num 0),RZ(6,0,Num 0)),RZ(7,0,Num 1)),RZ(8,0,Num 2)),RZ(9,0,Num 3)))) ; CAppU([(0,(4,5))],H(0,Num 4)) ; CAppU([(0,(0,6))],CU(0,Num 5,Seq(Seq(Seq(Seq(Seq(SKIP(0,Num 0),RZ(7,0,Num 0)),RZ(8,0,Num 1)),RZ(9,0,Num 2)),RZ(10,0,Num 3)),RZ(11,0,Num 4)))) ; CAppU([(0,(5,6))],H(0,Num 5)) ; ... }
+]
+fit = 64
+count_comm_ops = 0
+used_membranes = 1
+max_load = 64
+time = 3.541209s
+------------------------------------------------------------
+autodisq_best_1 QFT32 [0;1;2] = Some
+[
+  Memb 0 { len=64; CNew(0,(0,32)) ; CAppU([(0,(0,1))],H(0,Num 0)) ; CAppU([(0,(0,2))],CU(0,Num 1,Seq(SKIP(0,Num 0),RZ(3,0,Num 0)))) ; CAppU([(0,(1,2))],H(0,Num 1)) ; CAppU([(0,(0,3))],CU(0,Num 2,Seq(Seq(SKIP(0,Num 0),RZ(4,0,Num 0)),RZ(5,0,Num 1)))) ; CAppU([(0,(2,3))],H(0,Num 2)) ; CAppU([(0,(0,4))],CU(0,Num 3,Seq(Seq(Seq(SKIP(0,Num 0),RZ(5,0,Num 0)),RZ(6,0,Num 1)),RZ(7,0,Num 2)))) ; CAppU([(0,(3,4))],H(0,Num 3)) ; CAppU([(0,(0,5))],CU(0,Num 4,Seq(Seq(Seq(Seq(SKIP(0,Num 0),RZ(6,0,Num 0)),RZ(7,0,Num 1)),RZ(8,0,Num 2)),RZ(9,0,Num 3)))) ; CAppU([(0,(4,5))],H(0,Num 4)) ; CAppU([(0,(0,6))],CU(0,Num 5,Seq(Seq(Seq(Seq(Seq(SKIP(0,Num 0),RZ(7,0,Num 0)),RZ(8,0,Num 1)),RZ(9,0,Num 2)),RZ(10,0,Num 3)),RZ(11,0,Num 4)))) ; CAppU([(0,(5,6))],H(0,Num 5)) ; ... }
+]
+fit = 64
+count_comm_ops = 0
+used_membranes = 1
+max_load = 64
+time = 3.497683s
+------------------------------------------------------------
+autodisq_best_1 QFT32 [0;1;2;3;4] = Some
+[
+  Memb 0 { len=64; CNew(0,(0,32)) ; CAppU([(0,(0,1))],H(0,Num 0)) ; CAppU([(0,(0,2))],CU(0,Num 1,Seq(SKIP(0,Num 0),RZ(3,0,Num 0)))) ; CAppU([(0,(1,2))],H(0,Num 1)) ; CAppU([(0,(0,3))],CU(0,Num 2,Seq(Seq(SKIP(0,Num 0),RZ(4,0,Num 0)),RZ(5,0,Num 1)))) ; CAppU([(0,(2,3))],H(0,Num 2)) ; CAppU([(0,(0,4))],CU(0,Num 3,Seq(Seq(Seq(SKIP(0,Num 0),RZ(5,0,Num 0)),RZ(6,0,Num 1)),RZ(7,0,Num 2)))) ; CAppU([(0,(3,4))],H(0,Num 3)) ; CAppU([(0,(0,5))],CU(0,Num 4,Seq(Seq(Seq(Seq(SKIP(0,Num 0),RZ(6,0,Num 0)),RZ(7,0,Num 1)),RZ(8,0,Num 2)),RZ(9,0,Num 3)))) ; CAppU([(0,(4,5))],H(0,Num 4)) ; CAppU([(0,(0,6))],CU(0,Num 5,Seq(Seq(Seq(Seq(Seq(SKIP(0,Num 0),RZ(7,0,Num 0)),RZ(8,0,Num 1)),RZ(9,0,Num 2)),RZ(10,0,Num 3)),RZ(11,0,Num 4)))) ; CAppU([(0,(5,6))],H(0,Num 5)) ; ... }
+]
+fit = 64
+count_comm_ops = 0
+used_membranes = 1
+max_load = 64
+time = 3.501211s
+------------------------------------------------------------
+autodisq_best_1 QFT256 [0;1] = Some
+[
+  Memb 0 { len=512; CNew(0,(0,256)) ; CAppU([(0,(0,1))],H(0,Num 0)) ; CAppU([(0,(0,2))],CU(0,Num 1,Seq(SKIP(0,Num 0),RZ(3,0,Num 0)))) ; CAppU([(0,(1,2))],H(0,Num 1)) ; CAppU([(0,(0,3))],CU(0,Num 2,Seq(Seq(SKIP(0,Num 0),RZ(4,0,Num 0)),RZ(5,0,Num 1)))) ; CAppU([(0,(2,3))],H(0,Num 2)) ; CAppU([(0,(0,4))],CU(0,Num 3,Seq(Seq(Seq(SKIP(0,Num 0),RZ(5,0,Num 0)),RZ(6,0,Num 1)),RZ(7,0,Num 2)))) ; CAppU([(0,(3,4))],H(0,Num 3)) ; CAppU([(0,(0,5))],CU(0,Num 4,Seq(Seq(Seq(Seq(SKIP(0,Num 0),RZ(6,0,Num 0)),RZ(7,0,Num 1)),RZ(8,0,Num 2)),RZ(9,0,Num 3)))) ; CAppU([(0,(4,5))],H(0,Num 4)) ; CAppU([(0,(0,6))],CU(0,Num 5,Seq(Seq(Seq(Seq(Seq(SKIP(0,Num 0),RZ(7,0,Num 0)),RZ(8,0,Num 1)),RZ(9,0,Num 2)),RZ(10,0,Num 3)),RZ(11,0,Num 4)))) ; CAppU([(0,(5,6))],H(0,Num 5)) ; ... }
+]
+fit = 512
+count_comm_ops = 0
+used_membranes = 1
+max_load = 512
+time = 126197.663626s
