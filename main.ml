@@ -1349,7 +1349,7 @@ let () =
     (protect_bench (fun () -> autodisq_best_1 qft256_only_seq mids_2));
   
   *)
-  
+
   (* ========================================================== *)
   (* QFT 256                                                     *)
   (* ========================================================== *)
@@ -1368,10 +1368,10 @@ let () =
 
   report_unit "gen_prog QFT256 [0;1;2]"
     (protect_unit (fun () -> test_gen_prog qft256_only_seq mids_3));
-*)
+
   report_best "autodisq_best_1 QFT256 [0;1;2]"
     (protect_bench (fun () -> autodisq_best_1 qft256_only_seq mids_3));
-
+*)
   (* ========================================================== *)
   (* QFT 256                                                     *)
   (* ========================================================== *)
