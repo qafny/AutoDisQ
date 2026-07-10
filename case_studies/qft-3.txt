@@ -1,0 +1,10 @@
+------------------------------------------------------------
+autodisq_best_1 QFT256 [0;1;2] = Some
+[
+  Memb 0 { len=512; CNew(0,(0,256)) ; CAppU([(0,(0,1))],H(0,Num 0)) ; CAppU([(0,(0,2))],CU(0,Num 1,SKIP(0,Num 0))) ; CAppU([(0,(1,2))],H(0,Num 1)) ; CAppU([(0,(0,3))],CU(0,Num 2,SKIP(0,Num 0))) ; CAppU([(0,(2,3))],H(0,Num 2)) ; CAppU([(0,(0,4))],CU(0,Num 3,SKIP(0,Num 0))) ; CAppU([(0,(3,4))],H(0,Num 3)) ; CAppU([(0,(0,5))],CU(0,Num 4,SKIP(0,Num 0))) ; CAppU([(0,(4,5))],H(0,Num 4)) ; CAppU([(0,(0,6))],CU(0,Num 5,SKIP(0,Num 0))) ; CAppU([(0,(5,6))],H(0,Num 5)) ; ... }
+]
+fit = 512
+count_comm_ops = 0
+used_membranes = 1
+max_load = 512
+time = 126159.872836s
